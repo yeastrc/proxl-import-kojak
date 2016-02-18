@@ -128,8 +128,10 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 		Linkers linkers = new Linkers();
 		proxlInputRoot.setLinkers( linkers );
 
+		List<Linker> linkerList = linkers.getLinker();
+		
 		Linker linker = new Linker();
-		linkers.setLinker( linker );
+		linkerList.add( linker );
 		
 		linker.setName( linkerNameString );
 
