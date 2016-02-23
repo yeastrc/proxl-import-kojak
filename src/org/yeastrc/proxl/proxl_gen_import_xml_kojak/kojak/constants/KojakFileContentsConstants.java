@@ -41,6 +41,7 @@ public class KojakFileContentsConstants {
 //	dScore is the difference between that score and the next score (bigger is better).
 	public static final String SCORE_HEADER_LABEL = "Score";
 	public static final String DSCORE_HEADER_LABEL = "dScore";
+	public static final String PEPDIFF_HEADER_LABEL = "Pep. Diff.";
 
 	
 	//  All other are descriptive annotations

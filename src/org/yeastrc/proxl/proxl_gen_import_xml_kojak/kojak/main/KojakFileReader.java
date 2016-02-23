@@ -78,7 +78,7 @@ public class KojakFileReader {
 //	dScore is the difference between that score and the next score (bigger is better).
 	private int SCORE_HeaderIndex = INDEX_INIT_VALUE;
 	private int DSCORE_HeaderIndex = INDEX_INIT_VALUE;
-
+	private int PEPDIFF_HeaderIndex = INDEX_INIT_VALUE;
 
 	
 	//  All other are descriptive annotations
@@ -288,6 +288,18 @@ public class KojakFileReader {
 						throw new ProxlGenXMLDataException( msg );
 					}
 
+				} else if ( KojakFileContentsConstants.PEPDIFF_HEADER_LABEL.equals( headerElement ) ) {
+
+					PEPDIFF_HeaderIndex = headerElementIndex;
+
+					if ( ! filteredAnnotationNamesFromColumnHeaders.add( headerElement ) ) {
+						
+						String msg = "Column header value '" + headerElement + "' occurs more than once in "
+								 + " Kojak file: " + inputFile.getAbsolutePath()
+										+ ", headerLine: " + headerLine;
+						log.error( msg );
+						throw new ProxlGenXMLDataException( msg );
+					}
 
 				} else  {
 
@@ -348,7 +360,14 @@ public class KojakFileReader {
 				log.error( msg );
 				throw new Exception(msg);
 			}
+			if ( PEPDIFF_HeaderIndex == INDEX_INIT_VALUE ) {
 
+				String msg = "Kojak file header line does not contain header label '" 
+						+ KojakFileContentsConstants.PEPDIFF_HEADER_LABEL + "'.  Kojak file: " + inputFile.getAbsolutePath()
+						+ ", headerLine: " + headerLine;
+				log.error( msg );
+				throw new Exception(msg);
+			}
 			if ( PEPTIDE_1_HeaderIndex == INDEX_INIT_VALUE ) {
 
 				String msg = "Kojak file header line does not contain header label '" 
@@ -697,7 +716,28 @@ public class KojakFileReader {
 					log.error( msg );
 					throw new Exception(msg);
 				}
-				
+			} else if ( lineSplitIndex == PEPDIFF_HeaderIndex ) {
+
+				String pepdiffString = lineSplit[ lineSplitIndex ];
+
+				try {
+					
+					BigDecimal dScore = new BigDecimal( pepdiffString );
+					
+					filteredAnnotations.put( KojakFileContentsConstants.PEPDIFF_HEADER_LABEL, dScore );
+					
+					
+				} catch ( Exception ex ) {
+					
+					String msg = "Kojak file 'Pep. Diff.'"
+							+ " as identified by the header label '" + KojakFileContentsConstants.PEPDIFF_HEADER_LABEL
+							+ "' is not parsible as decimal."
+							+ " PepDiffString: '" + pepdiffString
+							+ "', Kojak file: " + inputFile.getAbsolutePath()
+							+ ", line: " + line;
+					log.error( msg );
+					throw new Exception(msg);
+				}	
 			} else {
 				
 				/////////////////////////////

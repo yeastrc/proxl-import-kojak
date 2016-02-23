@@ -722,10 +722,26 @@ public class ProcessPercolatorFileList {
 
 				filterablePeptideAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_Q_VALUE );
 
-				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_Q_VALUE );
+				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_Q_VALUE );
 				filterablePeptideAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
 			}
 
+			//////////////
+
+			//  PEP - Smallest first
+
+			{
+				FilterablePeptideAnnotationType filterablePeptideAnnotationType = new FilterablePeptideAnnotationType();
+				filterablePeptideAnnotationTypeList.add( filterablePeptideAnnotationType );
+
+				filterablePeptideAnnotationType.setDefaultFilter( false );
+
+				filterablePeptideAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_PEP );
+
+				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_PEP );
+				filterablePeptideAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
+			}
+			
 			//////////////
 
 			//  p-value - Smallest first
@@ -738,7 +754,7 @@ public class ProcessPercolatorFileList {
 
 				filterablePeptideAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
 
-				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
+				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_P_VALUE );
 				filterablePeptideAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
 			}
 
@@ -754,24 +770,8 @@ public class ProcessPercolatorFileList {
 
 				filterablePeptideAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SVM_SCORE );
 
-				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SVM_SCORE );
+				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_SVM_SCORE );
 				filterablePeptideAnnotationType.setFilterDirection( FilterDirectionType.ABOVE );
-			}
-
-			//////////////
-
-			//  PEP - Smallest first
-
-			{
-				FilterablePeptideAnnotationType filterablePeptideAnnotationType = new FilterablePeptideAnnotationType();
-				filterablePeptideAnnotationTypeList.add( filterablePeptideAnnotationType );
-
-				filterablePeptideAnnotationType.setDefaultFilter( false );
-
-				filterablePeptideAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_PEP );
-
-				filterablePeptideAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_PEP );
-				filterablePeptideAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
 			}
 
 
@@ -780,6 +780,7 @@ public class ProcessPercolatorFileList {
 
 		/////////////  Descriptive
 
+		/* Don't store this.
 		{
 			DescriptivePeptideAnnotationTypes descriptivePeptideAnnotationTypes = new DescriptivePeptideAnnotationTypes();
 			peptideAnnotationTypes.setDescriptivePeptideAnnotationTypes( descriptivePeptideAnnotationTypes );
@@ -796,6 +797,7 @@ public class ProcessPercolatorFileList {
 			}
 			
 		}
+		*/
 
 
 		////////////////////////////
@@ -830,9 +832,26 @@ public class ProcessPercolatorFileList {
 
 				filterablePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_Q_VALUE );
 
-				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_Q_VALUE );
+				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_Q_VALUE );
 				filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
 			}
+
+			//////////////
+
+			//  PEP - Smallest first
+
+			{
+				FilterablePsmAnnotationType filterablePsmAnnotationType = new FilterablePsmAnnotationType();
+				filterablePsmAnnotationTypeList.add( filterablePsmAnnotationType );
+
+				filterablePsmAnnotationType.setDefaultFilter( false );
+
+				filterablePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_PEP );
+
+				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_PEP );
+				filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
+			}
+			
 			//////////////
 
 			//  p-value - Smallest first
@@ -845,7 +864,7 @@ public class ProcessPercolatorFileList {
 
 				filterablePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
 
-				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
+				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_P_VALUE );
 				filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
 			}
 
@@ -861,25 +880,10 @@ public class ProcessPercolatorFileList {
 
 				filterablePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SVM_SCORE );
 
-				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SVM_SCORE );
+				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_DESCRIPTION_SVM_SCORE );
 				filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.ABOVE );
 			}
 
-			//////////////
-
-			//  PEP - Smallest first
-
-			{
-				FilterablePsmAnnotationType filterablePsmAnnotationType = new FilterablePsmAnnotationType();
-				filterablePsmAnnotationTypeList.add( filterablePsmAnnotationType );
-
-				filterablePsmAnnotationType.setDefaultFilter( false );
-
-				filterablePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_PEP );
-
-				filterablePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_PEP );
-				filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
-			}
 
 		}
 
@@ -892,6 +896,7 @@ public class ProcessPercolatorFileList {
 			List<DescriptivePsmAnnotationType> descriptivePsmAnnotationTypeList =
 					descriptivePsmAnnotationTypes.getDescriptivePsmAnnotationType();
 
+			/* Let's not store these
 			{
 				DescriptivePsmAnnotationType descriptivePsmAnnotationType = new DescriptivePsmAnnotationType();
 				descriptivePsmAnnotationTypeList.add( descriptivePsmAnnotationType );
@@ -908,6 +913,7 @@ public class ProcessPercolatorFileList {
 				descriptivePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
 				descriptivePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
 			}
+			*/
 		}
 	}
 }

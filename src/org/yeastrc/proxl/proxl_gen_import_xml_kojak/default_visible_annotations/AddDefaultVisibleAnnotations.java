@@ -61,14 +61,15 @@ public class AddDefaultVisibleAnnotations {
 				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
 			}
 
-
 			{
 				SearchAnnotation searchAnnotation = new SearchAnnotation();
 				visiblePsmAnnotationsSearchAnnotationList.add( searchAnnotation );
 
-				searchAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SVM_SCORE );
+				searchAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
 				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
 			}
+			
+
 		}
 		
 		{
@@ -86,6 +87,21 @@ public class AddDefaultVisibleAnnotations {
 				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
 			}
 
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				visibleReportedPeptideAnnotationsSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_PEP );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
+			}
+
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				visibleReportedPeptideAnnotationsSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
+			}
 			
 		}
 		

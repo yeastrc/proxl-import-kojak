@@ -182,9 +182,21 @@ public class ProcessKojakFile {
 
 				filterablePsmAnnotationType.setName( name );
 
-				filterablePsmAnnotationType.setDescription( "Kojak D Score" );
+				filterablePsmAnnotationType.setDescription( "Difference between score and next-highest scoring PSM." );
 				filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.ABOVE );
+
+			} else if ( KojakFileContentsConstants.PEPDIFF_HEADER_LABEL.equals( name ) ) {
 				
+
+				FilterablePsmAnnotationType filterablePsmAnnotationType = new FilterablePsmAnnotationType();
+				filterablePsmAnnotationTypeList.add( filterablePsmAnnotationType );
+				
+				filterablePsmAnnotationType.setDefaultFilter( false );
+
+				filterablePsmAnnotationType.setName( name );
+
+				filterablePsmAnnotationType.setDescription( "For cross-links, the score of the lower scoring peptide." );
+				filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.ABOVE );
 				
 				
 			} else {

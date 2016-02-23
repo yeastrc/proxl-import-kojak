@@ -64,6 +64,13 @@ public class AddAnnotationSortOrder {
 				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
 			}
 
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				psmAnnotationSortOrderSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
+			}
 
 			{
 				SearchAnnotation searchAnnotation = new SearchAnnotation();
@@ -98,6 +105,13 @@ public class AddAnnotationSortOrder {
 				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
 			}
 
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				reportedPeptideAnnotationSortOrderSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_P_VALUE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
+			}
 
 			{
 				SearchAnnotation searchAnnotation = new SearchAnnotation();
