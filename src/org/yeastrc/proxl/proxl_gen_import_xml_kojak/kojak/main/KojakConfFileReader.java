@@ -59,8 +59,10 @@ public class KojakConfFileReader {
 	public void readKojakConfFile( File kojakConfFile, ProxlInput proxlInputRoot ) throws Exception{
 	
 		StaticModifications staticModifications = new StaticModifications();
-		proxlInputRoot.setStaticModifications( staticModifications );
 		
+		//  This is called at end of processing if staticModificationList is not empty:
+		// 		proxlInputRoot.setStaticModifications( staticModifications );
+
 		List<StaticModification> staticModificationList = staticModifications.getStaticModification();
 		
 		
@@ -217,7 +219,12 @@ public class KojakConfFileReader {
 		validateStaticMods( staticModificationList, kojakConfFile );
 		
 		
+		//  Add Static modifications if list not empty
 		
+		if ( ! staticModificationList.isEmpty() ) {
+		
+			proxlInputRoot.setStaticModifications( staticModifications );
+		}
 		
 	}
 	
