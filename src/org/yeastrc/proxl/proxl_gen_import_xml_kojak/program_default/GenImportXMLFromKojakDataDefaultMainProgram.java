@@ -46,6 +46,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			
 			CmdLineParser cmdLineParser = new CmdLineParser();
 	        
+			CmdLineParser.Option outputFilenameOpt = cmdLineParser.addStringOption( 'o', "output_file" );
 			CmdLineParser.Option linkerOpt = cmdLineParser.addStringOption( 'l', "linker" );	
 			CmdLineParser.Option fastaOpt = cmdLineParser.addStringOption( 'f', "fasta" );	
 			CmdLineParser.Option nameOpt = cmdLineParser.addStringOption( 'n', "name" );	
@@ -84,6 +85,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	            throw new PrintHelpOnlyException();
 	        }
 	        
+	        String outputFilename = (String)cmdLineParser.getOptionValue( outputFilenameOpt );
 	        String linkerNameString = (String)cmdLineParser.getOptionValue( linkerOpt );
 	        String fastaFilename = (String)cmdLineParser.getOptionValue( fastaOpt );
 
@@ -105,7 +107,13 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				programExitCode = 1;
 				throw new PrintHelpOnlyException();
 			}
-				        
+				      
+	        if( outputFilename == null || outputFilename.equals( "" ) ) {
+	        	System.err.println( "Must specify an output file using -o or --output_file=\n" );
+	        	
+				programExitCode = 1;
+				throw new PrintHelpOnlyException();
+	        }
 			
 	        if( linkerNameString == null || linkerNameString.equals( "" ) ) {
 	        	System.err.println( "Must specify a linker using -l\n" );
@@ -171,6 +179,8 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			
 	        
 	        System.out.println( "Performing Proxl import for parameters:" );
+	        
+	        System.out.println( "output filename: " + outputFilename );
 	        System.out.println( "linker: " + linkerNameString );
 	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
@@ -204,26 +214,9 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 			System.out.println( " " );
 			
+
+			File outputFile = new File( outputFilename );
 			
-
-
-//			
-//			try {
-//				//  throws Exception if fasta filename is not found
-//				FASTADatabaseLookup.getInstance().lookupDatabase( fastaFilename );
-//			} catch( Exception e ) {
-//				System.err.println( "Could not find a parsed FASTA file named: " + fastaFilename );
-//				System.err.println( "Error: " + e.getMessage() );
-//				System.err.println( "Is the name correct? Has it been parsed?" );
-//				printHelp();
-//				
-//				throw e;
-//				
-//				//System.exit( 0 );
-//			}
-//			
-
-
 			
 	        File kojakConfFile = new File( kojakConfFileWithPathCommandLine );
 	        
@@ -269,7 +262,6 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	}
 	        }
 
-			File outputFile = new File( "proxlImportTestFile.xml" );
 			
 	        
 			//////////////////////////////////////
@@ -300,6 +292,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			System.out.println( "" );
 
 	        System.out.println( "Completed Proxl Gen XML for Import for parameters:" );
+	        System.out.println( "output filename: " + outputFilename );
 	        System.out.println( "linker: " + linkerNameString );
 	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
@@ -382,7 +375,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	
 	private static void printHelp() throws Exception {
 		
-		String line = "Usage: <run jar script> -l linker -f fasta_name.fasta "
+		String line = "Usage: <run jar script> -o output_filename -l linker -f fasta_name.fasta "
 				+ " -k kojak_file_with_path -c kojak_conf_filename "
 				+ " -m <monolink masses, ';' delimited> "
 				+ "  [ -n search_name ] "
@@ -394,10 +387,19 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		
 		System.err.println( line );
 		
-		System.err.println( "E.g.:  java -jar <name of main jar>  -l dss -f yeast.fasta -k kojak_output_file -c Kojak.conf -n \"Such and such name\" /path/to/percolator.xml " );
+		System.err.println( "E.g.:  java -jar <name of main jar> -o proxlImport.xml -l dss -f yeast.fasta -k kojak_output_file -c Kojak.conf -n \"Such and such name\" /path/to/percolator.xml " );
 		System.err.println( "" );
 		System.err.println( "<run jar script> is the appropriate script for your language to run the main jar with the other jars on the java class path" );
 		System.err.println( "" );
+		
+		System.err.println( "" );
+		System.err.println( "The -o is required.");
+		System.err.println( "--output_file= can be used instead of -o.");
+		System.err.println( "A path as part of the filename is optional, either absolute or relative to the execution of the importer" );
+
+
+		System.err.println( "" );
+		System.err.println( "The -l is required.");
 
 
 		System.err.println( "" );
