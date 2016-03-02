@@ -27,7 +27,7 @@ public class PercolatorGenImportXML_AnnotationNames_Constants {
 
 	//  Descriptive
 	
-	public static final String ANNOTATION_NAME_CALC_MASS = "Calc Mass";
+//	public static final String ANNOTATION_NAME_CALC_MASS = "Calc Mass";
 
 	public static final String ANNOTATION_NAME_SCAN_NUMBER = "Scan Number";
 }
