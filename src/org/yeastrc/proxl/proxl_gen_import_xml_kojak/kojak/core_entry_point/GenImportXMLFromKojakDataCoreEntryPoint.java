@@ -85,19 +85,6 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 		
 		proxlInputRoot.setFastaFilename( fastaFilename );
 		
-		if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
-
-			DecoyLabels decoyLabels = new DecoyLabels();
-			proxlInputRoot.setDecoyLabels( decoyLabels );
-
-			List<DecoyLabel> decoyLabelList = decoyLabels.getDecoyLabel();
-
-			DecoyLabel decoyLabel = new DecoyLabel();
-			decoyLabelList.add( decoyLabel );
-
-			decoyLabel.setPrefix( proteinNameDecoyPrefix );
-		}
-		
 //		proxlInputRoot.setComment(  );
 		
 		proxlInputRoot.setName( searchName );
@@ -154,6 +141,23 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 			
 			
 			ProcessKojakConfFile.getInstance().processKojakConfFile( kojakConfFile, proxlInputRoot );
+			
+
+			if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
+				
+				//  Decoys provided on command line so Override decoys from conf file 
+
+				DecoyLabels decoyLabels = new DecoyLabels();
+				proxlInputRoot.setDecoyLabels( decoyLabels );
+
+				List<DecoyLabel> decoyLabelList = decoyLabels.getDecoyLabel();
+
+				DecoyLabel decoyLabel = new DecoyLabel();
+				decoyLabelList.add( decoyLabel );
+
+				decoyLabel.setPrefix( proteinNameDecoyPrefix );
+			}
+			
 			
 			ProcessKojakFileOnly.getInstance().processKojakFile( kojakOutputFile, proxlInputRoot );
 

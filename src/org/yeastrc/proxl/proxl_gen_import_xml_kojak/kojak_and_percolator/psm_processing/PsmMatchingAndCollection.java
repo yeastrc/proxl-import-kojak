@@ -239,15 +239,15 @@ public class PsmMatchingAndCollection {
 				
 		if ( psmDataByScanNumberList == null ) {
 
-			String msg = "\t\tINFO: Kojak record not processed.  Scan number in Kojak Data not found in Percolator data. "
-			
-					+ ", scanNumber: " + scanNumber
-					+ ", comparisonString1: " + comparisonString1
-					+ ", comparisonString2: " + comparisonString2
-					+ ", comparisonString3: " + comparisonString3
-					+ ", comparisonString4: " + comparisonString4;
-			
-			System.out.println( msg );
+//			String msg = "\t\tINFO: Kojak record not processed.  Scan number in Kojak Data not found in Percolator data. "
+//			
+//					+ ", scanNumber: " + scanNumber
+//					+ ", comparisonString1: " + comparisonString1
+//					+ ", comparisonString2: " + comparisonString2
+//					+ ", comparisonString3: " + comparisonString3
+//					+ ", comparisonString4: " + comparisonString4;
+//			
+//			System.out.println( msg );
 			
 //			String msg = "ERROR: getForKojakData(...): scan number not found. filename: " + filename + ", scanNumber: " + scanNumber;
 //			

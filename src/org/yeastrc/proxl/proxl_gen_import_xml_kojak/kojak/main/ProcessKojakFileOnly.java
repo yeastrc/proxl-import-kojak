@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.IsAllProtein_1or2_Decoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileReader;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects.LinkTypeAndReportedPeptideString;
@@ -99,6 +100,16 @@ public class ProcessKojakFileOnly {
 				}
 				
 				System.out.println( "Processing Kojak record for scan number: " + kojakPsmDataObject.getScanNumber() );
+
+				if ( IsAllProtein_1or2_Decoy.getInstance().isAllProtein_1or2_Decoy( kojakPsmDataObject, proxlInputRoot) ) {
+					
+					System.out.println( "All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record."
+							+ "  scan number: " + kojakPsmDataObject.getScanNumber() );
+					
+					//   All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record.
+					
+					continue;  //   EARLY CONTINUE to next record
+				}
 				
 				LinkTypeAndReportedPeptideString linkTypeAndReportedPeptideString = 
 						GetLinkTypeAndReportedPeptideString.getInstance().getLinkTypeAndReportedPeptideString( kojakPsmDataObject );

@@ -19,6 +19,9 @@ public class KojakPsmDataObject {
 	
 	private String link_1;
 	private String link_2;
+
+	private String protein_1;
+	private String protein_2;
 	
 	private String obsMass;
 	private String psmMass;
@@ -128,6 +131,22 @@ public class KojakPsmDataObject {
 
 	public void setPpmError(String ppmError) {
 		this.ppmError = ppmError;
+	}
+
+	public String getProtein_1() {
+		return protein_1;
+	}
+
+	public void setProtein_1(String protein_1) {
+		this.protein_1 = protein_1;
+	}
+
+	public String getProtein_2() {
+		return protein_2;
+	}
+
+	public void setProtein_2(String protein_2) {
+		this.protein_2 = protein_2;
 	}
 	
 }

@@ -49,7 +49,7 @@ public class KojakFileReader {
 
 	private String[] headerStrings;
 
-	//  These are explicitly skipped over
+	//  These are extracted for specific processing
 	
 	private int PROTEIN_1_HeaderIndex = INDEX_INIT_VALUE;
 	private int PROTEIN_2_HeaderIndex = INDEX_INIT_VALUE;
@@ -553,9 +553,15 @@ public class KojakFileReader {
 			
 			if ( lineSplitIndex == PROTEIN_1_HeaderIndex ) {
 			
+				String protein_1 = lineSplit[ lineSplitIndex ];
+				
+				kojakPsmDataObject.setProtein_1( protein_1 );
 
 			} else if ( lineSplitIndex == PROTEIN_2_HeaderIndex ) {
+
+				String protein_2 = lineSplit[ lineSplitIndex ];
 				
+				kojakPsmDataObject.setProtein_2( protein_2 );
 				
 			
 				/////////////////////////////

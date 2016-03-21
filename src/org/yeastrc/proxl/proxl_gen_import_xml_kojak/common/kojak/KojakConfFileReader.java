@@ -16,6 +16,8 @@ import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFile;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFiles;
+import org.yeastrc.proxl_import.api.xml_dto.DecoyLabel;
+import org.yeastrc.proxl_import.api.xml_dto.DecoyLabels;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.StaticModification;
 import org.yeastrc.proxl_import.api.xml_dto.StaticModifications;
@@ -38,6 +40,8 @@ public class KojakConfFileReader {
 	private static final String MS_DATA_FILE_CONFIG_KEY = "MS_data_file";
 	
 	public static final String FIXED_MODIFICATION_CONFIG_KEY = "fixed_modification";
+	
+	public static final String DECOY_FILTER_CONFIG_KEY = "decoy_filter";
 	
 
 	/**
@@ -169,7 +173,23 @@ public class KojakConfFileReader {
 					StaticModification staticModification = parseStaticMod( lineParsed.value, line );
 					
 					staticModificationList.add( staticModification );
-				
+
+				} else if ( DECOY_FILTER_CONFIG_KEY.equals( lineParsed.key ) ) {
+					
+					DecoyLabels decoyLabels = proxlInputRoot.getDecoyLabels();
+							
+					if ( decoyLabels == null ) {
+						decoyLabels = new DecoyLabels();
+						proxlInputRoot.setDecoyLabels( decoyLabels );
+					}
+					
+					List<DecoyLabel> decoyLabelList = decoyLabels.getDecoyLabel();
+					
+					DecoyLabel decoyLabel = new DecoyLabel();
+					decoyLabelList.add( decoyLabel );
+					
+					decoyLabel.setPrefix( lineParsed.value );
+					
 //				} else if ( KOJAK_OUTPUT_FILENAME_CONFIG_KEY.equals( lineParsed.getKojakConfFileKey() ) ) {
 //					
 //					kojakOutputFilename = lineParsed.getValue();

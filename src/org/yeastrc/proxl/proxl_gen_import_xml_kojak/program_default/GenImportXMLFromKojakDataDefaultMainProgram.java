@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.PrintHelpOnlyException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReader;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.core_entry_point.GenImportXMLFromKojakDataCoreEntryPoint;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_entry_point.GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint;
 
@@ -484,30 +485,10 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		System.err.println( "" );
 		System.err.println( "The --" + PROTEIN_NAME_DECOY_PREFIX_CMD_LINE_PARAM_STRING + " is optional.");
 		System.err.println( "If --" + PROTEIN_NAME_DECOY_PREFIX_CMD_LINE_PARAM_STRING 
-				+ " is not provided, no decoy proteins will be excluded." );
+				+ " is not provided, the value for '" 
+				+  KojakConfFileReader.DECOY_FILTER_CONFIG_KEY
+				+ "' in the kojak conf file will be used ." );
 		
-//
-//			System.err.println( "" );
-//			System.err.println( "linkers available for the '-l' option:" );
-//			System.err.println( "" );
-//			System.err.println( "abbr\tmonolink linker masses (the mass must match exactly for the variable mod to be identified as a monolink");
-//			System.err.println( "" );
-//
-//			List<LinkerDTO>  linkerList = LinkerDAO.getInstance().getAllLinkerDTO();
-//
-//			for ( LinkerDTO linkerDTO : linkerList ) {
-//
-//				System.err.println( linkerDTO.getAbbr() );
-//
-//				List<LinkerMonolinkMassDTO>  linkerMonolinkMassList = LinkerMonolinkMassDAO.getInstance().getLinkerMonolinkMassDTOForLinkerId( linkerDTO.getId() );
-//
-//				for ( LinkerMonolinkMassDTO linkerMonolinkMassDTO : linkerMonolinkMassList ) {
-//
-//					System.err.println( "\t" + linkerMonolinkMassDTO.getMass() );
-//				}
-//
-//
-//			}
 		
 	}
 
