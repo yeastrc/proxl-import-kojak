@@ -471,7 +471,10 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		System.err.println( "Examine your output file for dynamic modifications embedded in the peptide sequences.  They are denoted with '[' and ']'." );
 		System.err.println( "For Kojak, this is 2 digits to the right of the decimal place." );
 		System.err.println( "" );
-		
+
+		System.err.println( "The Percolator files are optional." );
+
+		System.err.println( "" );
 		System.err.println( "The -n is optional.");
 		System.err.println( "--name can be used instead of -n.");
 		System.err.println( "The -n is the search name displayed as the label for the search on the website" );
