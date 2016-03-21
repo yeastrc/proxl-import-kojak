@@ -1,4 +1,4 @@
-package org.yeastrc.proxl.proxl_gen_import_xml_kojak.constants;
+package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants;
 
 public class SearchProgramNameKojakImporterConstants {
 

@@ -1,4 +1,4 @@
-package org.yeastrc.proxl.proxl_gen_import_xml_kojak.core_entry_point;
+package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_entry_point;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -9,20 +9,20 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPercolatorOutput;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.annotation_sort_order.AddAnnotationSortOrder;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.command_line_options_container.CommandLineOptionsContainer;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.default_visible_annotations.AddDefaultVisibleAnnotations;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.exceptions.ProxlGenXMLDataException;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.is_monolink.IsModificationAMonolink;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.main.ProcessKojakConfFile;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.main.ProcessKojakFile;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.percolator.main.InitialProcessPsmsForCompareToKojak;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.percolator.main.ProcessPercolatorFileList;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.percolator.main.UnmarshallPercolatorFile;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.percolator.objects.PercolatorFileAndUnmarshalledObject;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.percolator.utils.VerifyAllPercolatorVersionsSame_RetrievePercolatorVersion;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.percolator.utils.VerifyNoDuplicatePercolatorPSMs;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.psm_processing.PsmMatchingAndCollection;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.annotation_sort_order.AddKojakAndPercolatorAnnotationSortOrder;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.default_visible_annotations.AddKojakAndPercolatorDefaultVisibleAnnotations;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.ProcessKojakConfFile;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.kojak.ProcessKojakFile;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.main.InitialProcessPsmsForCompareToKojak;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.main.ProcessPercolatorFileList;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.main.UnmarshallPercolatorFile;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.objects.PercolatorFileAndUnmarshalledObject;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.utils.VerifyAllPercolatorVersionsSame_RetrievePercolatorVersion;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.utils.VerifyNoDuplicatePercolatorPSMs;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_processing.PsmMatchingAndCollection;
 import org.yeastrc.proxl_import.api.xml_dto.DecoyLabel;
 import org.yeastrc.proxl_import.api.xml_dto.DecoyLabels;
 import org.yeastrc.proxl_import.api.xml_dto.Linker;
@@ -33,22 +33,22 @@ import org.yeastrc.proxl_import.api.xml_dto.SearchPrograms;
 import org.yeastrc.proxl_import.create_import_file_from_java_objects.main.CreateImportFileFromJavaObjectsMain;
 
 /**
- * This is the internal core entry point to generating the import XML from Kojak data
+ * This is the internal core entry point to generating the import XML from Kojak and Percolator data
  *
  */
-public class GenImportXMLFromKojakDataCoreEntryPoint {
+public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 
-	private static final Logger log = Logger.getLogger( GenImportXMLFromKojakDataCoreEntryPoint.class );
+	private static final Logger log = Logger.getLogger( GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint.class );
 	
 
 	/**
 	 * private constructor
 	 */
-	private GenImportXMLFromKojakDataCoreEntryPoint() { }
+	private GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint() { }
 
-	public static GenImportXMLFromKojakDataCoreEntryPoint getInstance() {
+	public static GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint getInstance() {
 		
-		return new GenImportXMLFromKojakDataCoreEntryPoint();
+		return new GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint();
 	}
 	
 	
@@ -117,9 +117,9 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 		proxlInputRoot.setSearchProgramInfo( searchProgramInfo );
 		
 		
-		AddDefaultVisibleAnnotations.getInstance().addDefaultVisibleAnnotations( searchProgramInfo );
+		AddKojakAndPercolatorDefaultVisibleAnnotations.getInstance().addDefaultVisibleAnnotations( searchProgramInfo );
 		
-		AddAnnotationSortOrder.getInstance().addAnnotationSortOrder( searchProgramInfo );
+		AddKojakAndPercolatorAnnotationSortOrder.getInstance().addAnnotationSortOrder( searchProgramInfo );
 		
 		
 		SearchPrograms searchPrograms = new SearchPrograms();

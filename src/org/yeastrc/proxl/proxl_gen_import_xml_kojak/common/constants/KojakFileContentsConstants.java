@@ -1,4 +1,4 @@
-package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.constants;
+package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;

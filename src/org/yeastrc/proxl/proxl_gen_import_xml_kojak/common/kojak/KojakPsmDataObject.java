@@ -1,4 +1,4 @@
-package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects;
+package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -19,6 +19,14 @@ public class KojakPsmDataObject {
 	
 	private String link_1;
 	private String link_2;
+	
+	private String obsMass;
+	private String psmMass;
+	private String ppmError;
+	
+//	Obs Mass	Charge	PSM Mass	PPM Error
+
+
 	
 	private Map<String, BigDecimal> filteredAnnotations;
 	
@@ -96,6 +104,30 @@ public class KojakPsmDataObject {
 
 	public void setDescriptiveAnnotations(Map<String, String> descriptiveAnnotations) {
 		this.descriptiveAnnotations = descriptiveAnnotations;
+	}
+
+	public String getObsMass() {
+		return obsMass;
+	}
+
+	public void setObsMass(String obsMass) {
+		this.obsMass = obsMass;
+	}
+
+	public String getPsmMass() {
+		return psmMass;
+	}
+
+	public void setPsmMass(String psmMass) {
+		this.psmMass = psmMass;
+	}
+
+	public String getPpmError() {
+		return ppmError;
+	}
+
+	public void setPpmError(String ppmError) {
+		this.ppmError = ppmError;
 	}
 	
 }
