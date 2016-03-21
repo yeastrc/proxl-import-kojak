@@ -13,9 +13,10 @@ import jargs.gnu.CmdLineParser.UnknownOptionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.core_entry_point.GenImportXMLFromKojakDataCoreEntryPoint;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.exceptions.PrintHelpOnlyException;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.PrintHelpOnlyException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.core_entry_point.GenImportXMLFromKojakDataCoreEntryPoint;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_entry_point.GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint;
 
 /**
  * 
@@ -34,7 +35,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	public static void main(String[] args) throws Exception {
 	
 
-		boolean successfulImport = false;
+		boolean successfulGenImportXMLFile = false;
 		
 		int programExitCode = PROGRAM_EXIT_CODE_DEFAULT_NO_SYTEM_EXIT_CALLED;
 		
@@ -102,11 +103,16 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			String[] remainingArgs = cmdLineParser.getRemainingArgs();
 			
 			if( remainingArgs.length < 1 ) {
-				System.err.println( "Got unexpected number of arguments.\n" );
-				
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
+
+				System.out.println( "No Percolator files so only processing Kojak file.");
 			}
+			
+//			if( remainingArgs.length < 1 ) {
+//				System.err.println( "Got unexpected number of arguments.\n" );
+//				
+//				programExitCode = 1;
+//				throw new PrintHelpOnlyException();
+//			}
 				      
 	        if( outputFilename == null || outputFilename.equals( "" ) ) {
 	        	System.err.println( "Must specify an output file using -o or --output_file=\n" );
@@ -158,27 +164,28 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        String[] percolatorFileArray = remainingArgs;
 	        
-	        
-	        
 			List<File> percolatorFileList = new ArrayList<>( percolatorFileArray.length );
-						
-			for ( String percolatorFileString : percolatorFileArray ) {
-				
-				File percolatorFile = new File( percolatorFileString );
 
-				if( ! percolatorFile.exists() ) {
-					System.err.println( "Could not find percolator file: " + percolatorFile );
-					
-					programExitCode = 1;
-					throw new PrintHelpOnlyException();
-//					System.exit( 1 );
+			
+			if( percolatorFileArray.length > 0 ) {
+
+				for ( String percolatorFileString : percolatorFileArray ) {
+
+					File percolatorFile = new File( percolatorFileString );
+
+					if( ! percolatorFile.exists() ) {
+						System.err.println( "Could not find percolator file: " + percolatorFile );
+
+						programExitCode = 1;
+						throw new PrintHelpOnlyException();
+					}
+
+					percolatorFileList.add( percolatorFile );
 				}
-				
-				percolatorFileList.add( percolatorFile );
 			}
 			
 	        
-	        System.out.println( "Performing Proxl import for parameters:" );
+	        System.out.println( "Performing Proxl Gen import XML file for parameters:" );
 	        
 	        System.out.println( "output filename: " + outputFilename );
 	        System.out.println( "linker: " + linkerNameString );
@@ -188,27 +195,35 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 	        System.out.println( "fasta filename: " + fastaFilename );
 
-	        System.out.println( "search name: " + searchName );
+	        if ( StringUtils.isNotEmpty( searchName ) ) {
 
-	        System.out.println( "protein name decoy prefix: " + proteinNameDecoyPrefix );
+	        	System.out.println( "search name: " + searchName );
+	        }
 
+	        if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
 	        
-	        System.out.println( "Percolator files on command line:" );
+	        	System.out.println( "protein name decoy prefix: " + proteinNameDecoyPrefix );
+	        }
 
-			for ( String percolatorFileString : percolatorFileArray ) {
-				
-				System.out.println( percolatorFileString );
-			}
-			
-			System.out.println( " " );
+
+	        if( percolatorFileArray.length > 0 ) {
 	        
-	        System.out.println( "Percolator files full path:" );
+	        	System.out.println( "Percolator files on command line:" );
 
-			for ( File percolatorFile : percolatorFileList ) {
-				
-				System.out.println( percolatorFile.getAbsolutePath() );
-			}
+	        	for ( String percolatorFileString : percolatorFileArray ) {
 
+	        		System.out.println( percolatorFileString );
+	        	}
+
+	        	System.out.println( " " );
+
+	        	System.out.println( "Percolator files full path:" );
+
+	        	for ( File percolatorFile : percolatorFileList ) {
+
+	        		System.out.println( percolatorFile.getAbsolutePath() );
+	        	}
+	        }
 			
 			System.out.println( " " );
 	        
@@ -266,25 +281,45 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 			//////////////////////////////////////
 			
-			//////////   Do the import
-			
-			GenImportXMLFromKojakDataCoreEntryPoint.getInstance().doGenFile( 
+			//////////   Do Generate the import Proxl XML file
+	        
 
-					fastaFilename, 
-					linkerNameString, 
-					searchName, 
-					proteinNameDecoyPrefix,
-					
-					monolinkModificationMasses,
-					false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
-					
-					
-					percolatorFileList, 
-					kojakOutputFile, 
-					kojakConfFile,
-					outputFile
-					 );
+	        if( percolatorFileArray.length > 0 ) {
 
+	        	GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint.getInstance().doGenFile( 
+
+	        			fastaFilename, 
+	        			linkerNameString, 
+	        			searchName, 
+	        			proteinNameDecoyPrefix,
+
+	        			monolinkModificationMasses,
+	        			false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
+
+
+	        			percolatorFileList, 
+	        			kojakOutputFile, 
+	        			kojakConfFile,
+	        			outputFile
+	        			);
+
+	        } else {
+	        	
+	        	GenImportXMLFromKojakDataCoreEntryPoint.getInstance().doGenFile( 
+	        			
+	        			fastaFilename, 
+	        			linkerNameString, 
+	        			searchName, 
+	        			proteinNameDecoyPrefix, 
+	        			
+	        			monolinkModificationMasses, 
+	        			false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
+	        			
+	        			kojakOutputFile, 
+	        			kojakConfFile, 
+	        			outputFile ) ;
+	        	
+	        }
 			
 			
 			System.out.println( "" );
@@ -298,26 +333,39 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
 	        System.out.println( "Monolink Masses: " + monolinkMassesCommandLine );
 	        System.out.println( "fasta filename: " + fastaFilename );
-	        System.out.println( "search name: " + searchName );
-
 	        
-	        System.out.println( "Percolator files on command line:" );
+
+	        if ( StringUtils.isNotEmpty( searchName ) ) {
+
+	        	System.out.println( "search name: " + searchName );
+	        }
+
+	        if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
+	        
+	        	System.out.println( "protein name decoy prefix: " + proteinNameDecoyPrefix );
+	        }
 
 
-			for ( String percolatorFileString : percolatorFileArray ) {
-				
-				System.out.println( percolatorFileString );
+			if( percolatorFileArray.length > 0 ) {
+
+				System.out.println( "Percolator files on command line:" );
+
+
+				for ( String percolatorFileString : percolatorFileArray ) {
+
+					System.out.println( percolatorFileString );
+				}
+
+				System.out.println( " " );
+
+				System.out.println( "Percolator files full path:" );
+
+				for ( File percolatorFile : percolatorFileList ) {
+
+					System.out.println( percolatorFile.getAbsolutePath() );
+				}
 			}
 			
-			System.out.println( " " );
-	        
-	        System.out.println( "Percolator files full path:" );
-
-			for ( File percolatorFile : percolatorFileList ) {
-				
-				System.out.println( percolatorFile.getAbsolutePath() );
-			}
-
 			
 			System.out.println( " " );
 
@@ -326,7 +374,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			System.out.println( " " );
 			
 			
-			successfulImport = true;
+			successfulGenImportXMLFile = true;
 			
 		} catch ( PrintHelpOnlyException e ) {
 			
@@ -352,7 +400,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 		}
 	    
-	    if ( successfulImport ) {
+	    if ( successfulGenImportXMLFile ) {
 
 	    	System.out.println( "" );
 	    	System.out.println( "--------------------------------------" );
@@ -381,7 +429,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				+ "  [ -n search_name ] "
 
 				+ " [ --" + PROTEIN_NAME_DECOY_PREFIX_CMD_LINE_PARAM_STRING + "=protein_name_decoy_prefix ] "
-				+ " /path/to/percolator_file.xml "
+				+ " [ /path/to/percolator_file.xml ] "
 				+ "[ more percolator files ]";
 				
 		
