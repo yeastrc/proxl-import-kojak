@@ -154,12 +154,12 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        }
 	        
 
-	        if( StringUtils.isEmpty( monolinkMassesCommandLine ) ) {
-	        	System.err.println( "Must specify Monolink Masses using -m\n" );
-	        	
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
-	        }
+//	        if( StringUtils.isEmpty( monolinkMassesCommandLine ) ) {
+//	        	System.err.println( "Must specify Monolink Masses using -m\n" );
+//	        	
+//				programExitCode = 1;
+//				throw new PrintHelpOnlyException();
+//	        }
 	        
 	        
 
@@ -192,7 +192,11 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        System.out.println( "linker: " + linkerNameString );
 	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
-	        System.out.println( "Monolink Masses: " + monolinkMassesCommandLine );
+	        
+	        if ( StringUtils.isNotEmpty( monolinkMassesCommandLine ) ) {
+
+	        	System.out.println( "Monolink Masses: " + monolinkMassesCommandLine );
+	        }
 	        
 	        System.out.println( "fasta filename: " + fastaFilename );
 
@@ -257,27 +261,31 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				throw new Exception( msg );
 	        }
 
-	        Set<BigDecimal> monolinkModificationMasses = new HashSet<>();
+	        Set<BigDecimal> monolinkModificationMasses = null;
 	        
 
-	        String[] monolinkMassesCommandLineSplit = monolinkMassesCommandLine.split( ";" );
+	        if ( StringUtils.isNotEmpty( monolinkMassesCommandLine ) ) {
+        
+	        	monolinkModificationMasses = new HashSet<>();
 
-	        for ( String monolinkMassString : monolinkMassesCommandLineSplit ) {
+	        	String[] monolinkMassesCommandLineSplit = monolinkMassesCommandLine.split( ";" );
 
-	        	try {
-	        		
-	        		BigDecimal monolinkMass = new BigDecimal( monolinkMassString );
-	        		
-	        		monolinkModificationMasses.add( monolinkMass );
-	        		
-	        	} catch ( Exception e ) {
-	        		
-	        		String msg = "Failed to parse monolink mass on command line: " + monolinkMassString;
-	        		log.error( msg );
-	        		throw new ProxlGenXMLDataException( msg );
+	        	for ( String monolinkMassString : monolinkMassesCommandLineSplit ) {
+
+	        		try {
+
+	        			BigDecimal monolinkMass = new BigDecimal( monolinkMassString );
+
+	        			monolinkModificationMasses.add( monolinkMass );
+
+	        		} catch ( Exception e ) {
+
+	        			String msg = "Failed to parse monolink mass on command line: " + monolinkMassString;
+	        			log.error( msg );
+	        			throw new ProxlGenXMLDataException( msg );
+	        		}
 	        	}
 	        }
-
 			
 	        
 			//////////////////////////////////////
@@ -332,7 +340,12 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        System.out.println( "linker: " + linkerNameString );
 	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
-	        System.out.println( "Monolink Masses: " + monolinkMassesCommandLine );
+
+	        if ( StringUtils.isNotEmpty( monolinkMassesCommandLine ) ) {
+        
+	        	System.out.println( "Monolink Masses: " + monolinkMassesCommandLine );
+	        }
+	        
 	        System.out.println( "fasta filename: " + fastaFilename );
 	        
 
@@ -426,7 +439,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		
 		String line = "Usage: <run jar script> -o output_filename -l linker -f fasta_name.fasta "
 				+ " -k kojak_file_with_path -c kojak_conf_filename "
-				+ " -m <monolink masses, ';' delimited> "
+				+ " [ -m <monolink masses, ';' delimited> ] "
 				+ "  [ -n search_name ] "
 
 				+ " [ --" + PROTEIN_NAME_DECOY_PREFIX_CMD_LINE_PARAM_STRING + "=protein_name_decoy_prefix ] "
@@ -436,7 +449,8 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		
 		System.err.println( line );
 		
-		System.err.println( "E.g.:  java -jar <name of main jar> -o proxlImport.xml -l dss -f yeast.fasta -k kojak_output_file -c Kojak.conf -n \"Such and such name\" /path/to/percolator.xml " );
+		System.err.println( "E.g.:  java -jar <name of main jar> -o proxlImport.xml -l dss "
+				+ " -f yeast.fasta -k kojak_output_file -c Kojak.conf -n \"Such and such name\" /path/to/percolator.xml " );
 		System.err.println( "" );
 		System.err.println( "<run jar script> is the appropriate script for your language to run the main jar with the other jars on the java class path" );
 		System.err.println( "" );
@@ -464,15 +478,13 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		System.err.println( "" );
 
 		System.err.println( "" );
-		System.err.println( "The -m is required.");
+		System.err.println( "The -m is optional.");
 		System.err.println( "--monolink_masses can be used instead of -m.");
-		System.err.println( "The -m is the Monolink masses used to determine which Dynamic Modifications are Monolinks." );
-		System.err.println( "The number of signicant digits must match the number output in the dynamic modifications embedded in the peptide sequence." );
-		System.err.println( "Examine your output file for dynamic modifications embedded in the peptide sequences.  They are denoted with '[' and ']'." );
-		System.err.println( "For Kojak, this is 2 digits to the right of the decimal place." );
+		System.err.println( "The -m overrides the Monolink masses from the Kojak conf file." );
+		System.err.println( "The -m is the Monolink masses used ONLY to determine which Dynamic Modifications are Monolinks." );
 		System.err.println( "" );
 
-		System.err.println( "The Percolator files are optional." );
+		System.err.println( "The Percolator files are optional.  If none are listed, the Kojak file is imported by itself." );
 
 		System.err.println( "" );
 		System.err.println( "The -n is optional.");

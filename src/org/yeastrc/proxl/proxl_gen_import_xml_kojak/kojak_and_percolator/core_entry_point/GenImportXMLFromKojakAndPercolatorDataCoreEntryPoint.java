@@ -86,8 +86,10 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 			
 			) throws Exception {
 		
-		
-		IsModificationAMonolink.setMonolinkModificationMasses( monolinkModificationMasses );
+		if ( monolinkModificationMasses != null ) {
+
+			IsModificationAMonolink.getInstance().setMonolinkModificationMasses( monolinkModificationMasses );
+		}
 		
 		
 		//  The object graph that will be serialized to generate the import XML file 

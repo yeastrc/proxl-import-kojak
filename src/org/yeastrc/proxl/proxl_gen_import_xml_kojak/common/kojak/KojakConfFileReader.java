@@ -16,8 +16,14 @@ import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFile;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFiles;
+import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMass;
+import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMasses;
 import org.yeastrc.proxl_import.api.xml_dto.DecoyLabel;
 import org.yeastrc.proxl_import.api.xml_dto.DecoyLabels;
+import org.yeastrc.proxl_import.api.xml_dto.Linker;
+import org.yeastrc.proxl_import.api.xml_dto.Linkers;
+import org.yeastrc.proxl_import.api.xml_dto.MonolinkMass;
+import org.yeastrc.proxl_import.api.xml_dto.MonolinkMasses;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.StaticModification;
 import org.yeastrc.proxl_import.api.xml_dto.StaticModifications;
@@ -38,6 +44,10 @@ public class KojakConfFileReader {
 	 * Input file to Kojak
 	 */
 	private static final String MS_DATA_FILE_CONFIG_KEY = "MS_data_file";
+
+	public static final String CROSS_LINK_CONFIG_KEY = "cross_link";
+	
+	public static final String MONO_LINK_CONFIG_KEY = "mono_link";
 	
 	public static final String FIXED_MODIFICATION_CONFIG_KEY = "fixed_modification";
 	
@@ -63,11 +73,14 @@ public class KojakConfFileReader {
 	public void readKojakConfFile( File kojakConfFile, ProxlInput proxlInputRoot ) throws Exception{
 	
 		StaticModifications staticModifications = new StaticModifications();
-		
-		//  This is called at end of processing if staticModificationList is not empty:
-		// 		proxlInputRoot.setStaticModifications( staticModifications );
-
 		List<StaticModification> staticModificationList = staticModifications.getStaticModification();
+
+		CrosslinkMasses crosslinkMasses = new CrosslinkMasses();
+		List<CrosslinkMass> crosslinkMassList = crosslinkMasses.getCrosslinkMass();
+
+		MonolinkMasses monolinkMasses = new MonolinkMasses();
+		List<MonolinkMass> monolinkMassList = monolinkMasses.getMonolinkMass();
+
 		
 		
 		ConfigurationFiles configurationFiles = new ConfigurationFiles();
@@ -81,10 +94,6 @@ public class KojakConfFileReader {
 		configurationFile.setFileName( kojakConfFile.getName() );
 		configurationFile.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
 		
-		
-//		proxlInputRoot.setLinkers(  );
-		
-
 		
 		System.out.println( "Reading Kojak conf file using filename provided on command line: " + kojakConfFile.getAbsolutePath() );
 		
@@ -167,6 +176,18 @@ public class KojakConfFileReader {
 				if ( MS_DATA_FILE_CONFIG_KEY.equals( lineParsed.key ) ) {
 
 //					kojakInputFilenamePossiblyWithPath = lineParsed.value;
+					
+
+
+				} else if ( CROSS_LINK_CONFIG_KEY.equals( lineParsed.key ) ) {
+					
+					CrosslinkMass crosslinkMass = parseCrosslinkMassConfig( lineParsed.value, line );
+					crosslinkMassList.add( crosslinkMass );
+
+				} else if ( MONO_LINK_CONFIG_KEY.equals( lineParsed.key ) ) {
+										 
+					MonolinkMass monolinkMass = parseMonolinkMassConfig( lineParsed.value, line );
+					monolinkMassList.add( monolinkMass );
 
 				} else if ( FIXED_MODIFICATION_CONFIG_KEY.equals( lineParsed.key ) ) {
 					
@@ -244,6 +265,76 @@ public class KojakConfFileReader {
 		if ( ! staticModificationList.isEmpty() ) {
 		
 			proxlInputRoot.setStaticModifications( staticModifications );
+		}
+		
+
+		//  Add Crosslink if list not empty
+		
+		if ( ! crosslinkMassList.isEmpty() ) {
+		
+			Linkers linkers = proxlInputRoot.getLinkers();
+			
+			if ( linkers == null ) {
+				
+				String msg = "Linkers must be populated before adding crosslink masses";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+			
+			List<Linker> linkerList = linkers.getLinker();
+
+			if ( linkerList == null || ( linkerList.isEmpty() ) ) {
+				
+				String msg = "Linkers must be populated before adding crosslink masses";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+
+			if ( linkerList.size() > 1 ) {
+				
+				String msg = "Adding Crosslink mass is only supported for one Linker.";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+			
+			Linker linker = linkerList.get( 0 );
+			
+			linker.setCrosslinkMasses( crosslinkMasses );
+		}
+		
+
+		//  Add Monolink if list not empty
+		
+		if ( ! monolinkMassList.isEmpty() ) {
+		
+			Linkers linkers = proxlInputRoot.getLinkers();
+			
+			if ( linkers == null ) {
+				
+				String msg = "Linkers must be populated before adding monolink masses";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+			
+			List<Linker> linkerList = linkers.getLinker();
+
+			if ( linkerList == null || ( linkerList.isEmpty() ) ) {
+				
+				String msg = "Linkers must be populated before adding monolink masses";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+
+			if ( linkerList.size() > 1 ) {
+				
+				String msg = "Adding Monolink mass is only supported for one Linker.";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+			
+			Linker linker = linkerList.get( 0 );
+			
+			linker.setMonolinkMasses( monolinkMasses );
 		}
 		
 	}
@@ -331,6 +422,116 @@ public class KojakConfFileReader {
 		
 		return lineParsed;
 	}
+	
+
+	/**
+	 * @param lineParsedValue
+	 * @param line
+	 * @return
+	 * @throws Exception 
+	 */
+	private CrosslinkMass parseCrosslinkMassConfig( String lineParsedValue, String line ) throws Exception {
+		
+
+//		cross_link	=	1	1	138.0680742
+		
+		
+		String[] lineParsedValueSplit = lineParsedValue.split( "\\s+" ); // split on white space.
+		
+		if ( lineParsedValueSplit.length != 3 ) {
+			
+			String msg = "Config key '" + CROSS_LINK_CONFIG_KEY + "' must have 3 values, 2 positions and a mass, line: " + line;
+			
+			log.error( msg );
+			
+			throw new Exception(msg);
+		}
+		
+
+		String massString = lineParsedValueSplit[ 2 ].trim();
+		
+		
+		BigDecimal mass = null;
+		
+		try {
+			
+			mass = new BigDecimal( massString );
+			
+		} catch ( Exception e ) {
+			
+			
+			String msg = "Config key '" + CROSS_LINK_CONFIG_KEY + "' mass is not parsable to BigDecimal.  mass: " 
+					+ massString + ", line: " + line;
+			
+			log.error( msg, e );
+			
+			throw new Exception(msg, e);
+			
+		}
+		
+		
+		
+		CrosslinkMass crosslinkMass = new CrosslinkMass();
+
+		crosslinkMass.setMass( mass );
+		
+		return crosslinkMass;
+	}
+	
+	
+
+	/**
+	 * @param lineParsedValue
+	 * @param line
+	 * @return
+	 * @throws Exception 
+	 */
+	private MonolinkMass parseMonolinkMassConfig( String lineParsedValue, String line ) throws Exception {
+		
+//		mono_link	=	1	155.0946
+//		mono_link	=	1	156.0786
+
+		String[] lineParsedValueSplit = lineParsedValue.split( "\\s+" ); // split on white space.
+		
+		if ( lineParsedValueSplit.length != 2 ) {
+			
+			String msg = "Config key '" + MONO_LINK_CONFIG_KEY + "' must have 2 values, a position and a mass, line: " + line;
+			
+			log.error( msg );
+			
+			throw new Exception(msg);
+		}
+		
+		String massString = lineParsedValueSplit[ 1 ].trim();
+		
+		
+		BigDecimal mass = null;
+		
+		try {
+			
+			mass = new BigDecimal( massString );
+			
+		} catch ( Exception e ) {
+			
+			
+			String msg = "Config key '" + MONO_LINK_CONFIG_KEY + "' mass is not parsable to BigDecimal.  mass: " 
+					+ massString + ", line: " + line;
+			
+			log.error( msg, e );
+			
+			throw new Exception(msg, e);
+			
+		}
+		
+		
+		
+		MonolinkMass monolinkMass = new MonolinkMass();
+
+		monolinkMass.setMass( mass );
+		
+		return monolinkMass;
+	}
+	
 	
 	
 	

@@ -167,7 +167,7 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 				for ( BigDecimal modificationMass : dynamicModLocationsAndMassesEntry.getValue() ) {
 
-					boolean isModificationAMonolink = IsModificationAMonolink.isModificationAMonolink( modificationMass );
+					boolean isModificationAMonolink = IsModificationAMonolink.getInstance().isModificationAMonolink( modificationMass );
 
 					Modification modification = new Modification();
 					modificationList.add( modification );

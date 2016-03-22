@@ -3,6 +3,7 @@ package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak;
 import java.io.File;
 
 import org.apache.log4j.Logger;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 
 /**
@@ -46,6 +47,8 @@ public class ProcessKojakConfFile {
 			
 			kojakConfFileReader.readKojakConfFile( kojakConfFile, proxlInputRoot );
 
+			
+			IsModificationAMonolink.getInstance().setMonolinkModificationMassesFromProxlInputObject( proxlInputRoot );
 			
 		} catch ( Exception e ) {
 			
