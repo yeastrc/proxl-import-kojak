@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import jargs.gnu.CmdLineParser;
 import jargs.gnu.CmdLineParser.IllegalOptionValueException;
@@ -88,8 +89,12 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        }
 	        
 	        String outputFilename = (String)cmdLineParser.getOptionValue( outputFilenameOpt );
-	        String linkerNameString = (String)cmdLineParser.getOptionValue( linkerOpt );
 	        String fastaFilename = (String)cmdLineParser.getOptionValue( fastaOpt );
+	        
+//	        String linkerNameString = (String)cmdLineParser.getOptionValue( linkerOpt );
+	        
+			@SuppressWarnings("rawtypes")
+			Vector  linkerNameStringsVector = cmdLineParser.getOptionValues( linkerOpt );
 
 	        String kojakFileWithPath = (String)cmdLineParser.getOptionValue( kojakFileWithPathCommandLineOpt );
 	        String kojakConfFileWithPathCommandLine = (String)cmdLineParser.getOptionValue( kojakConfFileWithPathCommandLineOpt );
@@ -122,11 +127,41 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				throw new PrintHelpOnlyException();
 	        }
 			
-	        if( linkerNameString == null || linkerNameString.equals( "" ) ) {
-	        	System.err.println( "Must specify a linker using -l\n" );
+	        
+	        
+	        if( linkerNameStringsVector == null || ( linkerNameStringsVector.isEmpty() ) ) {
+	        
+	        	System.err.println( "Must specify at least one linker using -l\n" );
 	        	
 				programExitCode = 1;
 				throw new PrintHelpOnlyException();
+	        }
+	        
+
+	        List<String> linkerNamesStringsList = new ArrayList<>( linkerNameStringsVector.size() );
+	        
+	        
+	        for ( Object linkerNameStringObject : linkerNameStringsVector ) {
+	        	
+	        	if ( ! (  linkerNameStringObject instanceof String ) ) {
+
+		        	System.err.println( "linkerNameStringObject is not a String object\n" );
+		        	
+					programExitCode = 1;
+					throw new PrintHelpOnlyException();
+	        	}
+	        	
+	        	String linkerNameString = (String) linkerNameStringObject;
+
+	        	if( linkerNameString == null || linkerNameString.equals( "" ) ) {
+
+	        		System.err.println( "Must specify at least one linker using -l\n" );
+
+	        		programExitCode = 1;
+	        		throw new PrintHelpOnlyException();
+	        	}
+	        	
+	        	linkerNamesStringsList.add( linkerNameString );
 	        }
 	        
 	        if( fastaFilename == null || fastaFilename.equals( "" ) ) {
@@ -189,7 +224,38 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        System.out.println( "Performing Proxl Gen import XML file for parameters:" );
 	        
 	        System.out.println( "output filename: " + outputFilename );
-	        System.out.println( "linker: " + linkerNameString );
+	        
+	        
+	        
+	        System.out.print( "linker"  );
+	        
+	        if ( linkerNamesStringsList.size() > 1 ) {
+
+	        	System.out.print( "s"  );
+	        }
+
+	        System.out.print( ": "  );
+	        
+	        boolean firstLinkerBefore = true;
+
+	        for ( String linkerNameString : linkerNamesStringsList ) {
+	        	
+	        	if ( firstLinkerBefore ) {
+	        		
+	        		firstLinkerBefore = false;
+	        	} else {
+	        		
+	        		System.out.print( ", " ) ;
+	        	}
+	        	
+	        	System.out.print( linkerNameString );
+	        }
+	        
+	        System.out.println( "" );
+	        
+	        
+	        
+	        
 	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
 	        
@@ -298,7 +364,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint.getInstance().doGenFile( 
 
 	        			fastaFilename, 
-	        			linkerNameString, 
+	        			linkerNamesStringsList, 
 	        			searchName, 
 	        			proteinNameDecoyPrefix,
 
@@ -317,7 +383,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	GenImportXMLFromKojakDataCoreEntryPoint.getInstance().doGenFile( 
 	        			
 	        			fastaFilename, 
-	        			linkerNameString, 
+	        			linkerNamesStringsList, 
 	        			searchName, 
 	        			proteinNameDecoyPrefix, 
 	        			
@@ -337,7 +403,39 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        System.out.println( "Completed Proxl Gen XML for Import for parameters:" );
 	        System.out.println( "output filename: " + outputFilename );
-	        System.out.println( "linker: " + linkerNameString );
+
+
+	        
+	        System.out.print( "linker"  );
+	        
+	        if ( linkerNamesStringsList.size() > 1 ) {
+
+	        	System.out.print( "s"  );
+	        }
+
+	        System.out.print( ": "  );
+	        
+	        boolean firstLinkerAfter = true;
+
+	        for ( String linkerNameString : linkerNamesStringsList ) {
+	        	
+	        	if ( firstLinkerAfter ) {
+	        		
+	        		firstLinkerAfter = false;
+	        	} else {
+	        		
+	        		System.out.print( ", " ) ;
+	        	}
+	        	
+	        	System.out.print( linkerNameString );
+	        }
+	        
+	        System.out.println( "" );
+	        
+	        
+	        
+	        
+	        
 	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
 
@@ -463,6 +561,8 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 		System.err.println( "" );
 		System.err.println( "The -l is required.");
+		System.err.println( "--linker can be used instead of -l.");
+		System.err.println( "The -l can be repeated for multiple linkers.");
 
 
 		System.err.println( "" );

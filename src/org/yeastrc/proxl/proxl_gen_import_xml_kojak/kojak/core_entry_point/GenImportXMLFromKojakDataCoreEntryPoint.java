@@ -49,7 +49,7 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 	 * @param projectId
 	 * @param fastaFilename
 	 * @param kojakConfFilenameCommandLine
-	 * @param linkerNameString
+	 * @param linkerNamesStringsList
 	 * @param searchName
 	 * @param proteinNameDecoyPrefix
 	 * @param forceDropKojakDuplicateRecordsOptOnCommandLine
@@ -60,7 +60,7 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 	public void doGenFile( 
 			
 			String fastaFilename,
-			String linkerNameString,
+			List<String> linkerNamesStringsList,
 			String searchName,
 			String proteinNameDecoyPrefix,
 			
@@ -107,11 +107,14 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 		proxlInputRoot.setLinkers( linkers );
 
 		List<Linker> linkerList = linkers.getLinker();
-		
-		Linker linker = new Linker();
-		linkerList.add( linker );
-		
-		linker.setName( linkerNameString );
+
+		for ( String linkerNameString : linkerNamesStringsList ) {
+
+			Linker linker = new Linker();
+			linkerList.add( linker );
+
+			linker.setName( linkerNameString );
+		}
 
 		//  TODO  Add more info to Linker??
 

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_crosslink_looplink_in_conf.IsCrosslinkOrLooplinkMassInConf;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakSequenceUtils;
@@ -20,6 +21,7 @@ import org.yeastrc.proxl_import.api.xml_dto.Modification;
 import org.yeastrc.proxl_import.api.xml_dto.Modifications;
 import org.yeastrc.proxl_import.api.xml_dto.Peptide;
 import org.yeastrc.proxl_import.api.xml_dto.Peptides;
+import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.ReportedPeptide;
 
 
@@ -50,7 +52,8 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 	 */
 	public ReportedPeptide populateProxlInputReportedPeptide( 
 			KojakPsmDataObject kojakPsmDataObject,
-			LinkTypeAndReportedPeptideString linkTypeAndReportedPeptideString ) throws ProxlGenXMLDataException {
+			LinkTypeAndReportedPeptideString linkTypeAndReportedPeptideString,
+			ProxlInput proxlInputRoot ) throws ProxlGenXMLDataException {
 
 
 		int scanNumber = kojakPsmDataObject.getScanNumber();
@@ -97,6 +100,16 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 				== KojakGenImportInternalLinkTypeEnum.CROSSLINK ) {
 
 			//  cross link
+			
+			if ( ! IsCrosslinkOrLooplinkMassInConf.getInstance()
+					.isCrosslinkOrLooplinkMassInConf( kojakPsmDataObject.getLinkerMass(), proxlInputRoot ) ) {
+				
+				String msg = "Crosslink link mass not found in Kojak conf file.  Scan number: " +
+						kojakPsmDataObject.getScanNumber() + ", linker mass on PSM: " + kojakPsmDataObject.getLinkerMass();
+				log.error(msg);
+				throw new ProxlGenXMLDataException(msg);
+			}
+			
 
 			proxlInputReportedPeptide.setType( LinkType.CROSSLINK );
 
@@ -111,6 +124,17 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 				== KojakGenImportInternalLinkTypeEnum.LOOPLINK ) {
 
 			//  loop link
+			
+
+			if ( ! IsCrosslinkOrLooplinkMassInConf.getInstance()
+					.isCrosslinkOrLooplinkMassInConf( kojakPsmDataObject.getLinkerMass(), proxlInputRoot ) ) {
+				
+				String msg = "Looplink link mass not found in Kojak conf file.  Scan number: " +
+						kojakPsmDataObject.getScanNumber() + ", linker mass on PSM: " + kojakPsmDataObject.getLinkerMass();
+				log.error(msg);
+				throw new ProxlGenXMLDataException(msg);
+			}
+			
 
 			proxlInputReportedPeptide.setType( LinkType.LOOPLINK );
 

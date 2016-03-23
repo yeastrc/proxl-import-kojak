@@ -1,11 +1,11 @@
 package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.utils.ModMassMatchWhenAdjustedToScale;
 import org.yeastrc.proxl_import.api.xml_dto.Linker;
 import org.yeastrc.proxl_import.api.xml_dto.Linkers;
 import org.yeastrc.proxl_import.api.xml_dto.MonolinkMass;
@@ -127,7 +127,7 @@ public class IsModificationAMonolink {
 		
 		for ( BigDecimal modificationMassMonolink : monolinkModificationMasses ) {
 		
-			if ( modMassMatchWhenAdjustedToScale( modificationMass, modificationMassMonolink ) ) {
+			if ( ModMassMatchWhenAdjustedToScale.modMassMatchWhenAdjustedToScale( modificationMass, modificationMassMonolink ) ) {
 
 				return true;
 			}
@@ -137,31 +137,5 @@ public class IsModificationAMonolink {
 	}
 	
 	
-	/**
-	 * @param modificationMassToCompare
-	 * @param modificationMassMonolink
-	 * @return
-	 */
-	private boolean modMassMatchWhenAdjustedToScale(
-			
-			BigDecimal modificationMassToCompare, 
-			BigDecimal modificationMassMonolink
-			) {
-
-		int modMassToCompareScale = Math.min( modificationMassToCompare.scale(), modificationMassMonolink.scale() );
-		
-		BigDecimal modificationMassToCompareScaleSet =
-				modificationMassToCompare.setScale( modMassToCompareScale, RoundingMode.HALF_UP );
-		
-		BigDecimal modificationMassMonolinkScaleSet =
-				modificationMassMonolink.setScale( modMassToCompareScale, RoundingMode.HALF_UP );
-		
-		if ( modificationMassToCompareScaleSet.equals( modificationMassMonolinkScaleSet ) ) {
-			
-			return true;
-		}
-		
-		return false;
-	}
 
 }

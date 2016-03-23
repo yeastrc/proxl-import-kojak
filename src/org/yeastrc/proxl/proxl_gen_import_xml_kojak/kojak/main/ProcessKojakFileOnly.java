@@ -7,9 +7,12 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_crosslink_looplink_in_conf.IsCrosslinkOrLooplinkMassInConf;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.IsAllProtein_1or2_Decoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileReader;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.enums.KojakGenImportInternalLinkTypeEnum;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects.LinkTypeAndReportedPeptideString;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.Psm;
@@ -122,6 +125,33 @@ public class ProcessKojakFileOnly {
 				}
 				
 				
+				if ( linkTypeAndReportedPeptideString.getKojakGenImportInternalLinkTypeEnum() 
+						== KojakGenImportInternalLinkTypeEnum.CROSSLINK ) {
+					
+					
+					if ( ! IsCrosslinkOrLooplinkMassInConf.getInstance()
+							.isCrosslinkOrLooplinkMassInConf( kojakPsmDataObject.getLinkerMass(), proxlInputRoot ) ) {
+						
+						String msg = "Crosslink link mass not found in Kojak conf file.  Scan number: " +
+								kojakPsmDataObject.getScanNumber() + ", linker mass on PSM: " + kojakPsmDataObject.getLinkerMass();
+						log.error(msg);
+						throw new ProxlGenXMLDataException(msg);
+					}
+					
+				} else if ( linkTypeAndReportedPeptideString.getKojakGenImportInternalLinkTypeEnum() 
+							== KojakGenImportInternalLinkTypeEnum.LOOPLINK ) {
+
+					if ( ! IsCrosslinkOrLooplinkMassInConf.getInstance()
+							.isCrosslinkOrLooplinkMassInConf( kojakPsmDataObject.getLinkerMass(), proxlInputRoot ) ) {
+						
+						String msg = "Looplink link mass not found in Kojak conf file.  Scan number: " +
+								kojakPsmDataObject.getScanNumber() + ", linker mass on PSM: " + kojakPsmDataObject.getLinkerMass();
+						log.error(msg);
+						throw new ProxlGenXMLDataException(msg);
+					}
+				}
+				
+				
 				String reportedPeptideString = linkTypeAndReportedPeptideString.getReportedPeptideString();
 				
 				ReportedPeptide reportedPeptide = 
@@ -134,7 +164,7 @@ public class ProcessKojakFileOnly {
 					
 					reportedPeptide = 
 							PopulateProxlInputReportedPeptideFromKojakOnly.getInstance()
-							.populateProxlInputReportedPeptide( kojakPsmDataObject, linkTypeAndReportedPeptideString );
+							.populateProxlInputReportedPeptide( kojakPsmDataObject, linkTypeAndReportedPeptideString, proxlInputRoot );
 					
 					ReportedPeptides reportedPeptides = proxlInputRoot.getReportedPeptides();
 					

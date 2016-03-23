@@ -70,7 +70,7 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 	public void doGenFile( 
 			
 			String fastaFilename,
-			String linkerNameString,
+			List<String> linkerNamesStringsList,
 			String searchName,
 			String proteinNameDecoyPrefix,
 			
@@ -120,10 +120,13 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 
 		List<Linker> linkerList = linkers.getLinker();
 		
-		Linker linker = new Linker();
-		linkerList.add( linker );
-		
-		linker.setName( linkerNameString );
+		for ( String linkerNameString : linkerNamesStringsList ) {
+
+			Linker linker = new Linker();
+			linkerList.add( linker );
+
+			linker.setName( linkerNameString );
+		}
 
 		//  TODO  Add more info to Linker??
 

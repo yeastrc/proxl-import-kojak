@@ -12,8 +12,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFile;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFiles;
 import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMass;
@@ -71,18 +73,33 @@ public class KojakConfFileReader {
 	 * @throws Exception
 	 */
 	public void readKojakConfFile( File kojakConfFile, ProxlInput proxlInputRoot ) throws Exception{
+		
+		{
+			//  First validate Linkers populated
+
+			Linkers linkers = proxlInputRoot.getLinkers();
+			
+			if ( linkers == null ) {
+				
+				String msg = "Program ERROR: Linkers must be populated before adding crosslink masses";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+			
+			List<Linker> linkerList = linkers.getLinker();
+
+			if ( linkerList == null || ( linkerList.isEmpty() ) ) {
+				
+				String msg = "Program ERROR: Linkers must be populated before adding crosslink masses";
+				log.error( msg );
+				throw new Exception( msg );
+			}
+	
+		}
 	
 		StaticModifications staticModifications = new StaticModifications();
 		List<StaticModification> staticModificationList = staticModifications.getStaticModification();
 
-		CrosslinkMasses crosslinkMasses = new CrosslinkMasses();
-		List<CrosslinkMass> crosslinkMassList = crosslinkMasses.getCrosslinkMass();
-
-		MonolinkMasses monolinkMasses = new MonolinkMasses();
-		List<MonolinkMass> monolinkMassList = monolinkMasses.getMonolinkMass();
-
-		
-		
 		ConfigurationFiles configurationFiles = new ConfigurationFiles();
 		proxlInputRoot.setConfigurationFiles( configurationFiles );
 		
@@ -181,13 +198,12 @@ public class KojakConfFileReader {
 
 				} else if ( CROSS_LINK_CONFIG_KEY.equals( lineParsed.key ) ) {
 					
-					CrosslinkMass crosslinkMass = parseCrosslinkMassConfig( lineParsed.value, line );
-					crosslinkMassList.add( crosslinkMass );
+					parseCrosslinkMassConfig( lineParsed, line, proxlInputRoot );
+					
 
 				} else if ( MONO_LINK_CONFIG_KEY.equals( lineParsed.key ) ) {
 										 
-					MonolinkMass monolinkMass = parseMonolinkMassConfig( lineParsed.value, line );
-					monolinkMassList.add( monolinkMass );
+					parseMonolinkMassConfig( lineParsed, line, proxlInputRoot );
 
 				} else if ( FIXED_MODIFICATION_CONFIG_KEY.equals( lineParsed.key ) ) {
 					
@@ -254,6 +270,9 @@ public class KojakConfFileReader {
 //		}
 		
 		
+
+		//  Throws exception if errors
+		validateCrosslinkMasses( proxlInputRoot, kojakConfFile );
 		
 		
 		//  Throws exception if errors
@@ -267,85 +286,69 @@ public class KojakConfFileReader {
 			proxlInputRoot.setStaticModifications( staticModifications );
 		}
 		
+	}
+	
 
-		//  Add Crosslink if list not empty
+	/**
+	 * Validate that every linker has at least one Crosslink Mass.
+	 * @param kojakConfStaticMods
+	 * @throws Exception 
+	 */
+	private void validateCrosslinkMasses( ProxlInput proxlInputRoot, File kojakConfFile ) throws Exception {
+
+		Linkers linkers = proxlInputRoot.getLinkers();
 		
-		if ( ! crosslinkMassList.isEmpty() ) {
-		
-			Linkers linkers = proxlInputRoot.getLinkers();
+		if ( linkers == null ) {
 			
-			if ( linkers == null ) {
-				
-				String msg = "Linkers must be populated before adding crosslink masses";
-				log.error( msg );
-				throw new Exception( msg );
-			}
-			
-			List<Linker> linkerList = linkers.getLinker();
-
-			if ( linkerList == null || ( linkerList.isEmpty() ) ) {
-				
-				String msg = "Linkers must be populated before adding crosslink masses";
-				log.error( msg );
-				throw new Exception( msg );
-			}
-
-			if ( linkerList.size() > 1 ) {
-				
-				String msg = "Adding Crosslink mass is only supported for one Linker.";
-				log.error( msg );
-				throw new Exception( msg );
-			}
-			
-			Linker linker = linkerList.get( 0 );
-			
-			linker.setCrosslinkMasses( crosslinkMasses );
+			String msg = "Linkers must be populated before adding crosslink masses";
+			log.error( msg );
+			throw new Exception( msg );
 		}
 		
+		List<Linker> linkerList = linkers.getLinker();
 
-		//  Add Monolink if list not empty
+		if ( linkerList == null || ( linkerList.isEmpty() ) ) {
+			
+			String msg = "Linkers must be populated before adding crosslink masses";
+			log.error( msg );
+			throw new Exception( msg );
+		}
+
+		for ( Linker linker : linkerList ) {
+			
+
+			String errorMsg = "ERROR: Linker does not have crosslink mass for config key '" 
+					+ CROSS_LINK_CONFIG_KEY + "', Linker name: " + linker.getName()
+					+ ", Kojak Conf file: " + kojakConfFile.getAbsolutePath();
 		
-		if ( ! monolinkMassList.isEmpty() ) {
-		
-			Linkers linkers = proxlInputRoot.getLinkers();
-			
-			if ( linkers == null ) {
-				
-				String msg = "Linkers must be populated before adding monolink masses";
-				log.error( msg );
-				throw new Exception( msg );
-			}
-			
-			List<Linker> linkerList = linkers.getLinker();
+			CrosslinkMasses crosslinkMasses = linker.getCrosslinkMasses();
 
-			if ( linkerList == null || ( linkerList.isEmpty() ) ) {
-				
-				String msg = "Linkers must be populated before adding monolink masses";
-				log.error( msg );
-				throw new Exception( msg );
+			if ( crosslinkMasses == null ) {
+
+				log.error( errorMsg );
+				throw new ProxlGenXMLDataException( errorMsg );
 			}
 
-			if ( linkerList.size() > 1 ) {
-				
-				String msg = "Adding Monolink mass is only supported for one Linker.";
-				log.error( msg );
-				throw new Exception( msg );
+			List<CrosslinkMass> crosslinkMassList = crosslinkMasses.getCrosslinkMass();
+
+			if ( crosslinkMassList == null || crosslinkMassList.isEmpty() ) {
+
+				log.error( errorMsg );
+				throw new ProxlGenXMLDataException( errorMsg );
 			}
 			
-			Linker linker = linkerList.get( 0 );
-			
-			linker.setMonolinkMasses( monolinkMasses );
 		}
 		
 	}
+	
 	
 
 	/**
 	 * Validate same residue is not in the list more than once.
 	 * @param kojakConfStaticMods
-	 * @throws Exception 
+	 * @throws ProxlGenXMLDataException 
 	 */
-	private void validateStaticMods( List<StaticModification> staticModificationList, File kojakConfFile ) throws Exception {
+	private void validateStaticMods( List<StaticModification> staticModificationList, File kojakConfFile ) throws ProxlGenXMLDataException {
 		
 		Set<String> aminoAcidSet = new HashSet<>();
 		
@@ -362,7 +365,7 @@ public class KojakConfFileReader {
 				
 				log.error( msg );
 				
-				throw new Exception(msg);
+				throw new ProxlGenXMLDataException(msg);
 			}
 			
 			aminoAcidSet.add( aminoAcid );
@@ -377,11 +380,16 @@ public class KojakConfFileReader {
 	 */
 	private ParsedLine parseLine( String line ) {
 		
+ 		String comment = "";
+		
 		//  Remove comment part of line, starts at "#" in any position on the line
 		
 		int commentCharPos = line.indexOf( '#' );
 		
 		if ( commentCharPos != -1 ) {
+			
+			comment = line.substring( commentCharPos + 1 );
+			
 			line = line.substring(0, commentCharPos);
 		}
 		
@@ -419,9 +427,13 @@ public class KojakConfFileReader {
 		
 		lineParsed.key = key;
 		lineParsed.value = value;
+		lineParsed.comment = comment;
 		
 		return lineParsed;
 	}
+	
+	
+	
 	
 
 	/**
@@ -430,11 +442,16 @@ public class KojakConfFileReader {
 	 * @return
 	 * @throws Exception 
 	 */
-	private CrosslinkMass parseCrosslinkMassConfig( String lineParsedValue, String line ) throws Exception {
+	private void parseCrosslinkMassConfig( ParsedLine lineParsed, String line, ProxlInput proxlInputRoot ) throws Exception {
 		
 
 //		cross_link	=	1	1	138.0680742
 		
+		//  More than one linker so linker required in comments
+		
+//		cross_link = 1 2 -18.010595  #linker:edc
+
+		String lineParsedValue = lineParsed.value;
 		
 		String[] lineParsedValueSplit = lineParsedValue.split( "\\s+" ); // split on white space.
 		
@@ -444,7 +461,7 @@ public class KojakConfFileReader {
 			
 			log.error( msg );
 			
-			throw new Exception(msg);
+			throw new ProxlGenXMLDataException(msg);
 		}
 		
 
@@ -465,7 +482,7 @@ public class KojakConfFileReader {
 			
 			log.error( msg, e );
 			
-			throw new Exception(msg, e);
+			throw new ProxlGenXMLDataException(msg, e);
 			
 		}
 		
@@ -475,7 +492,49 @@ public class KojakConfFileReader {
 
 		crosslinkMass.setMass( mass );
 		
-		return crosslinkMass;
+
+		Linkers linkers = proxlInputRoot.getLinkers();
+		
+		if ( linkers == null ) {
+			
+			String msg = "Linkers must be populated before adding crosslink masses";
+			log.error( msg );
+			throw new Exception( msg );
+		}
+		
+		List<Linker> linkerList = linkers.getLinker();
+
+		if ( linkerList == null || ( linkerList.isEmpty() ) ) {
+			
+			String msg = "Linkers must be populated before adding crosslink masses";
+			log.error( msg );
+			throw new Exception( msg );
+		}
+
+		Linker linker = null;
+		
+		if ( linkerList.size() > 1 ) {
+			
+			//  throws exception if no matching linker found for name or name not in comment
+			linker = getLinkerForLinkerAbbr( lineParsed, line, linkerList );
+			
+		} else {
+			
+			linker = linkerList.get( 0 );
+		}
+		
+		
+		CrosslinkMasses crosslinkMasses = linker.getCrosslinkMasses();
+		
+		if ( crosslinkMasses == null ) {
+
+			crosslinkMasses = new CrosslinkMasses();
+			linker.setCrosslinkMasses( crosslinkMasses );
+		}
+		
+		List<CrosslinkMass> crosslinkMassList = crosslinkMasses.getCrosslinkMass();
+
+		crosslinkMassList.add( crosslinkMass );
 	}
 	
 	
@@ -486,10 +545,12 @@ public class KojakConfFileReader {
 	 * @return
 	 * @throws Exception 
 	 */
-	private MonolinkMass parseMonolinkMassConfig( String lineParsedValue, String line ) throws Exception {
+	private void parseMonolinkMassConfig( ParsedLine lineParsed, String line, ProxlInput proxlInputRoot ) throws Exception {
 		
 //		mono_link	=	1	155.0946
 //		mono_link	=	1	156.0786
+		
+		String lineParsedValue = lineParsed.value;
 
 		String[] lineParsedValueSplit = lineParsedValue.split( "\\s+" ); // split on white space.
 		
@@ -499,7 +560,7 @@ public class KojakConfFileReader {
 			
 			log.error( msg );
 			
-			throw new Exception(msg);
+			throw new ProxlGenXMLDataException(msg);
 		}
 		
 		String massString = lineParsedValueSplit[ 1 ].trim();
@@ -519,7 +580,7 @@ public class KojakConfFileReader {
 			
 			log.error( msg, e );
 			
-			throw new Exception(msg, e);
+			throw new ProxlGenXMLDataException(msg, e);
 			
 		}
 		
@@ -528,11 +589,125 @@ public class KojakConfFileReader {
 		MonolinkMass monolinkMass = new MonolinkMass();
 
 		monolinkMass.setMass( mass );
+
+
+		Linkers linkers = proxlInputRoot.getLinkers();
 		
-		return monolinkMass;
+		if ( linkers == null ) {
+			
+			String msg = "Linkers must be populated before adding monolink masses";
+			log.error( msg );
+			throw new Exception( msg );
+		}
+		
+		List<Linker> linkerList = linkers.getLinker();
+
+		if ( linkerList == null || ( linkerList.isEmpty() ) ) {
+			
+			String msg = "Linkers must be populated before adding monolink masses";
+			log.error( msg );
+			throw new Exception( msg );
+		}
+
+		Linker linker = null;
+		
+		if ( linkerList.size() > 1 ) {
+			
+			//  throws exception if no matching linker found for name or name not in comment
+			linker = getLinkerForLinkerAbbr( lineParsed, line, linkerList );
+			
+		} else {
+			
+			linker = linkerList.get( 0 );
+		}
+		
+		
+		MonolinkMasses monolinkMasses = linker.getMonolinkMasses();
+		
+		if ( monolinkMasses == null ) {
+
+			monolinkMasses = new MonolinkMasses();
+			linker.setMonolinkMasses( monolinkMasses );
+		}
+		
+		List<MonolinkMass> monolinkMassList = monolinkMasses.getMonolinkMass();
+
+		monolinkMassList.add( monolinkMass );
 	}
 	
-	
+
+	/**
+	 * @param lineParsed
+	 * @param line
+	 * @param linkerList
+	 * @return
+	 * @throws ProxlGenXMLDataException - if no matching linker found for name or name not in comment
+	 */
+	private Linker getLinkerForLinkerAbbr( ParsedLine lineParsed, String line, List<Linker> linkerList ) throws ProxlGenXMLDataException {
+		
+		//  First get linker name from comment
+
+		//  More than one linker so linker required in comments
+		
+//		cross_link = 1 2 -18.010595  #linker:edc
+		
+		final String linkerInCommentPrefix = "linker:";
+		
+		final String errMsgBase = "For more than one linker, the linker name is required in the command.  "
+				+ "Example: '#linker:edc' where the comment starts with 'linker:' and is followed by the "
+				+ "linker name as entered on the command line, in this example is 'edc'.  "
+				+ "The actual text would not include the quotes.";
+		
+		String comment = lineParsed.comment;
+		
+		if ( StringUtils.isEmpty( comment ) ) {
+			
+			String msg = errMsgBase;
+			log.error( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+		
+		comment = comment.trim();
+		
+		if ( ! comment.startsWith( linkerInCommentPrefix ) ) {
+
+			String msg = errMsgBase;
+			log.error( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+		
+		String stringAfterLinkerPrefix = comment.substring( linkerInCommentPrefix.length() );
+		
+		String[] stringAfterLinkerPrefixSplit = stringAfterLinkerPrefix.split( "\\s+" ); // split on white space.
+
+		String linkerAbbr = stringAfterLinkerPrefixSplit[ 0 ];
+		
+		Linker linkerForAbbr = null;
+		
+		for ( Linker item : linkerList ) {
+			
+			if ( item.getName().equals( linkerAbbr) )  {
+				
+				linkerForAbbr = item;
+				break;
+			}
+		}
+		
+		if ( linkerForAbbr == null ) {
+			
+			String msg = "No linker name on command line for linker name found in Kojak conf file (in comment starting with '"
+					+ linkerInCommentPrefix
+					+ "'):  '"
+					+ linkerAbbr
+					+ "'.  " + errMsgBase;
+			
+			log.error( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+		
+		return linkerForAbbr;
+	}
+
 	
 	
 	/**
@@ -592,6 +767,7 @@ public class KojakConfFileReader {
 		
 		String key;
 		String value;
+		String comment;
 		
 	}
 	
