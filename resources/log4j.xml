@@ -4,7 +4,7 @@
 
 <!--   temporary comment out sending emails -->
 
-<log4j:configuration debug="true" >
+<log4j:configuration >
 
 
 

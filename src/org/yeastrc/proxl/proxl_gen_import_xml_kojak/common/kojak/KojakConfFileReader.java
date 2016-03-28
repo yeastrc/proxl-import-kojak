@@ -42,6 +42,8 @@ public class KojakConfFileReader {
 	
 	//  Keys in the Conf file
 	
+	private static final String DATABASE__FASTA_FILE = "database";
+	
 	/**
 	 * Input file to Kojak
 	 */
@@ -190,7 +192,15 @@ public class KojakConfFileReader {
 				}
 				
 				
-				if ( MS_DATA_FILE_CONFIG_KEY.equals( lineParsed.key ) ) {
+				
+
+				
+				if ( DATABASE__FASTA_FILE.equals( lineParsed.key ) ) {
+
+					processFastaFile( lineParsed, line, proxlInputRoot );
+					
+				
+				} else if ( MS_DATA_FILE_CONFIG_KEY.equals( lineParsed.key ) ) {
 
 //					kojakInputFilenamePossiblyWithPath = lineParsed.value;
 					
@@ -433,14 +443,32 @@ public class KojakConfFileReader {
 	}
 	
 	
-	
+
+	/**
+	 * @param lineParsed
+	 * @param line
+	 * @param proxlInputRoot
+	 */
+	private void processFastaFile( ParsedLine lineParsed, String line, ProxlInput proxlInputRoot )  {
+		
+		if ( StringUtils.isEmpty( proxlInputRoot.getFastaFilename() ) ) {
+
+			String lineParsedValue = lineParsed.value;
+
+			File fastaFile = new File( lineParsedValue );
+
+			String fastaFilename = fastaFile.getName();
+
+			proxlInputRoot.setFastaFilename( fastaFilename );
+		}
+	}
 	
 
 	/**
-	 * @param lineParsedValue
+	 * @param lineParsed
 	 * @param line
-	 * @return
-	 * @throws Exception 
+	 * @param proxlInputRoot
+	 * @throws Exception
 	 */
 	private void parseCrosslinkMassConfig( ParsedLine lineParsed, String line, ProxlInput proxlInputRoot ) throws Exception {
 		
