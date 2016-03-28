@@ -17,9 +17,7 @@ import jargs.gnu.CmdLineParser.UnknownOptionException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.PrintHelpOnlyException;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+//import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.core_entry_point.GenImportXMLFromKojakDataCoreEntryPoint;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_entry_point.GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint;
 
@@ -29,11 +27,16 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_en
  */
 public class GenImportXMLFromKojakDataDefaultMainProgram {
 
-	private static final Logger log = Logger.getLogger( GenImportXMLFromKojakDataDefaultMainProgram.class );
+//	private static final Logger log = Logger.getLogger( GenImportXMLFromKojakDataDefaultMainProgram.class );
 
 
 	private static final int PROGRAM_EXIT_CODE_DEFAULT_NO_SYTEM_EXIT_CALLED = 0;
 	
+	private static final int PROGRAM_EXIT_CODE_INVALID_INPUT = 1;
+	
+	private static final int PROGRAM_EXIT_CODE_HELP = 1;
+	
+	private static final String FOR_HELP_STRING = "For help, run without any parameters, -h, or --help";
 
 	/**
 	 * @param args
@@ -46,14 +49,47 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		
 		int programExitCode = PROGRAM_EXIT_CODE_DEFAULT_NO_SYTEM_EXIT_CALLED;
 		
+
+		
+
+        
+        String outputFilename = null;
+        String fastaFilename = null;
+
+        String kojakFileWithPath = null;
+        String kojakConfFileWithPathCommandLine = null;
+        
+        
+        Boolean noPercolatorCmdLine = (Boolean) null;
+
+        String searchName = null;
+        
+        String proteinNameDecoyPrefix = null;
+        
+        List<String> percolatorFileStringsList = new ArrayList<>( );
+        List<String> linkerNamesStringsList = new ArrayList<>(  );
+        List<String> monolinkMassessStringsList = new ArrayList<>( );
+        
+
+        Set<BigDecimal> monolinkModificationMasses = null;
+        
+		List<File> percolatorFileList = new ArrayList<>( percolatorFileStringsList.size() );
+
+		File outputFile = null;
+		
+		
+        File kojakConfFile = null;
+        
+
+		File kojakOutputFile = null;
 		
 		try {
 			
 			if ( args.length == 0 ) {
 				
-	        	
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
+	            printHelp();
+	            
+	            System.exit( PROGRAM_EXIT_CODE_HELP );
 			}
 
 			
@@ -92,25 +128,27 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        try { cmdLineParser.parse(args); }
 	        catch (IllegalOptionValueException e) {
 	            System.err.println(e.getMessage());
-	            
-	            
-				programExitCode = 1;
-	            throw new PrintHelpOnlyException();
-//	            System.exit( 0 );
+
+				System.err.println( "" );
+				System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 	        catch (UnknownOptionException e) {
 	            System.err.println(e.getMessage());
-	            
-				programExitCode = 1;
-	            throw new PrintHelpOnlyException();
-//	            System.exit( 0 );
+
+				System.err.println( "" );
+				System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 	        
 	        Boolean help = (Boolean) cmdLineParser.getOptionValue(helpOpt, Boolean.FALSE);
 	        if(help) {
 	        	
-				programExitCode = 1;
-	            throw new PrintHelpOnlyException();
+	            printHelp();
+	            
+	            System.exit( PROGRAM_EXIT_CODE_HELP );
 	        }
 	        
 
@@ -131,30 +169,28 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			
 			
 	        
-	        String outputFilename = (String)cmdLineParser.getOptionValue( outputFilenameOpt );
-	        String fastaFilename = (String)cmdLineParser.getOptionValue( fastaFileOpt );
-	        
-//	        String linkerNameString = (String)cmdLineParser.getOptionValue( linkerOpt );
+	        outputFilename = (String)cmdLineParser.getOptionValue( outputFilenameOpt );
+	        fastaFilename = (String)cmdLineParser.getOptionValue( fastaFileOpt );
 	        
 			@SuppressWarnings("rawtypes")
-			Vector  linkerNameStringsVector = cmdLineParser.getOptionValues( linkerOpt );
+			Vector linkerNameStringsVector = cmdLineParser.getOptionValues( linkerOpt );
 
-	        String kojakFileWithPath = (String)cmdLineParser.getOptionValue( kojakFileWithPathCommandLineOpt );
-	        String kojakConfFileWithPathCommandLine = (String)cmdLineParser.getOptionValue( kojakConfFileWithPathCommandLineOpt );
+	        kojakFileWithPath = (String)cmdLineParser.getOptionValue( kojakFileWithPathCommandLineOpt );
+	        kojakConfFileWithPathCommandLine = (String)cmdLineParser.getOptionValue( kojakConfFileWithPathCommandLineOpt );
 	        
 	        
-	        Boolean noPercolatorCmdLine = (Boolean) cmdLineParser.getOptionValue( noPercolatorOpt, Boolean.FALSE);
+	        noPercolatorCmdLine = (Boolean) cmdLineParser.getOptionValue( noPercolatorOpt, Boolean.FALSE);
 
 	        @SuppressWarnings("rawtypes")
-			Vector  percolatorFileStringsVector = cmdLineParser.getOptionValues( percolatorFileOpt );
+	        Vector percolatorFileStringsVector = cmdLineParser.getOptionValues( percolatorFileOpt );
 
 	        
 			@SuppressWarnings("rawtypes")
-	        Vector monolinkMassesCommandLineVector = cmdLineParser.getOptionValues( monolinkMassCommandLineOpt );
+			Vector monolinkMassesCommandLineVector = cmdLineParser.getOptionValues( monolinkMassCommandLineOpt );
 	        
-	        String searchName = (String)cmdLineParser.getOptionValue( nameOpt );
+	        searchName = (String)cmdLineParser.getOptionValue( nameOpt );
 	        
-	        String proteinNameDecoyPrefix = (String)cmdLineParser.getOptionValue( proteinNameDecoyPrefixCommandLineOpt );
+	        proteinNameDecoyPrefix = (String)cmdLineParser.getOptionValue( proteinNameDecoyPrefixCommandLineOpt );
 	        
 	    
 	        
@@ -169,8 +205,10 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 					System.out.println( remainingArg );
 				}
 				
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
+				System.err.println( "" );
+				System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 			}
 			
 			
@@ -180,9 +218,10 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        if( outputFilename == null || outputFilename.equals( "" ) ) {
 	        	System.err.println( "Must specify an output file using -o or --output_file=" );
 	        	System.err.println( "" );
-	        	
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
+
+				System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 	        
 	        
@@ -190,24 +229,22 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 	        	System.err.println( "Must specify at least one linker using -l" );
 	        	System.err.println( "" );
-	        	
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
+				System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 
 	        
 	        
-	        List<String> percolatorFileStringsList = new ArrayList<>( );
-
 	        if( noPercolatorCmdLine != null && noPercolatorCmdLine ) {
 
 	        	if ( percolatorFileStringsVector != null && ( ! percolatorFileStringsVector.isEmpty() ) ) {
 
 		        	System.err.println( "If specify 'no percolator file', cannot also specify a percolator file.");
 		        	System.err.println( "" );
-		        	
-					programExitCode = 1;
-					throw new PrintHelpOnlyException();
+					System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        	}
 	        	
 	        } else {
@@ -217,9 +254,9 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 		        	System.err.println( "If not specify a percolator file, must specify 'no percolator file'.");
 		        	System.err.println( "" );
-		        	
-					programExitCode = 1;
-					throw new PrintHelpOnlyException();
+					System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        	}
 	        	
 
@@ -229,9 +266,9 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 			        	System.err.println( "Internal ERROR:  percolatorFileStringObject is not a String object." );
 			        	System.err.println( "" );
-			        	
-						programExitCode = 1;
-						throw new PrintHelpOnlyException();
+						System.err.println( FOR_HELP_STRING );
+						
+						System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 		        	}
 		        	
 		        	String percolatorFileString = (String) percolatorFileStringObject;
@@ -240,9 +277,9 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 		        		System.err.println( "Internal ERROR:  percolatorFileStringObject is empty or null." );
 		        		System.err.println( "" );
-
-		        		programExitCode = 1;
-		        		throw new PrintHelpOnlyException();
+						System.err.println( FOR_HELP_STRING );
+						
+						System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 		        	}
 		        	
 		        	percolatorFileStringsList.add( percolatorFileString );
@@ -251,17 +288,16 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	
 	        }
 
-	        List<String> linkerNamesStringsList = new ArrayList<>( linkerNameStringsVector.size() );
-	        
 	        
 	        for ( Object linkerNameStringObject : linkerNameStringsVector ) {
 	        	
 	        	if ( ! (  linkerNameStringObject instanceof String ) ) {
 
 		        	System.err.println( "Internal ERROR:  linkerNameStringObject is not a String object\n" );
-		        	
-					programExitCode = 1;
-					throw new PrintHelpOnlyException();
+	        		System.err.println( "" );
+		        	System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        	}
 	        	
 	        	String linkerNameString = (String) linkerNameStringObject;
@@ -269,26 +305,26 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	if( linkerNameString == null || linkerNameString.equals( "" ) ) {
 
 	        		System.err.println( "Internal ERROR:  linkerNameString is empty or null." );
-
-	        		programExitCode = 1;
-	        		throw new PrintHelpOnlyException();
+	        		System.err.println( "" );
+		        	System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        	}
 	        	
 	        	linkerNamesStringsList.add( linkerNameString );
 	        }
 	        
 
-	        List<String> monolinkMassessStringsList = new ArrayList<>( linkerNameStringsVector.size() );
-	        
 	        
 	        for ( Object monolinkMassesStringObject : monolinkMassesCommandLineVector ) {
 	        	
 	        	if ( ! (  monolinkMassesStringObject instanceof String ) ) {
 
-		        	System.err.println( "monolinkMassesStringObject is not a String object\n" );
-		        	
-					programExitCode = 1;
-					throw new PrintHelpOnlyException();
+		        	System.err.println( "Internal ERROR: monolinkMassesStringObject is not a String object\n" );
+	        		System.err.println( "" );
+		        	System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        	}
 	        	
 	        	String monolinkMassesString = (String) monolinkMassesStringObject;
@@ -296,9 +332,10 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	if( monolinkMassesString == null || monolinkMassesString.equals( "" ) ) {
 
 	        		System.err.println( "Internal ERROR:  monolinkMassesStringObject is empty or null." );
-
-	        		programExitCode = 1;
-	        		throw new PrintHelpOnlyException();
+	        		System.err.println( "" );
+		        	System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        	}
 	        	
 	        	monolinkMassessStringsList.add( monolinkMassesString );
@@ -310,21 +347,22 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 	        if( StringUtils.isEmpty( kojakFileWithPath ) ) {
 	        	System.err.println( "Must specify a kojak output file name with path using -k\n" );
-	        	
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
+        		System.err.println( "" );
+	        	System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 	        
 	        
 
 	        if( StringUtils.isEmpty( kojakConfFileWithPathCommandLine ) ) {
 	        	System.err.println( "Must specify a Kojak Conf file name with path using -s\n" );
-	        	
-				programExitCode = 1;
-				throw new PrintHelpOnlyException();
+        		System.err.println( "" );
+	        	System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 	        
-			List<File> percolatorFileList = new ArrayList<>( percolatorFileStringsList.size() );
 
 			
 			if( ! percolatorFileStringsList.isEmpty() ) {
@@ -335,9 +373,10 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 					if( ! percolatorFile.exists() ) {
 						System.err.println( "Could not find percolator file: " + percolatorFile );
-
-						programExitCode = 1;
-						throw new PrintHelpOnlyException();
+		        		System.err.println( "" );
+			        	System.err.println( FOR_HELP_STRING );
+						
+						System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 					}
 
 					percolatorFileList.add( percolatorFile );
@@ -415,21 +454,21 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        if( ! percolatorFileStringsList.isEmpty() ) {
 	        
-	        	System.out.println( "Percolator files on command line:" );
+	        	System.out.println( "Percolator files:" );
 
 	        	for ( String percolatorFileString : percolatorFileStringsList ) {
 
 	        		System.out.println( percolatorFileString );
 	        	}
 
-	        	System.out.println( " " );
-
-	        	System.out.println( "Percolator files full path:" );
-
-	        	for ( File percolatorFile : percolatorFileList ) {
-
-	        		System.out.println( percolatorFile.getCanonicalPath() );
-	        	}
+//	        	System.out.println( " " );
+//
+//	        	System.out.println( "Percolator files full path:" );
+//
+//	        	for ( File percolatorFile : percolatorFileList ) {
+//
+//	        		System.out.println( percolatorFile.getCanonicalPath() );
+//	        	}
 	        }
 			
 			System.out.println( " " );
@@ -437,34 +476,34 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			System.out.println( " " );
 			
 
-			File outputFile = new File( outputFilename );
+			outputFile = new File( outputFilename );
 			
 			
-	        File kojakConfFile = new File( kojakConfFileWithPathCommandLine );
+	        kojakConfFile = new File( kojakConfFileWithPathCommandLine );
 	        
 	        if ( ! kojakConfFile.exists() ) {
 
 				String msg = "ERROR: Kojak Conf does not exist (file: " + kojakConfFile.getAbsolutePath() + ") .";
-				log.error( msg );
 				System.err.println( msg );
-
-				throw new Exception( msg );
+        		System.err.println( "" );
+	        	System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 	        
 
-	        File kojakOutputFile = new File( kojakFileWithPath );
+	        kojakOutputFile = new File( kojakFileWithPath );
 	        
 	        if ( ! kojakOutputFile.exists() ) {
 
 				String msg = "ERROR: Kojak output file does not exist (file: " + kojakOutputFile.getAbsolutePath() + ") .";
-				log.error( msg );
 				System.err.println( msg );
-
-				throw new Exception( msg );
+        		System.err.println( "" );
+	        	System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 
-	        Set<BigDecimal> monolinkModificationMasses = null;
-	        
 
 	        if ( ! monolinkMassessStringsList.isEmpty() ) {
         
@@ -481,12 +520,25 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        		} catch ( Exception e ) {
 
 	        			String msg = "Failed to parse monolink mass on command line: " + monolinkMassString;
-	        			log.error( msg );
-	        			throw new ProxlGenXMLDataException( msg );
+	        			System.err.println( msg );
+		        		System.err.println( "" );
+			        	System.err.println( FOR_HELP_STRING );
+						
+						System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        		}
 	        	}
 	        }
+
+		} catch ( Exception e ) {
+
+			System.err.println( "Error processing command line parameters." ); 
+			e.printStackTrace();
+			throw e;
+		}
+
 			
+		try {
+				
 	        
 			//////////////////////////////////////
 			
@@ -603,21 +655,21 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        if( ! percolatorFileStringsList.isEmpty() ) {
 	        
-	        	System.out.println( "Percolator files on command line:" );
+	        	System.out.println( "Percolator files:" );
 
 	        	for ( String percolatorFileString : percolatorFileStringsList ) {
 
 	        		System.out.println( percolatorFileString );
 	        	}
 
-	        	System.out.println( " " );
-
-	        	System.out.println( "Percolator files full path:" );
-
-	        	for ( File percolatorFile : percolatorFileList ) {
-
-	        		System.out.println( percolatorFile.getCanonicalPath() );
-	        	}
+//	        	System.out.println( " " );
+//
+//	        	System.out.println( "Percolator files full path:" );
+//
+//	        	for ( File percolatorFile : percolatorFileList ) {
+//
+//	        		System.out.println( percolatorFile.getCanonicalPath() );
+//	        	}
 	        }
 			
 			
@@ -630,12 +682,6 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			
 //			successfulGenImportXMLFile = true;
 			
-		} catch ( PrintHelpOnlyException e ) {
-			
-			//  land here when only need to print the help
-			
-            printHelp();
-
 			
 		} catch ( Exception e ) {
 			
