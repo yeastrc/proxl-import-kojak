@@ -2,7 +2,7 @@ package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percol
 
 import java.util.List;
 
-//import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPercolatorOutput;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsm;
@@ -18,7 +18,7 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_pro
 public class InitialProcessPsmsForCompareToKojak {
 
 
-//	private static final Logger log = Logger.getLogger(InitialProcessPsmsForCompareToKojak.class);
+	private static final Logger log = Logger.getLogger(InitialProcessPsmsForCompareToKojak.class);
 	
 	//  private constructor
 	private InitialProcessPsmsForCompareToKojak(){}
@@ -40,7 +40,10 @@ public class InitialProcessPsmsForCompareToKojak {
 	public PsmMatchingAndCollection initialProcessPsmsForCompareToKojak( List<PercolatorFileAndUnmarshalledObject> percolatorFileAndUnmarshalledObjectList ) throws Exception {
 		
 	    
-	    System.out.println("InitialProcessPsmsForCompareToKojakAndScans: Starting processing PSMs in <psms>");
+		if ( log.isInfoEnabled() ) {
+
+			System.out.println("InitialProcessPsmsForCompareToKojakAndScans: Starting processing PSMs in <psms>");
+		}
 
 	    PsmMatchingAndCollection psmProcessing = PsmMatchingAndCollection.getInstance();
 		
@@ -58,7 +61,10 @@ public class InitialProcessPsmsForCompareToKojak {
 			}
 		}
 		
-	    System.out.println("InitialProcessPsmsForCompareToKojakAndScans: Done processing PSMs in <psms>");
+		if ( log.isInfoEnabled() ) {
+
+			System.out.println("InitialProcessPsmsForCompareToKojakAndScans: Done processing PSMs in <psms>");
+		}
 
 	    return psmProcessing;
 	}

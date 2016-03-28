@@ -65,11 +65,14 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 		if ( "-".equals( peptide_1 )  ) {
 
-			String msg = "\t\tINFO: Kojak record not processed.  Peptide 1 contains '" + peptide_1 + "' so Kojak did NOT make an identification. "
+			if ( log.isInfoEnabled() ) {
+
+				String msg = "\t\tINFO: Kojak record not processed.  Peptide 1 contains '" + peptide_1 + "' so Kojak did NOT make an identification. "
 
 					+ ", scanNumber: " + scanNumber;
 
-			System.out.println( msg );
+				System.out.println( msg );
+			}
 
 			return null;  //  EARLY EXIT
 		}

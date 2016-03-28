@@ -113,9 +113,10 @@ public class KojakConfFileReader {
 		configurationFile.setFileName( kojakConfFile.getName() );
 		configurationFile.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
 		
-		
-		System.out.println( "Reading Kojak conf file using filename provided on command line: " + kojakConfFile.getAbsolutePath() );
-		
+		if ( log.isInfoEnabled() ) {
+
+			System.out.println( "Reading Kojak conf file using filename provided on command line: " + kojakConfFile.getAbsolutePath() );
+		}
 				
 		
 		long kojakConfFileSize = kojakConfFile.length();

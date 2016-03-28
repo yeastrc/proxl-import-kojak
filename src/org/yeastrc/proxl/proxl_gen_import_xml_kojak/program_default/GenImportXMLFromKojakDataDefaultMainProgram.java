@@ -15,6 +15,8 @@ import jargs.gnu.CmdLineParser.IllegalOptionValueException;
 import jargs.gnu.CmdLineParser.UnknownOptionException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.PrintHelpOnlyException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
@@ -40,7 +42,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	public static void main(String[] args) throws Exception {
 	
 
-		boolean successfulGenImportXMLFile = false;
+//		boolean successfulGenImportXMLFile = false;
 		
 		int programExitCode = PROGRAM_EXIT_CODE_DEFAULT_NO_SYTEM_EXIT_CALLED;
 		
@@ -78,6 +80,10 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			//  'Z' is not mentioned to the user
 			CmdLineParser.Option proteinNameDecoyPrefixCommandLineOpt = cmdLineParser.addStringOption( 'Z', "decoy-prefix" );
 			
+			
+
+			CmdLineParser.Option verboseOpt = cmdLineParser.addBooleanOption('V', "verbose"); 
+			CmdLineParser.Option debugOpt = cmdLineParser.addBooleanOption('D', "debug"); 
 
 			CmdLineParser.Option helpOpt = cmdLineParser.addBooleanOption('h', "help"); 
 			
@@ -106,6 +112,24 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				programExitCode = 1;
 	            throw new PrintHelpOnlyException();
 	        }
+	        
+
+			Boolean verbose = (Boolean) cmdLineParser.getOptionValue(verboseOpt, Boolean.FALSE);
+			
+			Boolean debugValue = (Boolean) cmdLineParser.getOptionValue(debugOpt, Boolean.FALSE);
+
+			if ( verbose != null &&  verbose ) {
+
+				LogManager.getRootLogger().setLevel(Level.INFO);
+			}
+			
+			if ( debugValue != null &&  debugValue ) {
+
+				LogManager.getRootLogger().setLevel(Level.DEBUG);
+			}
+			
+			
+			
 	        
 	        String outputFilename = (String)cmdLineParser.getOptionValue( outputFilenameOpt );
 	        String fastaFilename = (String)cmdLineParser.getOptionValue( fastaFileOpt );
@@ -604,7 +628,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			System.out.println( " " );
 			
 			
-			successfulGenImportXMLFile = true;
+//			successfulGenImportXMLFile = true;
 			
 		} catch ( PrintHelpOnlyException e ) {
 			
@@ -630,17 +654,17 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 		}
 	    
-	    if ( successfulGenImportXMLFile ) {
-
-	    	System.out.println( "" );
-	    	System.out.println( "--------------------------------------" );
-	    	System.out.println( "" );
-	    	System.out.println( "Done Generating Proxl Import XML data." );
-
-	    	System.out.println( "" );
-	    	System.out.println( "--------------------------------------" );
-	    	System.out.println( "" );
-	    }
+//	    if ( successfulGenImportXMLFile ) {
+//
+//	    	System.out.println( "" );
+//	    	System.out.println( "--------------------------------------" );
+//	    	System.out.println( "" );
+//	    	System.out.println( "Done Generating Proxl Import XML data." );
+//
+//	    	System.out.println( "" );
+//	    	System.out.println( "--------------------------------------" );
+//	    	System.out.println( "" );
+//	    }
 
 		
 		if ( programExitCode != PROGRAM_EXIT_CODE_DEFAULT_NO_SYTEM_EXIT_CALLED ) {

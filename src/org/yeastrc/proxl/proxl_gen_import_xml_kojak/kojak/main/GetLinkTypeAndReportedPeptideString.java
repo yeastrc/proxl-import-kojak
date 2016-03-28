@@ -1,7 +1,7 @@
 package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.main;
 
 
-//import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.enums.KojakGenImportInternalLinkTypeEnum;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects.LinkTypeAndReportedPeptideString;
@@ -9,7 +9,7 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects.LinkTypeAndRep
 public class GetLinkTypeAndReportedPeptideString {
 
 
-//	private static final Logger log = Logger.getLogger( GetLinkTypeAndReportedPeptideString.class );
+	private static final Logger log = Logger.getLogger( GetLinkTypeAndReportedPeptideString.class );
 
 	//  private constructor
 	private GetLinkTypeAndReportedPeptideString() {}
@@ -36,11 +36,14 @@ public class GetLinkTypeAndReportedPeptideString {
 
 		if ( "-".equals( peptide_1 )  ) {
 
-			String msg = "\t\tINFO: Kojak record not processed.  Peptide 1 contains '" + peptide_1 + "' so Kojak did NOT make an identification. "
-			
+			if ( log.isInfoEnabled() ) {
+
+				String msg = "\t\tINFO: Kojak record not processed.  Peptide 1 contains '" + peptide_1 + "' so Kojak did NOT make an identification. "
+
 					+ ", scanNumber: " + scanNumber;
-			
-			System.out.println( msg );
+
+				System.out.println( msg );
+			}
 			
 			return null;  //  EARLY EXIT
 		}

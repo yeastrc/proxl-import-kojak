@@ -183,12 +183,15 @@ public class PsmMatchingAndCollection {
 		
 		if ( "-".equals( peptide_1 )  ) {
 
-			String msg = "\t\tINFO: Kojak record not processed.  Peptide 1 contains '" + peptide_1 + "' so Kojak did NOT make an identification. "
-			
+			if ( log.isInfoEnabled() ) {
+
+				String msg = "\t\tINFO: Kojak record not processed.  Peptide 1 contains '" + peptide_1 + "' so Kojak did NOT make an identification. "
+
 					+ ", scanNumber: " + scanNumber;
-			
-			System.out.println( msg );
-			
+
+				System.out.println( msg );
+			}
+
 			return;  //  EARLY EXIT
 		}
 		
@@ -239,6 +242,8 @@ public class PsmMatchingAndCollection {
 				
 		if ( psmDataByScanNumberList == null ) {
 
+//			if ( log.isInfoEnabled() ) {
+//
 //			String msg = "\t\tINFO: Kojak record not processed.  Scan number in Kojak Data not found in Percolator data. "
 //			
 //					+ ", scanNumber: " + scanNumber
@@ -248,6 +253,7 @@ public class PsmMatchingAndCollection {
 //					+ ", comparisonString4: " + comparisonString4;
 //			
 //			System.out.println( msg );
+//			}
 			
 //			String msg = "ERROR: getForKojakData(...): scan number not found. filename: " + filename + ", scanNumber: " + scanNumber;
 //			
@@ -339,32 +345,35 @@ public class PsmMatchingAndCollection {
 				
 				//  No Match found, report it
 
-				String msg = "\t\t INFO: getForKojakData(...): Processing Kojak Data, searching Percolator data, psm not found. scanNumber: " + scanNumber 
-						+ ", peptide1: " + peptide_1
-						+ ", peptide2: " + peptide_2
-						+ ", link1: " + link_1
-						+ ", link2: " + link_2
-						+ ", comparisonString1: " + comparisonString1
-						+ ", comparisonString2: " + comparisonString2
-						+ ", comparisonString3: " + comparisonString3
-						+ ", comparisonString4: " + comparisonString4;
+				if ( log.isInfoEnabled() ) {
+
+					String msg = "\t\t INFO: getForKojakData(...): Processing Kojak Data, searching Percolator data, psm not found. scanNumber: " + scanNumber 
+							+ ", peptide1: " + peptide_1
+							+ ", peptide2: " + peptide_2
+							+ ", link1: " + link_1
+							+ ", link2: " + link_2
+							+ ", comparisonString1: " + comparisonString1
+							+ ", comparisonString2: " + comparisonString2
+							+ ", comparisonString3: " + comparisonString3
+							+ ", comparisonString4: " + comparisonString4;
 
 
-				System.out.println( msg );
-				
-				String msg2 = "\t\t\t Perc PSM Sequences for ";
-				
-				msg2 += "scanNumber: " + scanNumber;
+					System.out.println( msg );
 
-				System.out.println( msg2 );
+					String msg2 = "\t\t\t Perc PSM Sequences for "
+						+ "scanNumber: " + scanNumber;
 
-				for ( PsmMatchingPSMDataHolder psmDataByScanNumberObject : psmDataByScanNumberList ) {
+					System.out.println( msg2 );
 
-					IPsm psmFromList = psmDataByScanNumberObject.getPercolatorPsmData();
+					for ( PsmMatchingPSMDataHolder psmDataByScanNumberObject : psmDataByScanNumberList ) {
 
-					String psmSequenceFromList = psmFromList.getPeptideSeq().getSeq();
+						IPsm psmFromList = psmDataByScanNumberObject.getPercolatorPsmData();
 
-					System.out.println( "\t\t\t Sequence: " + psmSequenceFromList  );
+						String psmSequenceFromList = psmFromList.getPeptideSeq().getSeq();
+
+						System.out.println( "\t\t\t Sequence: " + psmSequenceFromList  );
+					}
+
 				}
 
 				//			String msg = "ERROR: getForKojakData(...): psm not found. filename: " + filename + ", scanNumber: " + scanNumber 
@@ -418,17 +427,20 @@ public class PsmMatchingAndCollection {
 
 						foundMissing = true;
 
-						String msg = "ERROR: PercPSM record found without matching Kojak record.";
+						if ( log.isInfoEnabled() ) {
 
-						msg += ", Scan number: " + psmDataByScanNumberObject.getPsmIdSplitObject().getScanNumber()
-								+ ", psm_id: " + psmDataByScanNumberObject.getPercolatorPsmData().getPsmId()
-								+ ", psm sequence: " 
-								+ psmDataByScanNumberObject.getPercolatorPsmData().getPeptideSeq().getSeq();
+							String msg = "ERROR: PercPSM record found without matching Kojak record.";
 
-						log.error( msg );
-						System.out.println( msg );
-						System.err.println( msg );
+							msg += ", Scan number: " + psmDataByScanNumberObject.getPsmIdSplitObject().getScanNumber()
+									+ ", psm_id: " + psmDataByScanNumberObject.getPercolatorPsmData().getPsmId()
+									+ ", psm sequence: " 
+									+ psmDataByScanNumberObject.getPercolatorPsmData().getPeptideSeq().getSeq();
 
+							log.error( msg );
+							System.out.println( msg );
+							System.err.println( msg );
+						}
+						
 						break;
 
 					}

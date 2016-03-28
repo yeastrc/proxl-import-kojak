@@ -96,13 +96,18 @@ public class ProcessKojakFile {
 					break;  //  EARLY EXIT from LOOOP
 				}
 				
-				System.out.println( "Processing Kojak record for scan number: " + kojakPsmDataObject.getScanNumber() );
+				if ( log.isInfoEnabled() ) {
 
+					System.out.println( "Processing Kojak record for scan number: " + kojakPsmDataObject.getScanNumber() );
+				}
 
 				if ( IsAllProtein_1or2_Decoy.getInstance().isAllProtein_1or2_Decoy( kojakPsmDataObject, proxlInputRoot) ) {
 					
-					System.out.println( "All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record."
-							+ "  scan number: " + kojakPsmDataObject.getScanNumber() );
+					if ( log.isInfoEnabled() ) {
+
+						System.out.println( "All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record."
+								+ "  scan number: " + kojakPsmDataObject.getScanNumber() );
+					}
 					
 					//   All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record.
 					
