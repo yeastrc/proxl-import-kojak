@@ -19,7 +19,7 @@
 
 	
 	
-    <target name="create_run_jar"  depends="compile,manifest">
+    <target name="create_run_jar"  depends="compile">
     	
 		<path id="build.classpath">
 		  <fileset dir="lib">
@@ -57,28 +57,6 @@
         </jar>
     </target>
 	
-
-	<!-- ================================================================================== -->
-	<!-- Create a Manifest.MF file with the SVN info -->
-	<!-- ================================================================================== -->
-	<target name="manifest" depends="prepare">
-		<manifest file="${basedir}/MANIFEST.MF">
-			<attribute name="Main-Class" value="${jar.main.class}" />
-
-			<attribute name="Date" value="${build-info.current-date}" />
-			<attribute name="Time" value="${build-info.current-time}" />
-		</manifest>
-	</target>
-	
-	<!-- Check timestamp on files -->
-    <target name="prepare">
-    	<tstamp prefix="build-info">
-			<format property="current-date" pattern="d-MMMM-yyyy" locale="en" />
-			<format property="current-time" pattern="hh:mm:ss a z" locale="en" />
-			<format property="year-month-day" pattern="yyyy-MM-dd" locale="en" />
-		</tstamp>
-
-    </target>
 	
 	<!-- ================================================================================== -->
 	<!-- Clean the build directory -->
