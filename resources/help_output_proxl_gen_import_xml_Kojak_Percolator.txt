@@ -18,9 +18,9 @@ Parameters:
 
 	-o (--output-file=) : [Required] : The absolute or relative path to the ProXL XML file to be created.
 
-	-k (--kojak-data-file=) : [Required] : The path to the Kojak data (txt) file.
+	-k (--kojak-data-file=) : [Required] : The Kojak data (txt) file with it's relative or absolute path.
 	
-	-c (--kojak-conf-file=) : [Required] : The path to the Kojak configuration file.
+	-c (--kojak-conf-file=) : [Required] : The Kojak configuration file with it's relative or absolute path.
 	
 	-l (--linker=) : [Required] : The name of the crosslinker used in the experiment. Must be a string
 	                              recognized by ProXL, so that linkable positions in proteins may be
