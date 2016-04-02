@@ -1,8 +1,7 @@
-# proxl-gen-import-xml-kojak-percolator
-Kojak and optionally Percolator to ProXL XML Converter
+Kojak to ProXL XML Converter
 =====================================================
 
-Use this program to convert the results of a Kojak and optionally Percolator cross-linking analysis to ProXL XML suitable for import into the ProXL web application.
+Use this program to convert the results of a Kojak (and optionally Percolator) cross-linking analysis to ProXL XML suitable for import into the ProXL web application.
 
 How To Run
 -------------
