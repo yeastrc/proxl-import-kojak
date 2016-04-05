@@ -8,6 +8,7 @@ import java.io.FileReader;
 
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,7 +18,6 @@ import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFile;
-import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFiles;
 import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMass;
 import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMasses;
 import org.yeastrc.proxl_import.api.xml_dto.DecoyLabel;
@@ -28,7 +28,6 @@ import org.yeastrc.proxl_import.api.xml_dto.MonolinkMass;
 import org.yeastrc.proxl_import.api.xml_dto.MonolinkMasses;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.StaticModification;
-import org.yeastrc.proxl_import.api.xml_dto.StaticModifications;
 
 /**
  * Process the Kojak Conf file, and returning the input file
@@ -38,8 +37,6 @@ public class KojakConfFileReader {
 	
 	private static final Logger log = Logger.getLogger(KojakConfFileReader.class);
 	
-	
-	
 	//  Keys in the Conf file
 	
 	private static final String DATABASE__FASTA_FILE = "database";
@@ -47,7 +44,7 @@ public class KojakConfFileReader {
 	/**
 	 * Input file to Kojak
 	 */
-	private static final String MS_DATA_FILE_CONFIG_KEY = "MS_data_file";
+	public static final String MS_DATA_FILE_CONFIG_KEY = "MS_data_file";
 
 	public static final String CROSS_LINK_CONFIG_KEY = "cross_link";
 	
@@ -74,7 +71,7 @@ public class KojakConfFileReader {
 	 * @param proxlInputRoot
 	 * @throws Exception
 	 */
-	public void readKojakConfFile( File kojakConfFile, ProxlInput proxlInputRoot ) throws Exception{
+	public KojakConfFileReaderResult readKojakConfFile( File kojakConfFile, ProxlInput proxlInputRoot ) throws Exception{
 		
 		{
 			//  First validate Linkers populated
@@ -99,19 +96,16 @@ public class KojakConfFileReader {
 	
 		}
 	
-		StaticModifications staticModifications = new StaticModifications();
-		List<StaticModification> staticModificationList = staticModifications.getStaticModification();
-
-		ConfigurationFiles configurationFiles = new ConfigurationFiles();
-		proxlInputRoot.setConfigurationFiles( configurationFiles );
-		
-		List<ConfigurationFile> configurationFileList = configurationFiles.getConfigurationFile();
 		
 		ConfigurationFile configurationFile = new ConfigurationFile();
-		configurationFileList.add( configurationFile );
 		
 		configurationFile.setFileName( kojakConfFile.getName() );
 		configurationFile.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+		
+		List<StaticModification> staticModificationList = new ArrayList<>();
+		
+		String kojakInputFilenamePossiblyWithPath = null;
+
 		
 		if ( log.isInfoEnabled() ) {
 
@@ -203,7 +197,7 @@ public class KojakConfFileReader {
 				
 				} else if ( MS_DATA_FILE_CONFIG_KEY.equals( lineParsed.key ) ) {
 
-//					kojakInputFilenamePossiblyWithPath = lineParsed.value;
+					kojakInputFilenamePossiblyWithPath = lineParsed.value;
 					
 
 
@@ -290,13 +284,14 @@ public class KojakConfFileReader {
 		validateStaticMods( staticModificationList, kojakConfFile );
 		
 		
-		//  Add Static modifications if list not empty
+		KojakConfFileReaderResult kojakConfFileReaderResult = new KojakConfFileReaderResult();
 		
-		if ( ! staticModificationList.isEmpty() ) {
+		kojakConfFileReaderResult.setConfigurationFile( configurationFile );
+		kojakConfFileReaderResult.setStaticModificationListForThisFile( staticModificationList );
 		
-			proxlInputRoot.setStaticModifications( staticModifications );
-		}
-		
+		kojakConfFileReaderResult.setKojakInputFilenamePossiblyWithPath( kojakInputFilenamePossiblyWithPath );
+
+		return kojakConfFileReaderResult;
 	}
 	
 
