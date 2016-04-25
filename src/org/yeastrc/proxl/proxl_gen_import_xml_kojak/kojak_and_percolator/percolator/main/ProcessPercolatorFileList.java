@@ -10,6 +10,7 @@ import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPeptide
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPercolatorOutput;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsm;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsmIds;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.objects.PercolatorFileAndUnmarshalledObject;
@@ -182,6 +183,63 @@ public class ProcessPercolatorFileList {
 			IPsm percolatorPsmData = psmMatchingPSMDataHolder.getPercolatorPsmData();
 			
 			KojakPsmDataObject kojakPsmDataObject = psmMatchingPSMDataHolder.getKojakPsmDataObject();
+			
+			
+
+			if ( kojakPsmDataObject == null ) {
+				
+				if ( psmMatchingPSMDataHolder.isKojakMatchesMultiplePercolatorPsms() ) {
+					
+					//  No matching Kojak record since it matched some other Percolator record 
+					
+					if ( CommandLineOptionsContainer.isForceDropKojakDuplicateRecordsOptOnCommandLine() ) {
+
+						String msg = "psmMatchingPSMDataHolder.getKojakPsmDataObject() == null and psmMatchingPSMDataHolder.isKojakMatchesMultiplePercolatorPsms() is true and CommandLineOptionsContainer.isForceDropKojakDuplicateRecordsOptOnCommandLine() is true So Skipping to next record.  "
+								+ "  percolatorPsmId: '" + percolatorPsmId + "', " 
+								+ "percolatorPeptide.getPeptideId(): '" + percolatorPeptide.getPeptideId() + "'.";
+
+						log.error( msg );
+
+						continue;
+						
+					} else {
+
+						String msg = "psmMatchingPSMDataHolder.getKojakPsmDataObject() == null.  "
+								+ "psmMatchingPSMDataHolder.isKojakMatchesMultiplePercolatorPsms() is true and CommandLineOptionsContainer.isForceDropKojakDuplicateRecordsOptOnCommandLine() is false so YES thowing Exception.  "
+								+ "  percolatorPsmId: '" + percolatorPsmId + "', " 
+								+ "percolatorPeptide.getPeptideId(): '" + percolatorPeptide.getPeptideId() + "'.";
+
+						log.error( msg );
+
+						throw new ProxlGenXMLDataException( msg );
+					}
+
+				} else {
+
+					String msg = "psmMatchingPSMDataHolder.getKojakPsmDataObject() == null."
+							+ "  percolatorPsmId: '" + percolatorPsmId + "', " 
+							+ "percolatorPeptide.getPeptideId(): '" + percolatorPeptide.getPeptideId() + "'.";
+
+					log.error( msg );
+
+					throw new ProxlGenXMLDataException( msg );
+				}
+			}
+			
+
+			if ( percolatorPsmData == null ) {
+				
+				//   This should never happen
+
+				String msg = "psmMatchingPSMDataHolder.getPercolatorPsmData() == null So Skipping to next record."
+						+ "  percolatorPsmId: '" + percolatorPsmId + "', " 
+						+ "percolatorPeptide.getPeptideId(): '" + percolatorPeptide.getPeptideId() + "'.";
+				
+				log.error( msg );
+				
+				throw new ProxlGenXMLDataException( msg );
+			}
+
 			
 			Psm proxlInputPsm = PopulateProxlInputPsmFromKojakAndPercolator.getInstance().populateProxlInputPsm( kojakPsmDataObject, percolatorPsmData );
 					
