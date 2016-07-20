@@ -3,6 +3,7 @@ package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_e
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -13,7 +14,9 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.annotat
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.default_visible_annotations.AddKojakAndPercolatorDefaultVisibleAnnotations;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.fasta.AddProteinsFromFASTAFileUsingProteinNames;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.ProcessKojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.kojak.ProcessKojakFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.main.InitialProcessPsmsForCompareToKojak;
@@ -23,8 +26,6 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percola
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.utils.VerifyAllPercolatorVersionsSame_RetrievePercolatorVersion;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.utils.VerifyNoDuplicatePercolatorPSMs;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_processing.PsmMatchingAndCollection;
-import org.yeastrc.proxl_import.api.xml_dto.DecoyLabel;
-import org.yeastrc.proxl_import.api.xml_dto.DecoyLabels;
 import org.yeastrc.proxl_import.api.xml_dto.Linker;
 import org.yeastrc.proxl_import.api.xml_dto.Linkers;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
@@ -55,26 +56,28 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 
 	
 	/**
-	 * @param projectId
-	 * @param fastaFilename
-	 * @param kojakConfFilenameCommandLine
-	 * @param linkerNameString
+	 * @param fastaFileWithPathFileFromCmdLine
+	 * @param linkerNamesStringsList
 	 * @param searchName
 	 * @param proteinNameDecoyPrefix
+	 * @param monolinkModificationMasses
 	 * @param forceDropKojakDuplicateRecordsOptOnCommandLine
 	 * @param percolatorFileList
-	 * @param kojakOutputFileList
-	 * @param scanFile
+	 * @param kojakOutputFile
+	 * @param kojakConfFile
+	 * @param outputFile
 	 * @throws Exception
 	 */
 	public void doGenFile( 
 			
-			String fastaFilename,
+			File fastaFileWithPathFileFromCmdLine,
 			List<String> linkerNamesStringsList,
 			String searchName,
 			String proteinNameDecoyPrefix,
 			
 			Set<BigDecimal> monolinkModificationMasses,
+			
+			boolean skipPopulatingMatchedProteins,
 			
 			boolean forceDropKojakDuplicateRecordsOptOnCommandLine,
 
@@ -96,10 +99,7 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 		
 		ProxlInput proxlInputRoot = new ProxlInput();
 		
-		proxlInputRoot.setFastaFilename( fastaFilename );
 		
-		
-//		proxlInputRoot.setComment(  );
 		
 		proxlInputRoot.setName( searchName );
 		
@@ -188,30 +188,65 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 					InitialProcessPsmsForCompareToKojak.getInstance().initialProcessPsmsForCompareToKojak( percolatorFileAndUnmarshalledObjectList );
 
 			
-			ProcessKojakConfFile.getInstance().processKojakConfFile( kojakConfFile, proxlInputRoot );
+			KojakConfFileReaderResult kojakConfFileReaderResult =
+					ProcessKojakConfFile.getInstance().processKojakConfFile( kojakConfFile, proxlInputRoot );
+			
+			
+			System.out.println( "FASTA file found in Kojak configuration file: " + kojakConfFileReaderResult.getFastaFile().getCanonicalPath() );
+			
 			
 
+			Collection<String> decoyIdentificationStringList = kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList();
+			
 			if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
 				
 				//  Decoys provided on command line so Override decoys from conf file 
 
-				DecoyLabels decoyLabels = new DecoyLabels();
-				proxlInputRoot.setDecoyLabels( decoyLabels );
-
-				List<DecoyLabel> decoyLabelList = decoyLabels.getDecoyLabel();
-
-				DecoyLabel decoyLabel = new DecoyLabel();
-				decoyLabelList.add( decoyLabel );
-
-				decoyLabel.setPrefix( proteinNameDecoyPrefix );
+				decoyIdentificationStringList = new ArrayList<>( 1 );
+				
+				decoyIdentificationStringList.add( proteinNameDecoyPrefix );
 			}
+
+			File fastaFileWithPathFile = null;
 			
-			
+
+			if ( fastaFileWithPathFileFromCmdLine != null ) {
+				
+				//  fasta file provided on command line so Override fasta file from conf file 
+				
+				String fastaFilename = fastaFileWithPathFileFromCmdLine.getName();
+
+				proxlInputRoot.setFastaFilename( fastaFilename );
+				
+				fastaFileWithPathFile = fastaFileWithPathFileFromCmdLine;
+
+			} else {
+				
+				if ( kojakConfFileReaderResult.getFastaFile() == null ) {
+					
+					//  fasta file not provided in conf file or command line, throw error
+
+					String msg = "No Fasta file provided by either conf file or command line.";
+					log.error( msg );
+					throw new ProxlGenXMLDataException(msg);
+				}
+				
+				if ( ! kojakConfFileReaderResult.getFastaFile().exists() ) {
+
+					//  fasta file in conf file not found, throw error
+
+					String msg = "Fasta file in conf file does not exist: " + kojakConfFileReaderResult.getFastaFile().getCanonicalPath();
+					log.error( msg );
+					throw new ProxlGenXMLDataException(msg);
+				}
+				fastaFileWithPathFile = kojakConfFileReaderResult.getFastaFile();
+			}
 			
 			ProcessKojakFile.getInstance().processKojakFile( 
 							kojakOutputFile,
 							proxlInputRoot, 
-							psmMatchingAndCollection );
+							psmMatchingAndCollection,
+							kojakConfFileReaderResult );
 
 			if ( ! psmMatchingAndCollection.doAllPercPSMsHaveKojakRecords() ) {
 				
@@ -220,10 +255,21 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 				throw new ProxlGenXMLDataException(msg);
 			}
 			
-			ProcessPercolatorFileList.getInstance().processPercolatorFileList(
-					percolatorFileAndUnmarshalledObjectList, proxlInputRoot, psmMatchingAndCollection, percolatorVersion );
-
+			Set<String> proteinNameStrings =
+					ProcessPercolatorFileList.getInstance().processPercolatorFileList(
+							percolatorFileAndUnmarshalledObjectList, 
+							proxlInputRoot, 
+							kojakConfFileReaderResult,
+							psmMatchingAndCollection, 
+							percolatorVersion, 
+							skipPopulatingMatchedProteins );
 			
+			if ( proteinNameStrings != null ) {
+			
+				AddProteinsFromFASTAFileUsingProteinNames.getInstance().addProteinsFromFASTAFile( proxlInputRoot, fastaFileWithPathFile, proteinNameStrings );
+			}
+
+//			AddProteinsFromFASTAFileUsingPeptideSequence.getInstance().addProteinsFromFASTAFile( proxlInputRoot, fastaFileWithPathFile, decoyIdentificationStringList );
 			
 			try {
 			

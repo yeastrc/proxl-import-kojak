@@ -3,9 +3,6 @@ package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.yeastrc.proxl_import.api.xml_dto.DecoyLabel;
-import org.yeastrc.proxl_import.api.xml_dto.DecoyLabels;
-import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 
 
 
@@ -33,10 +30,9 @@ public class IsAllProtein_1or2_Decoy {
 	 * @param proxlInputRoot
 	 * @return
 	 */
-	public boolean isAllProtein_1or2_Decoy( KojakPsmDataObject kojakPsmDataObject, ProxlInput proxlInputRoot ) {
+	public boolean isAllProtein_1or2_Decoy( KojakPsmDataObject kojakPsmDataObject, KojakConfFileReaderResult kojakConfFileReaderResult ) {
 		
-		DecoyLabels decoyLabels = proxlInputRoot.getDecoyLabels();
-		List<DecoyLabel> decoyLabelList = decoyLabels.getDecoyLabel();
+		List<String> decoyIdentificationStringFromConfFileList = kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList();
 
 		String[] proteins = null;
 		
@@ -56,15 +52,22 @@ public class IsAllProtein_1or2_Decoy {
 		
 		for ( String protein1or2 : proteins ) {
 		
-			String[] protein1or2Split = protein1or2.split( "," );
+			String[] protein1or2Split = protein1or2.split( ">" );  //  Split on ">" since when Kojak reports the Protein it reports the whole header, including the ">"
 
 			boolean allDecoysForProtein = true;
 			
 			for ( String proteinSingle : protein1or2Split ) {
 				
-				for ( DecoyLabel decoyLabel : decoyLabelList ) {
+				if ( "".equals( proteinSingle ) ) {
+					
+					//  skip empty string that is created by splitting on ">" when first character in string is ">"
+					
+					continue;
+				}
 				
-					if ( ! proteinSingle.contains( decoyLabel.getPrefix() ) ) {
+				for ( String decoyIdentificationString : decoyIdentificationStringFromConfFileList ) {
+				
+					if ( ! proteinSingle.contains( decoyIdentificationString ) ) {
 
 						//  Not decoy found
 

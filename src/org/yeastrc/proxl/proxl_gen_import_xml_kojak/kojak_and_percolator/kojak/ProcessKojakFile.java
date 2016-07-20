@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.IsAllProtein_1or2_Decoy;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileReader;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_processing.PsmMatchingAndCollection;
@@ -40,7 +41,8 @@ public class ProcessKojakFile {
 			
 			File kojakOutputFile,
 			ProxlInput proxlInputRoot,
-			PsmMatchingAndCollection psmMatchingAndCollection ) throws Exception {
+			PsmMatchingAndCollection psmMatchingAndCollection,
+			KojakConfFileReaderResult kojakConfFileReaderResult ) throws Exception {
 		
 
 		SearchProgramInfo searchProgramInfo = proxlInputRoot.getSearchProgramInfo();
@@ -101,7 +103,7 @@ public class ProcessKojakFile {
 					System.out.println( "Processing Kojak record for scan number: " + kojakPsmDataObject.getScanNumber() );
 				}
 
-				if ( IsAllProtein_1or2_Decoy.getInstance().isAllProtein_1or2_Decoy( kojakPsmDataObject, proxlInputRoot) ) {
+				if ( IsAllProtein_1or2_Decoy.getInstance().isAllProtein_1or2_Decoy( kojakPsmDataObject, kojakConfFileReaderResult) ) {
 					
 					if ( log.isInfoEnabled() ) {
 

@@ -54,13 +54,18 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
         
         String outputFilename = null;
-        String fastaFilename = null;
+        
+        String fastaFileWithPathFileFromCmdLineString = null;
+        File fastaFileWithPathFileFromCmdLine = null;
 
         String kojakFileWithPath = null;
         String kojakConfFileWithPathCommandLine = null;
         
         
         Boolean noPercolatorCmdLine = (Boolean) null;
+        
+        Boolean skipPopulatingMatchedProteins = false;
+        
 
         String searchName = null;
         
@@ -115,6 +120,9 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			
 			//  'Z' is not mentioned to the user
 			CmdLineParser.Option proteinNameDecoyPrefixCommandLineOpt = cmdLineParser.addStringOption( 'Z', "decoy-prefix" );
+
+			//  'Z' is not mentioned to the user
+			CmdLineParser.Option skipPopulatingMatchedProteinsCommandLineOpt = cmdLineParser.addStringOption( 'Z', "skip-populating-matched-proteins" );
 			
 			
 
@@ -166,11 +174,18 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				LogManager.getRootLogger().setLevel(Level.DEBUG);
 			}
 			
+
+			skipPopulatingMatchedProteins = (Boolean) cmdLineParser.getOptionValue(skipPopulatingMatchedProteinsCommandLineOpt, Boolean.FALSE);
+			
+			
 			
 			
 	        
 	        outputFilename = (String)cmdLineParser.getOptionValue( outputFilenameOpt );
-	        fastaFilename = (String)cmdLineParser.getOptionValue( fastaFileOpt );
+	        
+	        
+	        fastaFileWithPathFileFromCmdLineString = (String)cmdLineParser.getOptionValue( fastaFileOpt );
+	         
 	        
 			@SuppressWarnings("rawtypes")
 			Vector linkerNameStringsVector = cmdLineParser.getOptionValues( linkerOpt );
@@ -383,6 +398,24 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				}
 			}
 			
+
+			if ( fastaFileWithPathFileFromCmdLineString != null ) {
+
+				fastaFileWithPathFileFromCmdLine = new File( fastaFileWithPathFileFromCmdLineString );
+
+				if( ! fastaFileWithPathFileFromCmdLine.exists() ) {
+					System.err.println( "Could not find fasta file: " + fastaFileWithPathFileFromCmdLine );
+					System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+				}
+			}
+
+			/////////////////////////////////
+			
+			
+			//    List input params to sysout
 	        
 	        System.out.println( "Performing Proxl Gen import XML file for parameters:" );
 	        
@@ -421,11 +454,11 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
-	        
-	        
-	        if ( StringUtils.isNotEmpty( fastaFilename ) ) {
 
-	        	System.out.println( "fasta filename: " + fastaFilename );
+	        
+	        if ( StringUtils.isNotEmpty( fastaFileWithPathFileFromCmdLineString ) ) {
+
+	        	System.out.println( "fasta file (with path): " + fastaFileWithPathFileFromCmdLineString );
 	        }
 
 	        if ( StringUtils.isNotEmpty( searchName ) ) {
@@ -549,12 +582,15 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        	GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint.getInstance().doGenFile( 
 
-	        			fastaFilename, 
+	        			fastaFileWithPathFileFromCmdLine, 
 	        			linkerNamesStringsList, 
 	        			searchName, 
 	        			proteinNameDecoyPrefix,
 
 	        			monolinkModificationMasses,
+	        			
+	        			skipPopulatingMatchedProteins,
+	        			
 	        			false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
 
 
@@ -568,12 +604,15 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	
 	        	GenImportXMLFromKojakDataCoreEntryPoint.getInstance().doGenFile( 
 	        			
-	        			fastaFilename, 
+	        			fastaFileWithPathFileFromCmdLine, 
 	        			linkerNamesStringsList, 
 	        			searchName, 
 	        			proteinNameDecoyPrefix, 
 	        			
 	        			monolinkModificationMasses, 
+	        			
+	        			skipPopulatingMatchedProteins,
+	        			
 	        			false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
 	        			
 	        			kojakOutputFile, 
@@ -624,9 +663,9 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
 	        
 	        
-	        if ( StringUtils.isNotEmpty( fastaFilename ) ) {
+	        if ( StringUtils.isNotEmpty( fastaFileWithPathFileFromCmdLineString ) ) {
 
-	        	System.out.println( "fasta filename: " + fastaFilename );
+	        	System.out.println( "fasta file (with path): " + fastaFileWithPathFileFromCmdLineString );
 	        }
 
 	        if ( StringUtils.isNotEmpty( searchName ) ) {

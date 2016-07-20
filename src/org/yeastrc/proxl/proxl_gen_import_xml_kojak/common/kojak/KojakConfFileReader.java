@@ -20,8 +20,6 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXM
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFile;
 import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMass;
 import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMasses;
-import org.yeastrc.proxl_import.api.xml_dto.DecoyLabel;
-import org.yeastrc.proxl_import.api.xml_dto.DecoyLabels;
 import org.yeastrc.proxl_import.api.xml_dto.Linker;
 import org.yeastrc.proxl_import.api.xml_dto.Linkers;
 import org.yeastrc.proxl_import.api.xml_dto.MonolinkMass;
@@ -96,6 +94,7 @@ public class KojakConfFileReader {
 	
 		}
 	
+		List<String> decoyIdentificationStringFromConfFileList = new ArrayList<>();
 		
 		ConfigurationFile configurationFile = new ConfigurationFile();
 		
@@ -104,7 +103,11 @@ public class KojakConfFileReader {
 		
 		List<StaticModification> staticModificationList = new ArrayList<>();
 		
+		File fastaFile = null;
+		
 		String kojakInputFilenamePossiblyWithPath = null;
+		
+		
 
 		
 		if ( log.isInfoEnabled() ) {
@@ -192,7 +195,7 @@ public class KojakConfFileReader {
 				
 				if ( DATABASE__FASTA_FILE.equals( lineParsed.key ) ) {
 
-					processFastaFile( lineParsed, line, proxlInputRoot );
+					fastaFile = processFastaFile( lineParsed, line, proxlInputRoot );
 					
 				
 				} else if ( MS_DATA_FILE_CONFIG_KEY.equals( lineParsed.key ) ) {
@@ -218,19 +221,7 @@ public class KojakConfFileReader {
 
 				} else if ( DECOY_FILTER_CONFIG_KEY.equals( lineParsed.key ) ) {
 					
-					DecoyLabels decoyLabels = proxlInputRoot.getDecoyLabels();
-							
-					if ( decoyLabels == null ) {
-						decoyLabels = new DecoyLabels();
-						proxlInputRoot.setDecoyLabels( decoyLabels );
-					}
-					
-					List<DecoyLabel> decoyLabelList = decoyLabels.getDecoyLabel();
-					
-					DecoyLabel decoyLabel = new DecoyLabel();
-					decoyLabelList.add( decoyLabel );
-					
-					decoyLabel.setPrefix( lineParsed.value );
+					decoyIdentificationStringFromConfFileList.add( lineParsed.value );
 					
 //				} else if ( KOJAK_OUTPUT_FILENAME_CONFIG_KEY.equals( lineParsed.getKojakConfFileKey() ) ) {
 //					
@@ -289,7 +280,11 @@ public class KojakConfFileReader {
 		kojakConfFileReaderResult.setConfigurationFile( configurationFile );
 		kojakConfFileReaderResult.setStaticModificationListForThisFile( staticModificationList );
 		
+		kojakConfFileReaderResult.setDecoyIdentificationStringFromConfFileList( decoyIdentificationStringFromConfFileList );
+		
 		kojakConfFileReaderResult.setKojakInputFilenamePossiblyWithPath( kojakInputFilenamePossiblyWithPath );
+		
+		kojakConfFileReaderResult.setFastaFile( fastaFile );
 
 		return kojakConfFileReaderResult;
 	}
@@ -445,18 +440,22 @@ public class KojakConfFileReader {
 	 * @param line
 	 * @param proxlInputRoot
 	 */
-	private void processFastaFile( ParsedLine lineParsed, String line, ProxlInput proxlInputRoot )  {
+	private File processFastaFile( ParsedLine lineParsed, String line, ProxlInput proxlInputRoot )  {
+		
+		File fastaFile = null;
 		
 		if ( StringUtils.isEmpty( proxlInputRoot.getFastaFilename() ) ) {
 
 			String lineParsedValue = lineParsed.value;
 
-			File fastaFile = new File( lineParsedValue );
+			fastaFile = new File( lineParsedValue );
 
 			String fastaFilename = fastaFile.getName();
 
 			proxlInputRoot.setFastaFilename( fastaFilename );
 		}
+		
+		return fastaFile;
 	}
 	
 

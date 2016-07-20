@@ -1,5 +1,6 @@
 package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,10 @@ public class KojakConfFileReaderResult {
 	private ConfigurationFile configurationFile;
 
 	private List<StaticModification> staticModificationListForThisFile = new ArrayList<>();
+	
+	private List<String> decoyIdentificationStringFromConfFileList;
+	
+	private File fastaFile;
 
 	/**
 	 * Not currently used here but is used by YRC for it's processing so must keep this and populate it in KojakConfFileReader
@@ -47,6 +52,23 @@ public class KojakConfFileReaderResult {
 	public void setKojakInputFilenamePossiblyWithPath(
 			String kojakInputFilenamePossiblyWithPath) {
 		this.kojakInputFilenamePossiblyWithPath = kojakInputFilenamePossiblyWithPath;
+	}
+
+	public List<String> getDecoyIdentificationStringFromConfFileList() {
+		return decoyIdentificationStringFromConfFileList;
+	}
+
+	public void setDecoyIdentificationStringFromConfFileList(
+			List<String> decoyIdentificationStringFromConfFileList) {
+		this.decoyIdentificationStringFromConfFileList = decoyIdentificationStringFromConfFileList;
+	}
+
+	public File getFastaFile() {
+		return fastaFile;
+	}
+
+	public void setFastaFile(File fastaFile) {
+		this.fastaFile = fastaFile;
 	}
 
 

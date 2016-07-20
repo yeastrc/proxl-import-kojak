@@ -1,6 +1,8 @@
 Usage: java -jar kojak2ProxlXML.jar -o output_filename -l linker_name -c /path/to/kojak.conf -k /path/to/kojak.data.txt \
-                                   [-N] [-f fasta_name.fasta (not full path)] [-m monolink_mass] [ -n search_name ] \
-								   [ --decoy-prefix=decoy ] [-x /path/to/percolator_file.xml ] [-x /another/percolator/file.xml ]
+                                   [--no-percolator] [-x /path/to/percolator_file.xml ] [-x /another/percolator/file.xml ] \
+                                   [-f fasta_name.fasta (including path)] [-m monolink_mass] \
+                                   [ --decoy-prefix=decoy ] [ -n search_name ]  
+                                   
 
 Examples:
 
@@ -37,18 +39,18 @@ Parameters:
 								  cross_link	=	1	1	138.0680742	# linker:dss
 								  mono_link	=	1	155.0946	# linker:dss
 
-	-f (--fasta-file=) : [Optional] : Override the name (without the path) of the FASTA file used in the
+	-x (--percolator-xml=) : [Optional] : Absolute or relative path names to a percolator XML file, generated
+	                                     as part of the Percolator post-processing of Kojak analysis. This
+										 parameter may be repeated multiple times for each percolator XML
+										 file. May not be used if -N is set.
+										
+	-f (--fasta-file=) : [Optional] : Override the filename with the path of the FASTA file used in the
 									  experiment. If not present, the value from the Kojak configuration file
 									  will be used.
 
 	-N (--no-percolator) : [Optional] : Must be set if no Percolator XML files are present, the Kojak data
 										without any Percolator data will be converted. May not be set if
 										-x is used.
-										
-	-x (--percolator-xml=) : [Optional] : Absolute or relative path names to a percolator XML file, generated
-	                                     as part of the Percolator post-processing of Kojak analysis. This
-										 parameter may be repeated multiple times for each percolator XML
-										 file. May not be used if -N is set.
 										
 	-m (--monolink-mass=) : [Optional] : Override the value for monolink masses. May be used multiple times.
 								  

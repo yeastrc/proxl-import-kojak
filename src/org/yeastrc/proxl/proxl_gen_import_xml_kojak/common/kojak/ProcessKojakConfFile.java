@@ -33,13 +33,13 @@ public class ProcessKojakConfFile {
 	 * @param psmMatchingAndCollection
 	 * @throws Exception 
 	 */
-	public void processKojakConfFile( 
+	public KojakConfFileReaderResult processKojakConfFile( 
 			
 			File kojakConfFile,
 			ProxlInput proxlInputRoot ) throws Exception {
 		
 
-		
+		KojakConfFileReaderResult kojakConfFileReaderResult = null;
 		
 		KojakConfFileReader kojakConfFileReader = null;
 		
@@ -50,7 +50,7 @@ public class ProcessKojakConfFile {
 			kojakConfFileReader = KojakConfFileReader.getInstance(  );
 			
 			
-			KojakConfFileReaderResult kojakConfFileReaderResult =
+			kojakConfFileReaderResult =
 					kojakConfFileReader.readKojakConfFile( kojakConfFile, proxlInputRoot );
 
 			ConfigurationFiles configurationFiles = new ConfigurationFiles();
@@ -87,6 +87,6 @@ public class ProcessKojakConfFile {
 		}
 		
 		
-		
+		return kojakConfFileReaderResult;
 	}
 }

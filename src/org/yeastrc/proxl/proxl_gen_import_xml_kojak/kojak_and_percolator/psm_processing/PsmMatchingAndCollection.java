@@ -289,9 +289,16 @@ public class PsmMatchingAndCollection {
 					//  if not null then while processing contents of percPsmToKojakMatchingItemList,
 					//      already found a match for the comparison strings
 					
-					String msg = "\t\t ERROR:  DROPPED RECORD:  Kojak PSMs will be dropped : getForKojakData(...): Processing Kojak Data, searching Percolator data, already found a psm match."; 
 
-							msg += ", scanNumber: " + scanNumber 
+					matchingInternalPSMDataHolder.setKojakMatchesMultiplePercolatorPsms( true ); //  flag previously found as Kojak matching multiple Percolator PSMs.
+					psmDataByScanNumberObject.setKojakMatchesMultiplePercolatorPsms( true ); //  flag currently found as Kojak matching multiple Percolator PSMs.
+					
+					foundMoreThanOnePsmHolderObject = true;  // flag
+
+					
+					String msg = "\t\t ERROR:  DROPPED RECORD:  Kojak PSMs will be dropped : getForKojakData(...): Processing Kojak Data, searching Percolator data, already found a psm match." 
+
+							+ ", scanNumber: " + scanNumber 
 							+ ", peptide1: " + peptide_1
 							+ ", peptide2: " + peptide_2
 							+ ", link1: " + link_1
@@ -301,24 +308,19 @@ public class PsmMatchingAndCollection {
 							+ ", comparisonString3: " + comparisonString3
 							+ ", comparisonString4: " + comparisonString4;
 							
-					log.error( msg );
-					System.out.println( msg );
-					System.err.println( msg );
-
-					matchingInternalPSMDataHolder.setKojakMatchesMultiplePercolatorPsms( true ); //  flag previously found as Kojak matching multiple Percolator PSMs.
-					psmDataByScanNumberObject.setKojakMatchesMultiplePercolatorPsms( true ); //  flag currently found as Kojak matching multiple Percolator PSMs.
-					
-					foundMoreThanOnePsmHolderObject = true;  // flag
-
-					//  TODO  Keep this?
-					
 					if ( ! CommandLineOptionsContainer.isForceDropKojakDuplicateRecordsOptOnCommandLine() ) {
-					
+
+						log.error( msg );
+						System.out.println( msg );
+						System.err.println( msg );
+
 						//  If not ForceDropKojakDuplicateRecordsOptOnCommandLine, this is an error to stop the importer
 						
 						throw new Exception( msg );
 					}
-					
+
+					log.warn( msg );
+					System.out.println( msg );
 					
 					
 				} else {
@@ -437,8 +439,8 @@ public class PsmMatchingAndCollection {
 									+ psmDataByScanNumberObject.getPercolatorPsmData().getPeptideSeq().getSeq();
 
 							log.error( msg );
-							System.out.println( msg );
-							System.err.println( msg );
+//							System.out.println( msg );
+//							System.err.println( msg );
 						}
 						
 						break;

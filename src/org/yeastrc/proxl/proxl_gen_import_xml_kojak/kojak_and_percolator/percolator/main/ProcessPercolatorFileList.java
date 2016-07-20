@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPeptide;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPeptides;
@@ -12,6 +13,8 @@ import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsm;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsmIds;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakProteinNonDecoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.objects.PercolatorFileAndUnmarshalledObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_processing.PsmMatchingAndCollection;
@@ -42,19 +45,26 @@ public class ProcessPercolatorFileList {
 	}
 
 
+
 	/**
 	 * @param percolatorFileAndUnmarshalledObjectList
 	 * @param proxlInputRoot
+	 * @param kojakConfFileReaderResult
 	 * @param psmMatchingAndCollection
+	 * @param percolatorVersion
+	 * @param skipPopulatingMatchedProteins
+	 * @return
 	 * @throws Exception
 	 */
-	public void processPercolatorFileList( 
+	public Set<String> processPercolatorFileList( 
 
 			List<PercolatorFileAndUnmarshalledObject> percolatorFileAndUnmarshalledObjectList,
 
 			ProxlInput proxlInputRoot,
+			KojakConfFileReaderResult kojakConfFileReaderResult,
 			PsmMatchingAndCollection psmMatchingAndCollection,
-			String percolatorVersion ) throws Exception {
+			String percolatorVersion,
+			boolean skipPopulatingMatchedProteins ) throws Exception {
 
 
 		PopulateSearchProgramEntriesForPercolator.getInstance().populateSearchProgramEntriesForPercolator( proxlInputRoot, percolatorVersion );
@@ -66,29 +76,49 @@ public class ProcessPercolatorFileList {
 
 		//  Set of reported peptide strings to ensure no duplicates across the percolator files
 		Set<String> reportedPeptideStrings = new HashSet<>();
+		
+		//  Set of protein name strings from Kojak data, null if not returning any
+		Set<String> proteinNameStrings = null;
+		
+		if ( ! skipPopulatingMatchedProteins ) {
+			proteinNameStrings = new HashSet<>();
+		}
 
 		for ( PercolatorFileAndUnmarshalledObject percolatorFileAndUnmarshalledObject : percolatorFileAndUnmarshalledObjectList ) {
 
 			IPercolatorOutput percolatorOutput = percolatorFileAndUnmarshalledObject.getPercOutputRootObject();
 
-			processSinglePercolatorFileData( percolatorOutput, proxlInputReportedPeptideList, psmMatchingAndCollection, reportedPeptideStrings );
+			processSinglePercolatorFileData( 
+					percolatorOutput, 
+					kojakConfFileReaderResult,
+					proxlInputReportedPeptideList, 
+					psmMatchingAndCollection, 
+					reportedPeptideStrings,
+					proteinNameStrings );
 		}
 
+		return proteinNameStrings;
 	}
+
+	
 
 	/**
 	 * @param percolatorOutput
+	 * @param kojakConfFileReaderResult
 	 * @param proxlInputReportedPeptideList
 	 * @param psmMatchingAndCollection
 	 * @param reportedPeptideStrings
-	 * @throws ProxlGenXMLDataException 
+	 * @param proteinNameStrings
+	 * @throws ProxlGenXMLDataException
 	 */
 	private void processSinglePercolatorFileData( 
 
 			IPercolatorOutput percolatorOutput, 
+			KojakConfFileReaderResult kojakConfFileReaderResult,
 			List<ReportedPeptide> proxlInputReportedPeptideList,
 			PsmMatchingAndCollection psmMatchingAndCollection,
-			Set<String> reportedPeptideStrings ) throws ProxlGenXMLDataException {
+			Set<String> reportedPeptideStrings,
+			Set<String> proteinNameStrings ) throws ProxlGenXMLDataException {
 
 		IPeptides percolatorPeptides = percolatorOutput.getPeptides();
 
@@ -105,7 +135,8 @@ public class ProcessPercolatorFileList {
 				throw new ProxlGenXMLDataException(msg);
 			}
 
-			ReportedPeptide reportedPeptide = getProxlInputReportedPeptide( percolatorPeptide, psmMatchingAndCollection );
+			ReportedPeptide reportedPeptide = 
+					getProxlInputReportedPeptide( percolatorPeptide, kojakConfFileReaderResult, psmMatchingAndCollection, proteinNameStrings );
 
 			proxlInputReportedPeptideList.add( reportedPeptide );
 		}
@@ -116,10 +147,15 @@ public class ProcessPercolatorFileList {
 	/**
 	 * @param percolatorPeptide
 	 * @param psmMatchingAndCollection
+	 * @param proteinNameStrings
 	 * @return
-	 * @throws ProxlGenXMLDataException 
+	 * @throws ProxlGenXMLDataException
 	 */
-	private ReportedPeptide getProxlInputReportedPeptide( IPeptide percolatorPeptide, PsmMatchingAndCollection psmMatchingAndCollection ) throws ProxlGenXMLDataException {
+	private ReportedPeptide getProxlInputReportedPeptide( 
+			IPeptide percolatorPeptide, 
+			KojakConfFileReaderResult kojakConfFileReaderResult,
+			PsmMatchingAndCollection psmMatchingAndCollection,
+			Set<String> proteinNameStrings ) throws ProxlGenXMLDataException {
 
 
 		//  Get proxlInputReportedPeptide Populated With:
@@ -139,7 +175,8 @@ public class ProcessPercolatorFileList {
 
 		//  Add PSMs and their Annotations to Proxl Input Reported Peptide
 
-		populatePsmsOnProxlInputReportedPeptide( proxlInputReportedPeptide, percolatorPeptide, psmMatchingAndCollection );
+		populatePsmsOnProxlInputReportedPeptide( 
+				kojakConfFileReaderResult, proxlInputReportedPeptide, percolatorPeptide, proteinNameStrings, psmMatchingAndCollection );
 
 		return proxlInputReportedPeptide;
 	}
@@ -147,14 +184,19 @@ public class ProcessPercolatorFileList {
 
 
 	/**
+	 * @param reportedPeptide
 	 * @param percolatorPeptide
+	 * @param proteinNameStrings
 	 * @param psmMatchingAndCollection
-	 * @throws ProxlGenXMLDataException 
+	 * @throws ProxlGenXMLDataException
 	 */
 	private void populatePsmsOnProxlInputReportedPeptide( 
 
+			KojakConfFileReaderResult kojakConfFileReaderResult,
+			
 			ReportedPeptide reportedPeptide, 
 			IPeptide percolatorPeptide, 
+			Set<String> proteinNameStrings,
 			PsmMatchingAndCollection psmMatchingAndCollection ) throws ProxlGenXMLDataException {
 
 		Psms proxlImportPsms = new Psms();
@@ -198,7 +240,7 @@ public class ProcessPercolatorFileList {
 								+ "  percolatorPsmId: '" + percolatorPsmId + "', " 
 								+ "percolatorPeptide.getPeptideId(): '" + percolatorPeptide.getPeptideId() + "'.";
 
-						log.error( msg );
+						log.warn( msg );
 
 						continue;
 						
@@ -245,10 +287,33 @@ public class ProcessPercolatorFileList {
 					
 
 			proxlImportPsmList.add( proxlInputPsm );
+			
+			
+			if ( proteinNameStrings != null ) {
+
+				//   Get non-decoy protein name strings and add to proteinNameSet
+
+				KojakProteinNonDecoy kojakProteinNonDecoy = KojakProteinNonDecoy.getInstance();
+
+				kojakProteinNonDecoy.setDecoyIdentificationStrings( kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList() );
+
+				if ( StringUtils.isNotEmpty( kojakPsmDataObject.getProtein_1() ) ) {
+
+					Set<String> proteinNameSet = 
+							kojakProteinNonDecoy.getProteinNameList_nonDecoy( kojakPsmDataObject.getProtein_1() );
+
+					proteinNameStrings.addAll( proteinNameSet );
+				}
+
+				if ( StringUtils.isNotEmpty( kojakPsmDataObject.getProtein_2() ) ) {
+
+					Set<String> proteinNameSet = 
+							kojakProteinNonDecoy.getProteinNameList_nonDecoy( kojakPsmDataObject.getProtein_2() );
+
+					proteinNameStrings.addAll( proteinNameSet );
+				}
+			}
 		}
 	}
-
-
-
 
 }
