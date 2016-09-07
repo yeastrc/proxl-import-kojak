@@ -478,13 +478,33 @@ public class KojakConfFileReader {
 		
 		String[] lineParsedValueSplit = lineParsedValue.split( "\\s+" ); // split on white space.
 		
-		if ( lineParsedValueSplit.length != 3 ) {
+		if ( lineParsedValueSplit.length != 4 && lineParsedValueSplit.length != 3 ) {
 			
-			String msg = "Config key '" + CROSS_LINK_CONFIG_KEY + "' must have 3 values, 2 positions and a mass, line: " + line;
+			String msg = "Config key '" + CROSS_LINK_CONFIG_KEY + "'"
+					+ " must have: Kojak 1.5.0+: 4 values, 2 linkable positions, a mass, and an Identifier "
+					+ " OR for before Kojak 1.5.0: 3 values, 2 positions and a mass. line: " + line;
 			
 			log.error( msg );
 			
 			throw new ProxlGenXMLDataException(msg);
+		}
+		
+		//  For now, can separate the 2 formats by the number of values 
+		
+		boolean preKojak_1_5_0_format = false;
+		
+		if ( lineParsedValueSplit.length == 3 ) {
+			
+			preKojak_1_5_0_format = true;
+		}
+		
+
+		String linkIdentifier_Kojak_1_5_0_Plus_format = null;
+		
+
+		if ( lineParsedValueSplit.length == 4 ) {
+			
+			linkIdentifier_Kojak_1_5_0_Plus_format = lineParsedValueSplit[ 3 ].trim();
 		}
 		
 
@@ -538,8 +558,16 @@ public class KojakConfFileReader {
 		
 		if ( linkerList.size() > 1 ) {
 			
-			//  throws exception if no matching linker found for name or name not in comment
-			linker = getLinkerForLinkerAbbr( lineParsed, line, linkerList );
+			if ( preKojak_1_5_0_format ) {
+			
+				//  throws exception if no matching linker found for name or name not in comment
+				linker = getLinkerForLinkerAbbr_preKojak_1_5_0_format( lineParsed, line, linkerList );
+				
+			} else {
+
+				//  throws exception if no matching linker found for name
+				linker = getLinkerForLinkerAbbr_Kojak_1_5_0_And_Later_format( linkIdentifier_Kojak_1_5_0_Plus_format, lineParsed, line, linkerList );
+			}
 			
 		} else {
 			
@@ -573,13 +601,19 @@ public class KojakConfFileReader {
 //		mono_link	=	1	155.0946
 //		mono_link	=	1	156.0786
 		
+		//  Kojak 1.5.0 example:
+		
+		//  mono_link       =       cDE     -0.9837153
+		
 		String lineParsedValue = lineParsed.value;
 
 		String[] lineParsedValueSplit = lineParsedValue.split( "\\s+" ); // split on white space.
 		
 		if ( lineParsedValueSplit.length != 2 ) {
 			
-			String msg = "Config key '" + MONO_LINK_CONFIG_KEY + "' must have 2 values, a position and a mass, line: " + line;
+			String msg = "Config key '" + MONO_LINK_CONFIG_KEY + "' must have 2 values, the second being the mass"
+					+ " (the first value is ignored),"
+					+ "( line: " + line;
 			
 			log.error( msg );
 			
@@ -637,7 +671,7 @@ public class KojakConfFileReader {
 		if ( linkerList.size() > 1 ) {
 			
 			//  throws exception if no matching linker found for name or name not in comment
-			linker = getLinkerForLinkerAbbr( lineParsed, line, linkerList );
+			linker = getLinkerForLinkerAbbr_preKojak_1_5_0_format( lineParsed, line, linkerList );
 			
 		} else {
 			
@@ -659,6 +693,46 @@ public class KojakConfFileReader {
 	}
 	
 
+
+	/**
+	 * @param linkIdentifier_Kojak_1_5_0_Plus_format
+	 * @param lineParsed
+	 * @param line
+	 * @param linkerList
+	 * @return
+	 * @throws ProxlGenXMLDataException - if no matching linker found for name or name not in comment
+	 */
+	private Linker getLinkerForLinkerAbbr_Kojak_1_5_0_And_Later_format( String linkIdentifier_Kojak_1_5_0_Plus_format, ParsedLine lineParsed, String line, List<Linker> linkerList ) throws ProxlGenXMLDataException {
+
+
+		Linker linkerForAbbr = null;
+		
+		for ( Linker item : linkerList ) {
+			
+			if ( item.getName().equalsIgnoreCase( linkIdentifier_Kojak_1_5_0_Plus_format) )  {
+				
+				linkerForAbbr = item;
+				break;
+			}
+		}
+		
+		if ( linkerForAbbr == null ) {
+			
+			String msg = "No linker name on command line for linker name found in Kojak conf file (4th parameter) '"
+					+ linkIdentifier_Kojak_1_5_0_Plus_format
+					+ "'.  line: " + line;
+			
+			log.error( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+		
+		return linkerForAbbr;
+
+	}
+
+
+	
+
 	/**
 	 * @param lineParsed
 	 * @param line
@@ -666,7 +740,7 @@ public class KojakConfFileReader {
 	 * @return
 	 * @throws ProxlGenXMLDataException - if no matching linker found for name or name not in comment
 	 */
-	private Linker getLinkerForLinkerAbbr( ParsedLine lineParsed, String line, List<Linker> linkerList ) throws ProxlGenXMLDataException {
+	private Linker getLinkerForLinkerAbbr_preKojak_1_5_0_format( ParsedLine lineParsed, String line, List<Linker> linkerList ) throws ProxlGenXMLDataException {
 		
 		//  First get linker name from comment
 
