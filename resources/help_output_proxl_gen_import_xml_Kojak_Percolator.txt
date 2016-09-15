@@ -26,18 +26,24 @@ Parameters:
 	
 	-l (--linker=) : [Required] : The name of the crosslinker used in the experiment. Must be a string
 	                              recognized by ProXL, so that linkable positions in proteins may be
-								  displayed. Currently-supported linkers include: dss, bs3, bs2, edc
+								  displayed. 
+								  Currently-supported linkers include: dss, bs3, bs2, edc
+								  More linkers may have been added.
 								  
 								  -l can be repeated multiple times if multiple linkers were used.
 								  Note: Proxl associated linker masses with specific linkers in the experiment,
 								  but the Kojak parameters file does not currently support this. If multiple
 								  linkers are used, a comment must be added after the linker mass in the Kojak
 								  conf file, such as the following. The names of the linkers must match those
-								  passed in using the -l parameter.
+								  passed in using the -l parameter (case insensitive).
 								  
 								  cross_link	=	1	1	18.00123	# linker:edc
 								  cross_link	=	1	1	138.0680742	# linker:dss
 								  mono_link	=	1	155.0946	# linker:dss
+
+										Newer format for cross_link specifying linker
+								  cross_link	=	1	1	18.00123	EDC	# 
+
 
 	-x (--percolator-xml=) : [Optional] : Absolute or relative path names to a percolator XML file, generated
 	                                     as part of the Percolator post-processing of Kojak analysis. This

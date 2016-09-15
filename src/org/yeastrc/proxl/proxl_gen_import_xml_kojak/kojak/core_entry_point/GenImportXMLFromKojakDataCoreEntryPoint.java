@@ -16,9 +16,8 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.fasta.AddProteinsFrom
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.ProcessKojakConfFile;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.main.AddKojakCutoffOnImport;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.main.ProcessKojakFileOnly;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.annotation_sort_order.AddKojakAndPercolatorAnnotationSortOrder;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.default_visible_annotations.AddKojakAndPercolatorDefaultVisibleAnnotations;
 import org.yeastrc.proxl_import.api.xml_dto.Linker;
 import org.yeastrc.proxl_import.api.xml_dto.Linkers;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
@@ -74,6 +73,10 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 			boolean skipPopulatingMatchedProteins,
 			
 
+
+			BigDecimal scoreCutoffOnImport,
+
+			
 			boolean forceDropKojakDuplicateRecordsOptOnCommandLine,
 
 			File kojakOutputFile,
@@ -101,11 +104,8 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 		SearchProgramInfo searchProgramInfo = new SearchProgramInfo();
 		proxlInputRoot.setSearchProgramInfo( searchProgramInfo );
 		
-		
-		AddKojakAndPercolatorDefaultVisibleAnnotations.getInstance().addDefaultVisibleAnnotations( searchProgramInfo );
-		
-		AddKojakAndPercolatorAnnotationSortOrder.getInstance().addAnnotationSortOrder( searchProgramInfo );
-		
+		AddKojakCutoffOnImport.getInstance().addCutoffsOnImport( scoreCutoffOnImport, searchProgramInfo );
+
 		
 		SearchPrograms searchPrograms = new SearchPrograms();
 		searchProgramInfo.setSearchPrograms( searchPrograms );

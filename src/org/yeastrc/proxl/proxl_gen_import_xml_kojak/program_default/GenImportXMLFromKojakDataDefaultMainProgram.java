@@ -17,6 +17,7 @@ import jargs.gnu.CmdLineParser.UnknownOptionException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.default_cutoff_on_import_values.DefaultCutoffOnImportValuesConstants;
 //import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.core_entry_point.GenImportXMLFromKojakDataCoreEntryPoint;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_entry_point.GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint;
@@ -60,6 +61,21 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
         String kojakFileWithPath = null;
         String kojakConfFileWithPathCommandLine = null;
+        
+        
+		String scoreCutoffOnImportString = null;
+		BigDecimal scoreCutoffOnImport = DefaultCutoffOnImportValuesConstants.SCORE_DEFAULT_CUTOFF;
+		
+		boolean skipDefaultScoreCutoffOnImport = false;
+
+		
+		//  For both Peptide and PSM q-value cutoff
+		
+		String qvalueCutoffOnImportString = null;
+		BigDecimal qvalueCutoffOnImport = DefaultCutoffOnImportValuesConstants.Q_VALUE_DEFAULT_CUTOFF;
+		
+		boolean skipDefaultQvalueCutoffOnImport = false;
+		
         
         
         Boolean noPercolatorCmdLine = (Boolean) null;
@@ -122,7 +138,24 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			CmdLineParser.Option proteinNameDecoyPrefixCommandLineOpt = cmdLineParser.addStringOption( 'Z', "decoy-prefix" );
 
 			//  'Z' is not mentioned to the user
-			CmdLineParser.Option skipPopulatingMatchedProteinsCommandLineOpt = cmdLineParser.addStringOption( 'Z', "skip-populating-matched-proteins" );
+			CmdLineParser.Option skipPopulatingMatchedProteinsCommandLineOpt = 
+					cmdLineParser.addBooleanOption( 'Z', "skip-populating-matched-proteins" );
+			
+
+			//  'Z' is not mentioned to the user
+			CmdLineParser.Option scoreCutoffOnImportCommandLineOpt = cmdLineParser.addStringOption( 'Z', "score-cutoff-on-import" );
+
+			//  'Z' is not mentioned to the user
+			CmdLineParser.Option skipDefaultScoreCutoffOnImportCommandLineOpt = 
+					cmdLineParser.addBooleanOption( 'Z', "skip-default-score-cutoff-on-import" );
+
+			//  'Z' is not mentioned to the user
+			CmdLineParser.Option qvalueCutoffOnImportCommandLineOpt = cmdLineParser.addStringOption( 'Z', "q-value-cutoff-on-import" );
+			
+			//  'Z' is not mentioned to the user
+			CmdLineParser.Option skipDefaultQvalueCutoffOnImportCommandLineOpt = 
+					cmdLineParser.addBooleanOption( 'Z', "skip-default-q-value-cutoff-on-import" );
+			
 			
 			
 
@@ -207,7 +240,15 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 	        proteinNameDecoyPrefix = (String)cmdLineParser.getOptionValue( proteinNameDecoyPrefixCommandLineOpt );
 	        
-	    
+
+			scoreCutoffOnImportString = (String)cmdLineParser.getOptionValue( scoreCutoffOnImportCommandLineOpt );
+
+			skipDefaultScoreCutoffOnImport = (Boolean) cmdLineParser.getOptionValue( skipDefaultScoreCutoffOnImportCommandLineOpt, Boolean.FALSE);
+			
+			qvalueCutoffOnImportString = (String)cmdLineParser.getOptionValue( qvalueCutoffOnImportCommandLineOpt );
+
+			skipDefaultQvalueCutoffOnImport = (Boolean) cmdLineParser.getOptionValue( skipDefaultQvalueCutoffOnImportCommandLineOpt, Boolean.FALSE);
+			
 	        
 			String[] remainingArgs = cmdLineParser.getRemainingArgs();
 			
@@ -411,15 +452,102 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 				}
 			}
+			
+			
+			if ( StringUtils.isNotEmpty( scoreCutoffOnImportString ) ) {
+				
+				if ( skipDefaultScoreCutoffOnImport ) {
+					
+					System.err.println( "score cutoff on import is not valid with skip default score cutoff on import" );
+					System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+				}
+
+			
+				if ( ! percolatorFileStringsList.isEmpty() ) {
+
+					System.err.println( "score cutoff on import is not valid with Percolator files" );
+					System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+				}
+				
+				try {
+					
+					scoreCutoffOnImport = new BigDecimal( scoreCutoffOnImportString );
+					
+				} catch ( Exception e ) {
+				
+					System.err.println( "Entered score cutoff on import is not a decimal number " + scoreCutoffOnImportString );
+					System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+					
+				}
+			}
+			
+
+			if ( StringUtils.isNotEmpty( qvalueCutoffOnImportString ) ) {
+
+				if ( skipDefaultQvalueCutoffOnImport ) {
+					
+					System.err.println( "q-value cutoff on import is not valid with skip default q-value cutoff on import" );
+					System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+				}
+				
+				if ( percolatorFileStringsList.isEmpty() ) {
+
+					System.err.println( "q-value cutoff on import is not valid with NO Percolator files" );
+					System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+				}
+				
+				try {
+					
+					qvalueCutoffOnImport = new BigDecimal( qvalueCutoffOnImportString );
+					
+				} catch ( Exception e ) {
+				
+					System.err.println( "Entered q-value cutoff on import is not a decimal number " + qvalueCutoffOnImportString );
+					System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+					
+				}
+			}
+			
+			
+			if ( skipDefaultScoreCutoffOnImport ) {
+				
+				scoreCutoffOnImport = null;
+			};
+
+			if ( skipDefaultQvalueCutoffOnImport ) {
+				
+				qvalueCutoffOnImport = null;
+			};
+			
 
 			/////////////////////////////////
 			
 			
 			//    List input params to sysout
 	        
-	        System.out.println( "Performing Proxl Gen import XML file for parameters:" );
+//	        System.out.println( "Performing Proxl Gen import XML file for parameters:" );
+
+	        System.out.println( "Conversion Parameters:" );
 	        
-	        System.out.println( "output filename: " + outputFilename );
+	        System.out.println( "output filename\t" + outputFilename );
 	        
 	        
 	        
@@ -430,7 +558,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	System.out.print( "s"  );
 	        }
 
-	        System.out.print( ": "  );
+	        System.out.print( "\t"  );
 	        
 	        boolean firstLinkerBefore = true;
 
@@ -452,23 +580,23 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 	        
 	        
-	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
-	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
+	        System.out.println( "Kojak output filename with path\t" + kojakFileWithPath );
+	        System.out.println( "Kojak Conf filename with path\t" + kojakConfFileWithPathCommandLine );
 
 	        
 	        if ( StringUtils.isNotEmpty( fastaFileWithPathFileFromCmdLineString ) ) {
 
-	        	System.out.println( "fasta file (with path): " + fastaFileWithPathFileFromCmdLineString );
+	        	System.out.println( "fasta file (with path)\t" + fastaFileWithPathFileFromCmdLineString );
 	        }
 
 	        if ( StringUtils.isNotEmpty( searchName ) ) {
 
-	        	System.out.println( "search name: " + searchName );
+	        	System.out.println( "search name\t" + searchName );
 	        }
 
 	        if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
 	        
-	        	System.out.println( "protein name decoy prefix: " + proteinNameDecoyPrefix );
+	        	System.out.println( "protein name decoy prefix\t" + proteinNameDecoyPrefix );
 	        }
 
 	        
@@ -476,13 +604,76 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        if( ! monolinkMassessStringsList.isEmpty() ) {
 	        
-	        	System.out.println( "Monolink Masses on command line:" );
+	        	System.out.println( "Monolink Masses on command line\t" );
 
 	        	for ( String monolinkMassessString : monolinkMassessStringsList ) {
 
 	        		System.out.println( monolinkMassessString );
 	        	}
 	        }
+	        
+
+	        if( ! percolatorFileStringsList.isEmpty() ) {
+
+	        	//  q-value used to exclude data when importing into Proxl
+	        	System.out.println( "q-value filter on import\t" 
+	        			+ qvalueCutoffOnImport.toString() );
+	        	
+	        } else {
+	        	
+
+	        	//  score used to exclude data when importing into Proxl
+	        	System.out.println( "Kojak 'score' filter on import\t" 
+	        			+ scoreCutoffOnImport.toString() );
+	        }
+	        
+	        
+	        //  q-value used to exclude data when importing into Proxl
+	        
+//	        if ( ! percolatorFileStringsList.isEmpty() ) {
+//	        	
+//	        	if ( StringUtils.isEmpty( qvalueCutoffOnImportString ) ) {
+//	        		
+//	        		if ( skipDefaultQvalueCutoffOnImport ) {
+//
+//	        			System.out.println( "no q-value score for use during import was added since "
+//	        					+ " skip default q-value cutoff was on command line");
+//	        			
+//	        		} else {
+//	        			System.out.println( "Default q-value score of '" 
+//	        					+ qvalueCutoffOnImport.toString() 
+//	        					+ "' for use during import was added since no q-value cutoff on command line"
+//	        					+ " and no skip default q-value cutoff on command line");
+//	        		}	        	
+//	        	} else {
+//        			System.out.println( "User entered q-value score of '" 
+//        					+ qvalueCutoffOnImport.toString() 
+//        					+ "' for use during import was added");
+//	        	}
+//	        } else {
+//
+//	        	if ( StringUtils.isEmpty( scoreCutoffOnImportString ) ) {
+//	        		
+//	        		if ( skipDefaultScoreCutoffOnImport ) {
+//
+//	        			System.out.println( "no 'score' for use during import was on import added since "
+//	        					+ " skip default score cutoff was on command line");
+//	        			
+//	        		} else {
+//	        			System.out.println( "Default score score of '" 
+//	        					+ scoreCutoffOnImport.toString() 
+//	        					+ "' added since no score cutoff on command line"
+//	        					+ " and no skip default score cutoff on command line");
+//	        		}	        	
+//	        	} else {
+//        			System.out.println( "User entered score score of '" 
+//        					+ scoreCutoffOnImport.toString() 
+//        					+ "' added since no score cutoff on command line"
+//        					+ " and no skip default score cutoff on command line");
+//	        	}
+//	        	
+//	        }
+
 	        
 
 	        if( ! percolatorFileStringsList.isEmpty() ) {
@@ -503,6 +694,8 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 //	        		System.out.println( percolatorFile.getCanonicalPath() );
 //	        	}
 	        }
+	        
+	        
 			
 			System.out.println( " " );
 	        
@@ -591,6 +784,9 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        			
 	        			skipPopulatingMatchedProteins,
 	        			
+	        			qvalueCutoffOnImport,  // PSM
+	        			qvalueCutoffOnImport,  // Peptide
+	        			
 	        			false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
 
 
@@ -612,6 +808,8 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        			monolinkModificationMasses, 
 	        			
 	        			skipPopulatingMatchedProteins,
+
+	        			scoreCutoffOnImport,
 	        			
 	        			false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
 	        			
@@ -626,97 +824,146 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			System.out.println( "--------------------------------------" );
 			System.out.println( "" );
 
-	        System.out.println( "Completed Proxl Gen XML for Import for parameters:" );
-	        System.out.println( "output filename: " + outputFilename );
+	        System.out.println( "Completed Proxl Gen XML for Import." );
 
-	        
-	        System.out.print( "linker"  );
-	        
-	        if ( linkerNamesStringsList.size() > 1 ) {
-
-	        	System.out.print( "s"  );
-	        }
-
-	        System.out.print( ": "  );
-	        
-	        boolean firstLinkerAfter = true;
-
-	        for ( String linkerNameString : linkerNamesStringsList ) {
-	        	
-	        	if ( firstLinkerAfter ) {
-	        		
-	        		firstLinkerAfter = false;
-	        	} else {
-	        		
-	        		System.out.print( ", " ) ;
-	        	}
-	        	
-	        	System.out.print( linkerNameString );
-	        }
-	        
-	        System.out.println( "" );
-	        
-	        
-	        
-	        
-	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
-	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
-	        
-	        
-	        if ( StringUtils.isNotEmpty( fastaFileWithPathFileFromCmdLineString ) ) {
-
-	        	System.out.println( "fasta file (with path): " + fastaFileWithPathFileFromCmdLineString );
-	        }
-
-	        if ( StringUtils.isNotEmpty( searchName ) ) {
-
-	        	System.out.println( "search name: " + searchName );
-	        }
-
-	        if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
-	        
-	        	System.out.println( "protein name decoy prefix: " + proteinNameDecoyPrefix );
-	        }
-
-	        
-	        
-
-	        if( ! monolinkMassessStringsList.isEmpty() ) {
-	        
-	        	System.out.println( "Monolink Masses on command line:" );
-
-	        	for ( String monolinkMassessString : monolinkMassessStringsList ) {
-
-	        		System.out.println( monolinkMassessString );
-	        	}
-	        }
-	        
-
-	        if( ! percolatorFileStringsList.isEmpty() ) {
-	        
-	        	System.out.println( "Percolator files:" );
-
-	        	for ( String percolatorFileString : percolatorFileStringsList ) {
-
-	        		System.out.println( percolatorFileString );
-	        	}
-
-//	        	System.out.println( " " );
+//	        System.out.println( "Completed Proxl Gen XML for Import for parameters:" );
+//	        System.out.println( "output filename: " + outputFilename );
 //
-//	        	System.out.println( "Percolator files full path:" );
+//	        
+//	        System.out.print( "linker"  );
+//	        
+//	        if ( linkerNamesStringsList.size() > 1 ) {
 //
-//	        	for ( File percolatorFile : percolatorFileList ) {
+//	        	System.out.print( "s"  );
+//	        }
 //
-//	        		System.out.println( percolatorFile.getCanonicalPath() );
+//	        System.out.print( ": "  );
+//	        
+//	        boolean firstLinkerAfter = true;
+//
+//	        for ( String linkerNameString : linkerNamesStringsList ) {
+//	        	
+//	        	if ( firstLinkerAfter ) {
+//	        		
+//	        		firstLinkerAfter = false;
+//	        	} else {
+//	        		
+//	        		System.out.print( ", " ) ;
 //	        	}
-	        }
-			
-			
-			System.out.println( " " );
+//	        	
+//	        	System.out.print( linkerNameString );
+//	        }
+//	        
+//	        System.out.println( "" );
+//	        
+//	        
+//	        
+//	        
+//	        System.out.println( "Kojak output filename with path: " + kojakFileWithPath );
+//	        System.out.println( "Kojak Conf filename with path: " + kojakConfFileWithPathCommandLine );
+//	        
+//	        
+//	        if ( StringUtils.isNotEmpty( fastaFileWithPathFileFromCmdLineString ) ) {
+//
+//	        	System.out.println( "fasta file (with path): " + fastaFileWithPathFileFromCmdLineString );
+//	        }
+//
+//	        if ( StringUtils.isNotEmpty( searchName ) ) {
+//
+//	        	System.out.println( "search name: " + searchName );
+//	        }
+//
+//	        if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
+//	        
+//	        	System.out.println( "protein name decoy prefix: " + proteinNameDecoyPrefix );
+//	        }
+//
+//	        
+//	        
+//
+//	        if( ! monolinkMassessStringsList.isEmpty() ) {
+//	        
+//	        	System.out.println( "Monolink Masses on command line:" );
+//
+//	        	for ( String monolinkMassessString : monolinkMassessStringsList ) {
+//
+//	        		System.out.println( monolinkMassessString );
+//	        	}
+//	        }
+//	        
+//
+//	        if( ! percolatorFileStringsList.isEmpty() ) {
+//	        
+//	        	System.out.println( "Percolator files:" );
+//
+//	        	for ( String percolatorFileString : percolatorFileStringsList ) {
+//
+//	        		System.out.println( percolatorFileString );
+//	        	}
+//
+////	        	System.out.println( " " );
+////
+////	        	System.out.println( "Percolator files full path:" );
+////
+////	        	for ( File percolatorFile : percolatorFileList ) {
+////
+////	        		System.out.println( percolatorFile.getCanonicalPath() );
+////	        	}
+//	        }
+//			
+//	        
+//	        //  q-value used to exclude data when importing into Proxl
+//	        
+//	        if ( ! percolatorFileStringsList.isEmpty() ) {
+//	        	
+//	        	if ( StringUtils.isEmpty( qvalueCutoffOnImportString ) ) {
+//	        		
+//	        		if ( skipDefaultQvalueCutoffOnImport ) {
+//
+//	        			System.out.println( "no q-value score for use during import was added since "
+//	        					+ " skip default q-value cutoff was on command line");
+//	        			
+//	        		} else {
+//	        			System.out.println( "Default q-value score of '" 
+//	        					+ qvalueCutoffOnImport.toString() 
+//	        					+ "' for use during import was added since no q-value cutoff on command line"
+//	        					+ " and no skip default q-value cutoff on command line");
+//	        		}	        	
+//	        	} else {
+//        			System.out.println( "User entered q-value score of '" 
+//        					+ qvalueCutoffOnImport.toString() 
+//        					+ "' for use during import was added");
+//	        	}
+//	        } else {
+//
+//	        	if ( StringUtils.isEmpty( scoreCutoffOnImportString ) ) {
+//	        		
+//	        		if ( skipDefaultScoreCutoffOnImport ) {
+//
+//	        			System.out.println( "no 'score' for use during import was on import added since "
+//	        					+ " skip default score cutoff was on command line");
+//	        			
+//	        		} else {
+//	        			System.out.println( "Default score score of '" 
+//	        					+ scoreCutoffOnImport.toString() 
+//	        					+ "' added since no score cutoff on command line"
+//	        					+ " and no skip default score cutoff on command line");
+//	        		}	        	
+//	        	} else {
+//        			System.out.println( "User entered score score of '" 
+//        					+ scoreCutoffOnImport.toString() 
+//        					+ "' added since no score cutoff on command line"
+//        					+ " and no skip default score cutoff on command line");
+//	        	}
+//	        	
+//	        }
 
-			System.out.println( "--------------------------------------" );
-	        
-			System.out.println( " " );
+			
+//			System.out.println( " " );
+//
+//			System.out.println( "--------------------------------------" );
+//	        
+//			System.out.println( " " );
 			
 			
 //			successfulGenImportXMLFile = true;

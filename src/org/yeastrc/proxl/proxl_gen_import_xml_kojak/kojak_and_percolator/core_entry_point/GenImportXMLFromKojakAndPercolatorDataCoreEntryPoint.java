@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPercolatorOutput;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.annotation_sort_order.AddKojakAndPercolatorAnnotationSortOrder;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.cutoffs_on_import.AddPercolatorCutoffsOnImport;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.default_visible_annotations.AddKojakAndPercolatorDefaultVisibleAnnotations;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.fasta.AddProteinsFromFASTAFileUsingProteinNames;
@@ -79,6 +80,11 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 			
 			boolean skipPopulatingMatchedProteins,
 			
+			
+			BigDecimal qvaluePSMCutoffOnImport, 
+			BigDecimal qvaluePeptideCutoffOnImport, 
+			
+			
 			boolean forceDropKojakDuplicateRecordsOptOnCommandLine,
 
 			List<File> percolatorFileList, 
@@ -111,6 +117,8 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 		
 		AddKojakAndPercolatorAnnotationSortOrder.getInstance().addAnnotationSortOrder( searchProgramInfo );
 		
+		AddPercolatorCutoffsOnImport.getInstance().addCutoffsOnImport( qvaluePSMCutoffOnImport, qvaluePeptideCutoffOnImport, searchProgramInfo );
+			
 		
 		SearchPrograms searchPrograms = new SearchPrograms();
 		searchProgramInfo.setSearchPrograms( searchPrograms );
