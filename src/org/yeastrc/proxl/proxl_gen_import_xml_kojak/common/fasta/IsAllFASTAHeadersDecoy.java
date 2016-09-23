@@ -31,6 +31,13 @@ public class IsAllFASTAHeadersDecoy {
 	 */
 	public boolean isAllFASTAHeadersDecoy( Set<FASTAHeader> headers, Collection<String> decoyIdentificationStringFromConfFileList ) {
 		
+		if ( decoyIdentificationStringFromConfFileList == null 
+				|| decoyIdentificationStringFromConfFileList.isEmpty() ) {
+			
+			return false;
+		}
+		
+		
 		boolean allDecoysForProtein = true;
 		
 		for ( FASTAHeader header : headers ) {

@@ -53,7 +53,8 @@ public class AddProteinsFromFASTAFileUsingPeptideSequence {
 		
 		//  Copy all peptide sequences to Set
 		
-		Set<String> allPetpideSequences = new HashSet<>();
+		Set<PeptideSequenceForLookup> allPeptideSequences = new HashSet<>();
+
 		
 		ReportedPeptides reportedPeptides = proxlInputRoot.getReportedPeptides();
 		
@@ -76,7 +77,11 @@ public class AddProteinsFromFASTAFileUsingPeptideSequence {
 
 							for ( Peptide peptideProxlXML : peptideProxlXMLList ) {
 
-								allPetpideSequences.add( peptideProxlXML.getSequence() );
+								PeptideSequenceForLookup peptideSequenceForLookup = new PeptideSequenceForLookup();
+								
+								peptideSequenceForLookup.peptideSequence = peptideProxlXML.getSequence();
+
+								allPeptideSequences.add( peptideSequenceForLookup );
 							}
 						}
 					}
@@ -88,7 +93,7 @@ public class AddProteinsFromFASTAFileUsingPeptideSequence {
 		Map<String, DataByFastaHeaderName> dataKeyedByFASTA_Header_Name_Map = new HashMap<>();
 		
 					
-		if ( ! allPetpideSequences.isEmpty() ) {
+		if ( ! allPeptideSequences.isEmpty() ) {
 
 			
 
@@ -133,20 +138,20 @@ public class AddProteinsFromFASTAFileUsingPeptideSequence {
 
 						String proteinSequence = fastaEntry.getSequence();
 
-						boolean proteinSequenceContainsPeptideSequence = false;
 
-						for ( String peptideSequence : allPetpideSequences ) {
+						boolean foundAtLeastOnePeptideSequenceInProteinSequence = false;
+						
+						for ( PeptideSequenceForLookup peptideSequenceForLookup : allPeptideSequences ) {
 
-							if ( proteinSequence.contains( peptideSequence ) ) {
+							if ( proteinSequence.contains( peptideSequenceForLookup.peptideSequence ) ) {
 
-								proteinSequenceContainsPeptideSequence = true;
-								break;
+								peptideSequenceForLookup.peptideSequenceFoundInProteinSequence = true;
+								
+								foundAtLeastOnePeptideSequenceInProteinSequence = true;
 							}
 						}
 
-						if ( proteinSequenceContainsPeptideSequence ) {
-
-							
+						if ( foundAtLeastOnePeptideSequenceInProteinSequence ) {
 
 							//  Determine if protein sequence already added, and use that Protein object if it is
 							
@@ -227,6 +232,45 @@ public class AddProteinsFromFASTAFileUsingPeptideSequence {
 			}
 
 		}
+		
+
+		
+		//  Ensure all peptides were found in proteins
+		
+		boolean foundPeptideNotInProtein = false;
+
+		for ( PeptideSequenceForLookup peptideSequenceForLookup : allPeptideSequences ) {
+			
+			if ( ! peptideSequenceForLookup.peptideSequenceFoundInProteinSequence ) {
+				
+				if ( ! foundPeptideNotInProtein ) {
+					
+					foundPeptideNotInProtein = true;
+					
+					//  Print ERROR header
+					
+					System.err.println();
+					System.err.println( "ERROR:  The following Peptides from the Kojak output were not found in any "
+							+ "protein sequences for fastaFile: " + fastaFileWithPathFile.getAbsolutePath() );
+				}
+				
+				
+				System.err.println( "Peptide: " + peptideSequenceForLookup.peptideSequence );
+				
+			}
+		}
+		
+		if ( foundPeptideNotInProtein ) {
+			
+			System.err.println();
+			
+			String msg = "One or more Peptides in Kojak output were not found in any "
+							+ "protein sequences for fastaFile: " + fastaFileWithPathFile.getAbsolutePath();
+			log.error( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+
+		
 		
 		
 	}
@@ -362,5 +406,47 @@ public class AddProteinsFromFASTAFileUsingPeptideSequence {
 		
 		return false;
 	}
+	
+	
+
+	/**
+	 * Holder for single peptide sequence to track that it was found in at least one protein sequence
+	 *
+	 * equals and hashCode only on peptideSequence
+	 */
+	private static class PeptideSequenceForLookup {
+		
+		private String peptideSequence;
+		private boolean peptideSequenceFoundInProteinSequence;
+		
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime
+					* result
+					+ ((peptideSequence == null) ? 0 : peptideSequence
+							.hashCode());
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			PeptideSequenceForLookup other = (PeptideSequenceForLookup) obj;
+			if (peptideSequence == null) {
+				if (other.peptideSequence != null)
+					return false;
+			} else if (!peptideSequence.equals(other.peptideSequence))
+				return false;
+			return true;
+		}
+	}
+	
 		
 }
