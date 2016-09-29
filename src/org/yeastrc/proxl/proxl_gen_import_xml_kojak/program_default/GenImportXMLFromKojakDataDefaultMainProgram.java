@@ -615,16 +615,21 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        if( ! percolatorFileStringsList.isEmpty() ) {
 
-	        	//  q-value used to exclude data when importing into Proxl
-	        	System.out.println( "q-value filter on import\t" 
-	        			+ qvalueCutoffOnImport.toString() );
+	        	if ( scoreCutoffOnImport != null ) {
+
+	        		//  q-value used to exclude data when importing into Proxl
+	        		System.out.println( "q-value filter on import\t" 
+	        				+ qvalueCutoffOnImport.toString() );
+	        	}
 	        	
 	        } else {
 	        	
+	        	if ( scoreCutoffOnImport != null ) {
 
-	        	//  score used to exclude data when importing into Proxl
-	        	System.out.println( "Kojak 'score' filter on import\t" 
-	        			+ scoreCutoffOnImport.toString() );
+	        		//  score used to exclude data when importing into Proxl
+	        		System.out.println( "Kojak 'score' filter on import\t" 
+	        				+ scoreCutoffOnImport.toString() );
+	        	}
 	        }
 	        
 	        
