@@ -151,7 +151,7 @@ public class MatchedProteinsBuilder {
 	/**
 	 * Return true if the supplied FASTA entry is a decoy entry. False otherwise.
 	 * An entry is considered a decoy if any of the supplied decoy identifiers are present
-	 * anywhere in the header line.
+	 * in any of the FASTA names
 	 * 
 	 * @param entry
 	 * @param decoyIdentifiers
@@ -159,9 +159,14 @@ public class MatchedProteinsBuilder {
 	 */
 	private boolean isDecoyFastaEntry( FASTAEntry entry, Collection<String> decoyIdentifiers ) {
 
-		for( String decoyId : decoyIdentifiers ) {
-			if( entry.getHeaderLine().toLowerCase().contains( decoyId.toLowerCase() ) )
-				return true;
+		for( String decoyId : decoyIdentifiers ) {			
+			for( FASTAHeader header : entry.getHeaders() ) {
+
+				if( header.getName().contains( decoyId ) )
+					return true;
+				
+			}
+			
 		}
 		
 		return false;
