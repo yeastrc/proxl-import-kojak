@@ -615,7 +615,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        if( ! percolatorFileStringsList.isEmpty() ) {
 
-	        	if ( scoreCutoffOnImport != null ) {
+	        	if ( qvalueCutoffOnImport != null ) {
 
 	        		//  q-value used to exclude data when importing into Proxl
 	        		System.out.println( "q-value filter on import\t" 

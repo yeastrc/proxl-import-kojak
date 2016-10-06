@@ -1,8 +1,14 @@
 Usage: java -jar kojak2ProxlXML.jar -o output_filename -l linker_name -c /path/to/kojak.conf -k /path/to/kojak.data.txt \
                                    [--no-percolator] [-x /path/to/percolator_file.xml ] [-x /another/percolator/file.xml ] \
-                                   [-f fasta_name.fasta (including path)] [-m monolink_mass] \
-                                   [ --decoy-prefix=decoy ] [ -n search_name ]  
-                                   
+                                   [-f fasta_name.fasta (including path)]  \ 
+                                   [-m monolink_mass] \
+                                   [ --decoy-prefix=decoy ] \
+                                   [ -n search_name ] \
+                                   [ --score-cutoff-on-import= ]  \
+                                   [ --skip-default-score-cutoff-on-import ] \
+                                   [ --q-value-cutoff-on-import=  ] \
+                                   [ -skip-default-q-value-cutoff-on-import ]
+                                 
 
 Examples:
 
@@ -75,7 +81,7 @@ Parameters:
 	--q-value-cutoff-on-import= : [Optional] : For when Percolator XML files are present, specifies the value 
 										for the 'q-value' that will be used for the cutoff for which data will be
 										included during the import to Proxl.  
-										A default of 0.01 is used if a value is not specified. 
+										A default of 0.05 is used if a value is not specified. 
 
 	--skip-default-q-value-cutoff-on-import : [Optional] : For when Percolator XML files are present, 
 										specifies that the default value for the 'q-value' 
