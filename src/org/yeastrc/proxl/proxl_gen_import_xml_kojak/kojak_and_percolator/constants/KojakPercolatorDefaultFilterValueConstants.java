@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class KojakPercolatorDefaultFilterValueConstants {
 
-	public static final BigDecimal PERCOLATOR_PEPTIDE_Q_VALUE_DEFAULT = new BigDecimal( "0.01" );
+	public static final BigDecimal PERCOLATOR_PEPTIDE_Q_VALUE_DEFAULT = new BigDecimal( "0.05" );
 
-	public static final BigDecimal PERCOLATOR_PSM_Q_VALUE_DEFAULT = new BigDecimal( "0.01" );
+	public static final BigDecimal PERCOLATOR_PSM_Q_VALUE_DEFAULT = new BigDecimal( "0.05" );
 }
