@@ -7,8 +7,11 @@ import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.IsAllProtein_1or2_Decoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileReader;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.PopulateOnlyKojakAnnotationTypesInSearchProgram;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents.KojakFileGetContentsResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_processing.PsmMatchingAndCollection;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.SearchProgram;
@@ -57,46 +60,25 @@ public class ProcessKojakFile {
 		searchProgram.setDisplayName( SearchProgramNameKojakImporterConstants.KOJAK );
 		searchProgram.setDescription( null );
 		
-		
-		KojakFileReader kojakFileReader = null;
-		
 		try {
+
+			KojakFileGetContentsResult kojakFileGetContentsResult =
+					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile );
 			
-			//  The reader reads the version line and the header lines in the getInstance(...) method
-			
-			kojakFileReader = KojakFileReader.getInstance( kojakOutputFile );
-			
-			PopulateKojakAnnotationTypesInSearchProgram.getInstance().populateKojakAnnotationTypesInSearchProgram( searchProgram, kojakFileReader );
+			KojakFileReader kojakFileReader = kojakFileGetContentsResult.getKojakFileReader();
+			List<KojakPsmDataObject> kojakPsmDataObjectList = kojakFileGetContentsResult.getKojakPsmDataObjectList();
+									
+			PopulateOnlyKojakAnnotationTypesInSearchProgram.getInstance()
+			.populateKojakAnnotationTypesInSearchProgram( 
+					searchProgram, kojakFileReader, PopulateOnlyKojakAnnotationTypesInSearchProgram.SetKojakDefaultCutoffs.NO );
 			
 			searchProgram.setVersion( kojakFileReader.getProgramVersion() );
 			
 			
-			
-			
-			
-			
+						
 			//  Process the data lines:
 
-			while (true) {
-
-				KojakPsmDataObject kojakPsmDataObject;
-
-				try {
-					kojakPsmDataObject = kojakFileReader.getNextKojakLine();
-
-				} catch ( Exception e ) {
-
-					String msg = "Error reading Kojak file (file: " + kojakOutputFile.getAbsolutePath() + ") .";
-
-					log.error( msg, e );
-
-					throw e;
-				}
-
-				if ( kojakPsmDataObject == null ) {
-
-					break;  //  EARLY EXIT from LOOOP
-				}
+			for ( KojakPsmDataObject kojakPsmDataObject : kojakPsmDataObjectList ) {
 				
 				if ( log.isInfoEnabled() ) {
 
@@ -125,14 +107,6 @@ public class ProcessKojakFile {
 			String msg = "Error processing Kojak file: " + kojakOutputFile.getAbsolutePath();
 			log.error( msg );
 			throw e;
-		
-		} finally {
-			
-			if ( kojakFileReader != null  ) {
-				
-				kojakFileReader.close();
-			}
-			
 		}
 		
 		

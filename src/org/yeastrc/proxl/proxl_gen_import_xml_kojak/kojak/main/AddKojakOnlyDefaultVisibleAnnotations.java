@@ -8,6 +8,7 @@ import org.yeastrc.proxl_import.api.xml_dto.DefaultVisibleAnnotations;
 import org.yeastrc.proxl_import.api.xml_dto.SearchAnnotation;
 import org.yeastrc.proxl_import.api.xml_dto.SearchProgramInfo;
 import org.yeastrc.proxl_import.api.xml_dto.VisiblePsmAnnotations;
+import org.yeastrc.proxl_import.api.xml_dto.VisiblePsmPerPeptideAnnotations;
 
 
 
@@ -68,7 +69,21 @@ public class AddKojakOnlyDefaultVisibleAnnotations {
 
 		}
 		
-		
+
+		{
+			VisiblePsmPerPeptideAnnotations visiblePsmPerPeptideAnnotations = new VisiblePsmPerPeptideAnnotations();
+			defaultVisibleAnnotations.setVisiblePsmPerPeptideAnnotations( visiblePsmPerPeptideAnnotations );
+
+			List<SearchAnnotation> visiblePsmPerPeptideAnnotationsSearchAnnotationList = visiblePsmPerPeptideAnnotations.getSearchAnnotation();
+
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				visiblePsmPerPeptideAnnotationsSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PSM_PER_PEPTIDE_SCORE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+			}
+		}
 	}
 	
 

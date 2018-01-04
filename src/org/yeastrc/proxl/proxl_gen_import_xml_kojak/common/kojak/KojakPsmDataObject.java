@@ -7,7 +7,7 @@ import java.util.Map;
  * 
  *
  */
-public class KojakPsmDataObject {
+public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 
 	private int scanNumber;
 	private int charge;
@@ -20,8 +20,15 @@ public class KojakPsmDataObject {
 	private String link_1;
 	private String link_2;
 
+	private BigDecimal peptide_1_score;
+	private BigDecimal peptide_2_score;
+	
+	// Not Stored 
 	private String protein_1;
+	private String protein_1_site;
 	private String protein_2;
+	private String protein_2_site;
+
 	
 	private String obsMass;
 	private String psmMass;
@@ -35,7 +42,182 @@ public class KojakPsmDataObject {
 	
 	private Map<String, String> descriptiveAnnotations;
 
+
+	@Override
+	public String toString() {
+		return "KojakPsmDataObject [scanNumber=" + scanNumber + ", charge=" + charge + ", linkerMass=" + linkerMass
+				+ ", peptide_1=" + peptide_1 + ", peptide_2=" + peptide_2 + ", link_1=" + link_1 + ", link_2=" + link_2
+				+ ", peptide_1_score=" + peptide_1_score + ", peptide_2_score=" + peptide_2_score + ", protein_1="
+				+ protein_1 + ", protein_1_site=" + protein_1_site + ", protein_2=" + protein_2 + ", protein_2_site="
+				+ protein_2_site + ", obsMass=" + obsMass + ", psmMass=" + psmMass + ", ppmError=" + ppmError + "]";
+	}
+
 	
+	//  Excluded from hashCode and equals and compareTo:  protein_1, protein_1_site, protein_2, protein_2_site, filteredAnnotations, descriptiveAnnotations
+
+
+	@Override
+	public int compareTo(KojakPsmDataObject o) {
+		if ( this.scanNumber < o.scanNumber ) {
+			return -1;
+		}
+		if ( this.scanNumber > o.scanNumber ) {
+			return 1;
+		}
+		if ( this.charge < o.charge ) {
+			return -1;
+		}
+		if ( this.charge > o.charge ) {
+			return 1;
+		}
+		{
+			int compareTo = linkerMass.compareTo( o.linkerMass );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = peptide_1.compareTo( o.peptide_1 );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = peptide_2.compareTo( o.peptide_2 );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = link_1.compareTo( o.link_1 );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = link_2.compareTo( o.link_2 );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = peptide_1_score.compareTo( o.peptide_1_score );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = peptide_2_score.compareTo( o.peptide_2_score );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = obsMass.compareTo( o.obsMass );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = psmMass.compareTo( o.psmMass );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		{
+			int compareTo = ppmError.compareTo( o.ppmError );
+			if ( compareTo != 0 ) {
+				return compareTo;
+			}
+		}
+		return 0;
+	}
+
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + charge;
+		result = prime * result + ((link_1 == null) ? 0 : link_1.hashCode());
+		result = prime * result + ((link_2 == null) ? 0 : link_2.hashCode());
+		result = prime * result + ((linkerMass == null) ? 0 : linkerMass.hashCode());
+		result = prime * result + ((obsMass == null) ? 0 : obsMass.hashCode());
+		result = prime * result + ((peptide_1 == null) ? 0 : peptide_1.hashCode());
+		result = prime * result + ((peptide_1_score == null) ? 0 : peptide_1_score.hashCode());
+		result = prime * result + ((peptide_2 == null) ? 0 : peptide_2.hashCode());
+		result = prime * result + ((peptide_2_score == null) ? 0 : peptide_2_score.hashCode());
+		result = prime * result + ((ppmError == null) ? 0 : ppmError.hashCode());
+		result = prime * result + ((psmMass == null) ? 0 : psmMass.hashCode());
+		result = prime * result + scanNumber;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		KojakPsmDataObject other = (KojakPsmDataObject) obj;
+		if (charge != other.charge)
+			return false;
+		if (link_1 == null) {
+			if (other.link_1 != null)
+				return false;
+		} else if (!link_1.equals(other.link_1))
+			return false;
+		if (link_2 == null) {
+			if (other.link_2 != null)
+				return false;
+		} else if (!link_2.equals(other.link_2))
+			return false;
+		if (linkerMass == null) {
+			if (other.linkerMass != null)
+				return false;
+		} else if (!linkerMass.equals(other.linkerMass))
+			return false;
+		if (obsMass == null) {
+			if (other.obsMass != null)
+				return false;
+		} else if (!obsMass.equals(other.obsMass))
+			return false;
+		if (peptide_1 == null) {
+			if (other.peptide_1 != null)
+				return false;
+		} else if (!peptide_1.equals(other.peptide_1))
+			return false;
+		if (peptide_1_score == null) {
+			if (other.peptide_1_score != null)
+				return false;
+		} else if (!peptide_1_score.equals(other.peptide_1_score))
+			return false;
+		if (peptide_2 == null) {
+			if (other.peptide_2 != null)
+				return false;
+		} else if (!peptide_2.equals(other.peptide_2))
+			return false;
+		if (peptide_2_score == null) {
+			if (other.peptide_2_score != null)
+				return false;
+		} else if (!peptide_2_score.equals(other.peptide_2_score))
+			return false;
+		if (ppmError == null) {
+			if (other.ppmError != null)
+				return false;
+		} else if (!ppmError.equals(other.ppmError))
+			return false;
+		if (psmMass == null) {
+			if (other.psmMass != null)
+				return false;
+		} else if (!psmMass.equals(other.psmMass))
+			return false;
+		if (scanNumber != other.scanNumber)
+			return false;
+		return true;
+	}
 	
 	public int getScanNumber() {
 		return scanNumber;
@@ -148,5 +330,39 @@ public class KojakPsmDataObject {
 	public void setProtein_2(String protein_2) {
 		this.protein_2 = protein_2;
 	}
-	
+
+	public BigDecimal getPeptide_1_score() {
+		return peptide_1_score;
+	}
+
+	public void setPeptide_1_score(BigDecimal peptide_1_score) {
+		this.peptide_1_score = peptide_1_score;
+	}
+
+	public BigDecimal getPeptide_2_score() {
+		return peptide_2_score;
+	}
+
+	public void setPeptide_2_score(BigDecimal peptide_2_score) {
+		this.peptide_2_score = peptide_2_score;
+	}
+
+	public String getProtein_1_site() {
+		return protein_1_site;
+	}
+
+	public void setProtein_1_site(String protein_1_site) {
+		this.protein_1_site = protein_1_site;
+	}
+
+	public String getProtein_2_site() {
+		return protein_2_site;
+	}
+
+	public void setProtein_2_site(String protein_2_site) {
+		this.protein_2_site = protein_2_site;
+	}
+
+
+
 }

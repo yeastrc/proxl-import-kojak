@@ -219,18 +219,17 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 			}
 			
 			
-			ProcessKojakFileOnly.getInstance().processKojakFile( kojakOutputFile, proxlInputRoot, proteinNameStrings, kojakConfFileReaderResult, fastaFileWithPathFile );
+			ProcessKojakFileOnly.getInstance().processKojakFile( kojakOutputFile, proxlInputRoot, proteinNameStrings, kojakConfFileReaderResult );
 
 			
 
 			if ( ! skipPopulatingMatchedProteins ) {
-
+				
+				//  fastaFileWithPathFile from command line if specified, otherwise from Kojak.conf file 
+				
 				MatchedProteinsBuilder.getInstance().buildMatchedProteins( 
-						proxlInputRoot, kojakConfFileReaderResult.getFastaFile(), kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList() );
+						proxlInputRoot, fastaFileWithPathFile, kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList() );
 			}
-
-			
-//			AddProteinsFromFASTAFileUsingPeptideSequence.getInstance().addProteinsFromFASTAFile( proxlInputRoot, fastaFileWithPathFile, decoyIdentificationStringList );
 			
 			
 			try {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="kojak2ProxlXML.jar  Create Runnable Jar for Jar-in-Jar Loader">
+<project default="create_run_jar" name="kojak2ProxlXML_Kojak_1.6.1_Quick_Hack.jar  Create Runnable Jar for Jar-in-Jar Loader">
 
 	<!-- This script will first create a jar of the code and resources in this project   -->
 	
@@ -10,7 +10,7 @@
 
 	<property name="jar.main.class" value="org.yeastrc.proxl.proxl_gen_import_xml_kojak.program_default.GenImportXMLFromKojakDataDefaultMainProgram" />
 
-	<property name="output_runnable_jar" value="kojak2ProxlXML.jar"/>
+	<property name="output_runnable_jar" value="kojak2ProxlXML_Kojak_1.6.1_Quick_Hack.jar"/>
 
 	
 	<property name="output_jar_this_project" value="proxl_XML_kojak_percolator_converter.jar"/>

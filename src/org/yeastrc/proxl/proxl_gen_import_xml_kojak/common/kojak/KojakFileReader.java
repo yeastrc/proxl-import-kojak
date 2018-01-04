@@ -54,7 +54,10 @@ public class KojakFileReader {
 	private int PROTEIN_1_HeaderIndex = INDEX_INIT_VALUE;
 	private int PROTEIN_2_HeaderIndex = INDEX_INIT_VALUE;
 
+	private int PROTEIN_1_SITE_HeaderIndex = INDEX_INIT_VALUE;
+	private int PROTEIN_2_SITE_HeaderIndex = INDEX_INIT_VALUE;
 
+	
 	//  These are extracted for specific processing and storage
 	
 	private int SCAN_NUMBER_HeaderIndex = INDEX_INIT_VALUE;
@@ -68,6 +71,12 @@ public class KojakFileReader {
 	private int LINKER_MASS_HeaderIndex = INDEX_INIT_VALUE;
 	
 	private int CHARGE_HeaderIndex = INDEX_INIT_VALUE;
+
+	//  These are extracted for specific processing and storage
+	
+	private int PEPTIDE_1_SCORE_HeaderIndex = INDEX_INIT_VALUE;
+	private int PEPTIDE_2_SCORE_HeaderIndex = INDEX_INIT_VALUE;
+
 	
 	
 	//   Filterable annotations
@@ -79,7 +88,6 @@ public class KojakFileReader {
 	private int DSCORE_HeaderIndex = INDEX_INIT_VALUE;
 	private int PEPDIFF_HeaderIndex = INDEX_INIT_VALUE;
 
-	
 	//  All other are descriptive annotations
 
 	
@@ -91,7 +99,9 @@ public class KojakFileReader {
 	 */
 	private KojakFileReader(){}
 	
-	public static KojakFileReader getInstance( File inputFile ) throws Exception {
+	//  Make Package Private
+	
+	static KojakFileReader getInstance( File inputFile ) throws Exception {
 		
 		KojakFileReader kojakFileReader = new KojakFileReader();
 		
@@ -210,12 +220,19 @@ public class KojakFileReader {
 				
 				if ( KojakFileContentsConstants.PROTEIN_1_HEADER_LABEL.equals( headerElement ) ) {
 
-				PROTEIN_1_HeaderIndex = headerElementIndex;
+					PROTEIN_1_HeaderIndex = headerElementIndex;
 
 				} else if ( KojakFileContentsConstants.PROTEIN_2_HEADER_LABEL.equals( headerElement ) ) {
 
 					PROTEIN_2_HeaderIndex = headerElementIndex;
 
+				} else if ( KojakFileContentsConstants.PROTEIN_1_SITE_HEADER_LABEL.equals( headerElement ) ) {
+
+					PROTEIN_1_SITE_HeaderIndex = headerElementIndex;
+
+				} else if ( KojakFileContentsConstants.PROTEIN_2_SITE_HEADER_LABEL.equals( headerElement ) ) {
+
+					PROTEIN_2_SITE_HeaderIndex = headerElementIndex;
 
 
 					/////////////////////////////
@@ -223,6 +240,16 @@ public class KojakFileReader {
 					//   This block contains value that will be saved off for specific processing
 				
 
+				} else if ( KojakFileContentsConstants.PEPTIDE_1_SCORE_HEADER_LABEL.equals( headerElement ) ) {
+
+					PEPTIDE_1_SCORE_HeaderIndex = headerElementIndex;
+
+				} else if ( KojakFileContentsConstants.PEPTIDE_2_SCORE_HEADER_LABEL.equals( headerElement ) ) {
+
+					PEPTIDE_2_SCORE_HeaderIndex = headerElementIndex;
+
+					
+					
 				} else if ( KojakFileContentsConstants.SCAN_NUMBER_HEADER_LABEL.equals( headerElement ) ) {
 
 					SCAN_NUMBER_HeaderIndex = headerElementIndex;
@@ -237,19 +264,40 @@ public class KojakFileReader {
 
 					PEPTIDE_1_HeaderIndex = headerElementIndex;
 
-				} else if ( KojakFileContentsConstants.LINK_1_HEADER_LABEL.equals( headerElement ) ) {
+				} else if ( KojakFileContentsConstants.LINK_1_HEADER_LABEL_Pre_1_6_1.equals( headerElement )
+						|| KojakFileContentsConstants.LINK_1_HEADER_LABEL_Start_1_6_1.equals( headerElement ) ) {
 
+					if ( LINK_1_HeaderIndex != INDEX_INIT_VALUE ) {
+						String msg = "Link 1 position Header Index already set.  Prev Value: " + LINK_1_HeaderIndex
+								+ ", Current headerElementIndex: " + headerElementIndex
+								+ ", Link 1 position Header String is one of two options: '"
+								+ KojakFileContentsConstants.LINK_1_HEADER_LABEL_Pre_1_6_1
+								+ "' or '"
+								+ KojakFileContentsConstants.LINK_1_HEADER_LABEL_Pre_1_6_1
+								+ "'.";
+						log.error( msg );
+						throw new ProxlGenXMLDataException( msg );
+					}
 					LINK_1_HeaderIndex = headerElementIndex;
-
-	
-
 
 				} else if ( KojakFileContentsConstants.PEPTIDE_2_HEADER_LABEL.equals( headerElement ) ) {
 
 					PEPTIDE_2_HeaderIndex = headerElementIndex;
 
-				} else if ( KojakFileContentsConstants.LINK_2_HEADER_LABEL.equals( headerElement ) ) {
+				} else if ( KojakFileContentsConstants.LINK_2_HEADER_LABEL_Pre_1_6_1.equals( headerElement )
+						|| KojakFileContentsConstants.LINK_2_HEADER_LABEL_Start_1_6_1.equals( headerElement ) ) {
 
+					if ( LINK_2_HeaderIndex != INDEX_INIT_VALUE ) {
+						String msg = "Link 2 position Header Index already set.  Prev Value: " + LINK_2_HeaderIndex
+								+ ", Current headerElementIndex: " + headerElementIndex
+								+ ", Link 2 position Header String is one of two options: '"
+								+ KojakFileContentsConstants.LINK_2_HEADER_LABEL_Pre_1_6_1
+								+ "' or '"
+								+ KojakFileContentsConstants.LINK_2_HEADER_LABEL_Pre_1_6_1
+								+ "'.";
+						log.error( msg );
+						throw new ProxlGenXMLDataException( msg );
+					}
 					LINK_2_HeaderIndex = headerElementIndex;
 
 				} else if ( KojakFileContentsConstants.LINKER_MASS_HEADER_LABEL.equals( headerElement ) ) {
@@ -359,14 +407,16 @@ public class KojakFileReader {
 				log.error( msg );
 				throw new Exception(msg);
 			}
-			if ( PEPDIFF_HeaderIndex == INDEX_INIT_VALUE ) {
-
-				String msg = "Kojak file header line does not contain header label '" 
-						+ KojakFileContentsConstants.PEPDIFF_HEADER_LABEL + "'.  Kojak file: " + inputFile.getAbsolutePath()
-						+ ", headerLine: " + headerLine;
-				log.error( msg );
-				throw new Exception(msg);
-			}
+			
+			//  Remove requirement for file have 'Pep. Diff.' since not in file starting with 1.6.1 (or maybe sooner)
+//			if ( PEPDIFF_HeaderIndex == INDEX_INIT_VALUE ) {
+//
+//				String msg = "Kojak file header line does not contain header label '" 
+//						+ KojakFileContentsConstants.PEPDIFF_HEADER_LABEL + "'.  Kojak file: " + inputFile.getAbsolutePath()
+//						+ ", headerLine: " + headerLine;
+//				log.error( msg );
+//				throw new Exception(msg);
+//			}
 			if ( PEPTIDE_1_HeaderIndex == INDEX_INIT_VALUE ) {
 
 				String msg = "Kojak file header line does not contain header label '" 
@@ -377,8 +427,11 @@ public class KojakFileReader {
 			}
 			if ( LINK_1_HeaderIndex == INDEX_INIT_VALUE ) {
 
-				String msg = "Kojak file header line does not contain header label '" 
-						+ KojakFileContentsConstants.LINK_1_HEADER_LABEL + "'.  Kojak file: " + inputFile.getAbsolutePath()
+				String msg = "Kojak file header line does not contain header label.  Must be one of two options: '" 
+						+ KojakFileContentsConstants.LINK_1_HEADER_LABEL_Pre_1_6_1 
+						+ "' or '"
+						+ KojakFileContentsConstants.LINK_1_HEADER_LABEL_Start_1_6_1
+						+ "'.  Kojak file: " + inputFile.getAbsolutePath()
 						+ ", headerLine: " + headerLine;
 				log.error( msg );
 				throw new Exception(msg);
@@ -403,8 +456,11 @@ public class KojakFileReader {
 			}
 			if ( LINK_2_HeaderIndex == INDEX_INIT_VALUE ) {
 
-				String msg = "Kojak file header line does not contain header label '" 
-						+ KojakFileContentsConstants.LINK_2_HEADER_LABEL + "'.  Kojak file: " + inputFile.getAbsolutePath()
+				String msg = "Kojak file header line does not contain header label.  Must be one of two options: '" 
+						+ KojakFileContentsConstants.LINK_2_HEADER_LABEL_Pre_1_6_1 
+						+ "' or '"
+						+ KojakFileContentsConstants.LINK_2_HEADER_LABEL_Start_1_6_1
+						+ "'.  Kojak file: " + inputFile.getAbsolutePath()
 						+ ", headerLine: " + headerLine;
 				log.error( msg );
 				throw new Exception(msg);
@@ -418,6 +474,19 @@ public class KojakFileReader {
 				throw new Exception(msg);
 			}
 
+			if ( ( PEPTIDE_1_SCORE_HeaderIndex == INDEX_INIT_VALUE && PEPTIDE_2_SCORE_HeaderIndex != INDEX_INIT_VALUE ) 
+					|| ( PEPTIDE_1_SCORE_HeaderIndex != INDEX_INIT_VALUE && PEPTIDE_2_SCORE_HeaderIndex == INDEX_INIT_VALUE ) ) {
+
+				String msg = "Kojak file header line must either contain both header labels"
+						+ " '" + KojakFileContentsConstants.PEPTIDE_1_SCORE_HEADER_LABEL + "' "
+						+ " and '" + KojakFileContentsConstants.PEPTIDE_2_SCORE_HEADER_LABEL + "' "
+						+ " or it must not contain either of them. "
+						+ "  Kojak file: " + inputFile.getAbsolutePath()
+						+ ", headerLine: " + headerLine;
+				log.error( msg );
+				throw new Exception(msg);
+			}
+			
 			if ( LINKER_MASS_HeaderIndex == INDEX_INIT_VALUE ) {
 
 				String msg = "Kojak file header line does not contain header label '" 
@@ -468,12 +537,22 @@ public class KojakFileReader {
 	public String getProgramVersion() {
 		return programVersion;
 	}
+	
 
+	public boolean headerHasPeptide_1_score() {
+		return PEPTIDE_1_SCORE_HeaderIndex != INDEX_INIT_VALUE;
+	}
+
+	public boolean headerHasPeptide_2_score() {
+		return PEPTIDE_2_SCORE_HeaderIndex != INDEX_INIT_VALUE;
+	}
+
+	//  Make Package Private
 	
 	/**
 	 * @throws IOException
 	 */
-	public void close() throws IOException {
+	void close() throws IOException {
 		
 		if ( reader != null ) {
 			
@@ -489,7 +568,9 @@ public class KojakFileReader {
 		}
 	}
 	
-	public KojakPsmDataObject getNextKojakLine() throws Exception {
+	//  Make Package Private
+	
+	KojakPsmDataObject getNextKojakLine() throws Exception {
 
 		if ( reader == null ) {
 
@@ -562,8 +643,19 @@ public class KojakFileReader {
 				String protein_2 = lineSplit[ lineSplitIndex ];
 				
 				kojakPsmDataObject.setProtein_2( protein_2 );
+
+			} else if ( lineSplitIndex == PROTEIN_1_SITE_HeaderIndex ) {
+
+				String protein_1_site = lineSplit[ lineSplitIndex ];
+
+				kojakPsmDataObject.setProtein_1_site( protein_1_site );
+
+			} else if ( lineSplitIndex == PROTEIN_2_SITE_HeaderIndex ) {
+
+				String protein_2_site = lineSplit[ lineSplitIndex ];
+
+				kojakPsmDataObject.setProtein_2_site( protein_2_site );
 				
-			
 				/////////////////////////////
 				
 				//   This block contains value that will be saved off for specific processing
@@ -641,7 +733,48 @@ public class KojakFileReader {
 					log.error( msg );
 					throw new Exception(msg);
 				}
-				
+
+
+
+			} else if ( lineSplitIndex == PEPTIDE_1_SCORE_HeaderIndex ) {
+
+				String peptide_1_scoreString = lineSplit[ lineSplitIndex ];
+
+				try {
+					BigDecimal peptide_1_score = new BigDecimal( peptide_1_scoreString );
+					kojakPsmDataObject.setPeptide_1_score( peptide_1_score );
+
+				} catch ( Exception e ) {
+					String msg = "Kojak file 'Peptide 1 score'"
+							+ " as identified by the header label '" + KojakFileContentsConstants.PEPTIDE_1_SCORE_HEADER_LABEL
+							+ "' is not parsible as decimal."
+							+ " peptide_1_scoreString: '" + peptide_1_scoreString
+							+ "', Kojak file: " + inputFile.getAbsolutePath()
+							+ ", line: " + line;
+					log.error( msg );
+					throw new ProxlGenXMLDataException(msg);
+				}
+
+
+			} else if ( lineSplitIndex == PEPTIDE_2_SCORE_HeaderIndex ) {
+
+				String peptide_2_scoreString = lineSplit[ lineSplitIndex ];
+
+				try {
+					BigDecimal peptide_2_score = new BigDecimal( peptide_2_scoreString );
+					kojakPsmDataObject.setPeptide_2_score( peptide_2_score );
+
+				} catch ( Exception e ) {
+					String msg = "Kojak file 'Peptide 2 score'"
+							+ " as identified by the header label '" + KojakFileContentsConstants.PEPTIDE_2_SCORE_HEADER_LABEL
+							+ "' is not parsible as decimal."
+							+ " peptide_2_scoreString: '" + peptide_2_scoreString
+							+ "', Kojak file: " + inputFile.getAbsolutePath()
+							+ ", line: " + line;
+					log.error( msg );
+					throw new ProxlGenXMLDataException(msg);
+				}
+
 
 			} else if ( lineSplitIndex == LINKER_MASS_HeaderIndex ) {
 
@@ -665,7 +798,7 @@ public class KojakFileReader {
 								+ "', Kojak file: " + inputFile.getAbsolutePath()
 								+ ", line: " + line;
 						log.error( msg );
-						throw new Exception(msg);
+						throw new ProxlGenXMLDataException(msg);
 					}
 
 				}
@@ -724,18 +857,13 @@ public class KojakFileReader {
 			} else if ( lineSplitIndex == PEPDIFF_HeaderIndex ) {
 
 				String pepdiffString = lineSplit[ lineSplitIndex ];
-
 				try {
-					
 					BigDecimal dScore = new BigDecimal( pepdiffString );
-					
 					filteredAnnotations.put( KojakFileContentsConstants.PEPDIFF_HEADER_LABEL, dScore );
 					
-					
 				} catch ( Exception ex ) {
-					
-					String msg = "Kojak file 'Pep. Diff.'"
-							+ " as identified by the header label '" + KojakFileContentsConstants.PEPDIFF_HEADER_LABEL
+					String msg = "Kojak file 'Pep. Diff.' as identified by the header label '" 
+							+ KojakFileContentsConstants.PEPDIFF_HEADER_LABEL
 							+ "' is not parsible as decimal."
 							+ " PepDiffString: '" + pepdiffString
 							+ "', Kojak file: " + inputFile.getAbsolutePath()

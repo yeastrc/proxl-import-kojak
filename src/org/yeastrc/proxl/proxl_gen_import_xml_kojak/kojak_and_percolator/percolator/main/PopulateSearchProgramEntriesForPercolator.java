@@ -11,8 +11,6 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgr
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.constants.KojakPercolatorDefaultFilterValueConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.constants.PercolatorGenImportXML_AnnotationNames_Constants;
-import org.yeastrc.proxl_import.api.xml_dto.DescriptivePsmAnnotationType;
-import org.yeastrc.proxl_import.api.xml_dto.DescriptivePsmAnnotationTypes;
 import org.yeastrc.proxl_import.api.xml_dto.FilterDirectionType;
 import org.yeastrc.proxl_import.api.xml_dto.FilterablePeptideAnnotationType;
 import org.yeastrc.proxl_import.api.xml_dto.FilterablePeptideAnnotationTypes;
@@ -270,11 +268,11 @@ public class PopulateSearchProgramEntriesForPercolator {
 		/////////////  Descriptive
 
 		{
-			DescriptivePsmAnnotationTypes descriptivePsmAnnotationTypes = new DescriptivePsmAnnotationTypes();
-			psmAnnotationTypes.setDescriptivePsmAnnotationTypes( descriptivePsmAnnotationTypes );
-
-			List<DescriptivePsmAnnotationType> descriptivePsmAnnotationTypeList =
-					descriptivePsmAnnotationTypes.getDescriptivePsmAnnotationType();
+//			DescriptivePsmAnnotationTypes descriptivePsmAnnotationTypes = new DescriptivePsmAnnotationTypes();
+//			psmAnnotationTypes.setDescriptivePsmAnnotationTypes( descriptivePsmAnnotationTypes );
+//
+//			List<DescriptivePsmAnnotationType> descriptivePsmAnnotationTypeList =
+//					descriptivePsmAnnotationTypes.getDescriptivePsmAnnotationType();
 
 			
 			
@@ -287,15 +285,17 @@ public class PopulateSearchProgramEntriesForPercolator {
 //				descriptivePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_CALC_MASS );
 //				descriptivePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_CALC_MASS );
 //			}
-		
-			{
-				DescriptivePsmAnnotationType descriptivePsmAnnotationType = new DescriptivePsmAnnotationType();
-				descriptivePsmAnnotationTypeList.add( descriptivePsmAnnotationType );
 
-
-				descriptivePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
-				descriptivePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
-			}
+			//  Remove since scan number added to regular psm processing in core proxl
+			
+//			{
+//				DescriptivePsmAnnotationType descriptivePsmAnnotationType = new DescriptivePsmAnnotationType();
+//				descriptivePsmAnnotationTypeList.add( descriptivePsmAnnotationType );
+//
+//
+//				descriptivePsmAnnotationType.setName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
+//				descriptivePsmAnnotationType.setDescription( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
+//			}
 		}
 	}
 }

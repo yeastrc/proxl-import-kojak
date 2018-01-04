@@ -9,13 +9,18 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SwapPerPeptideScoresBetweenPeptides;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_crosslink_looplink_in_conf.IsCrosslinkOrLooplinkMassInConf;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.IsAllProtein_1or2_Decoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileReader;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakProteinNonDecoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.PopulateOnlyKojakAnnotationTypesInSearchProgram;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents.KojakFileGetContentsResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.enums.KojakGenImportInternalLinkTypeEnum;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects.LinkTypeAndReportedPeptideString;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
@@ -48,7 +53,6 @@ public class ProcessKojakFileOnly {
 	 * @param proxlInputRoot
 	 * @param proteinNameStrings
 	 * @param kojakConfFileReaderResult
-	 * @param fastaFileWithPathFile
 	 * @throws Exception
 	 */
 	public void processKojakFile( 
@@ -56,8 +60,7 @@ public class ProcessKojakFileOnly {
 			File kojakOutputFile,
 			ProxlInput proxlInputRoot,
 			Set<String> proteinNameStrings,
-			KojakConfFileReaderResult kojakConfFileReaderResult,
-			File fastaFileWithPathFile ) throws Exception {
+			KojakConfFileReaderResult kojakConfFileReaderResult ) throws Exception {
 		
 
 		SearchProgramInfo searchProgramInfo = proxlInputRoot.getSearchProgramInfo();
@@ -72,16 +75,16 @@ public class ProcessKojakFileOnly {
 		searchProgram.setDisplayName( SearchProgramNameKojakImporterConstants.KOJAK );
 		searchProgram.setDescription( null );
 		
-		
-		KojakFileReader kojakFileReader = null;
-		
 		try {
+			KojakFileGetContentsResult kojakFileGetContentsResult =
+					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile );
 			
-			//  The reader reads the version line and the header lines in the getInstance(...) method
+			KojakFileReader kojakFileReader = kojakFileGetContentsResult.getKojakFileReader();
+			List<KojakPsmDataObject> kojakPsmDataObjectList = kojakFileGetContentsResult.getKojakPsmDataObjectList();
 			
-			kojakFileReader = KojakFileReader.getInstance( kojakOutputFile );
-			
-			PopulateOnlyKojakAnnotationTypesInSearchProgram.getInstance().populateKojakAnnotationTypesInSearchProgram( searchProgram, kojakFileReader );
+			PopulateOnlyKojakAnnotationTypesInSearchProgram.getInstance()
+			.populateKojakAnnotationTypesInSearchProgram( 
+					searchProgram, kojakFileReader, PopulateOnlyKojakAnnotationTypesInSearchProgram.SetKojakDefaultCutoffs.YES );
 			
 			searchProgram.setVersion( kojakFileReader.getProgramVersion() );
 			
@@ -94,27 +97,8 @@ public class ProcessKojakFileOnly {
 			
 			//  Process the data lines:
 
-			while (true) {
+			for ( KojakPsmDataObject kojakPsmDataObject : kojakPsmDataObjectList ) {
 
-				KojakPsmDataObject kojakPsmDataObject;
-
-				try {
-					kojakPsmDataObject = kojakFileReader.getNextKojakLine();
-
-				} catch ( Exception e ) {
-
-					String msg = "Error reading Kojak file (file: " + kojakOutputFile.getAbsolutePath() + ") .";
-
-					log.error( msg, e );
-
-					throw e;
-				}
-
-				if ( kojakPsmDataObject == null ) {
-
-					break;  //  EARLY EXIT from LOOOP
-				}
-				
 				if ( log.isInfoEnabled() ) {
 
 					System.out.println( "Processing Kojak record for scan number: " + kojakPsmDataObject.getScanNumber() );
@@ -200,19 +184,21 @@ public class ProcessKojakFileOnly {
 					reportedPeptidesKeyedOnReportedPeptideString.put( reportedPeptideString, reportedPeptide );
 				}
 				
-				Psms psms = reportedPeptide.getPsms();
+				int numPeptidesOnReportedPeptide = reportedPeptide.getPeptides().getPeptide().size();
 				
+				Psms psms = reportedPeptide.getPsms();
 				if ( psms == null ) {
-					
 					psms = new Psms();
 					reportedPeptide.setPsms( psms );
 				}
-				
 				List<Psm> psmList = psms.getPsm();
 				
-				
 				Psm proxlInputPsm = 
-						PopulateProxlInputPsmFromKojakOnly.getInstance().populateProxlInputPsm( kojakPsmDataObject );
+						Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations.getInstance()
+						.createProxlInputPsm( 
+								kojakPsmDataObject, 
+								numPeptidesOnReportedPeptide, 
+								SwapPerPeptideScoresBetweenPeptides.NO );
 				
 				psmList.add( proxlInputPsm );
 				
@@ -250,14 +236,7 @@ public class ProcessKojakFileOnly {
 			log.error( msg );
 			throw e;
 		
-		} finally {
-			
-			if ( kojakFileReader != null  ) {
-				
-				kojakFileReader.close();
-			}
-			
-		}
+		} 
 		
 	}
 	

@@ -16,10 +16,16 @@ public class KojakFileContentsConstants {
 	public static final String SCAN_NUMBER_HEADER_LABEL = "Scan Number";
 	
 	public static final String PEPTIDE_1_HEADER_LABEL = "Peptide #1";
-	public static final String LINK_1_HEADER_LABEL = "Link #1";
+	
+	//  Link #1 position
+	public static final String LINK_1_HEADER_LABEL_Pre_1_6_1 = "Link #1";        // Before 1.6.1, maybe changed sooner
+	public static final String LINK_1_HEADER_LABEL_Start_1_6_1 = "Linked AA #1"; // On and after 1.6.1, maybe changed sooner
 
 	public static final String PEPTIDE_2_HEADER_LABEL = "Peptide #2";
-	public static final String LINK_2_HEADER_LABEL = "Link #2";
+	
+	//  Link #2 position
+	public static final String LINK_2_HEADER_LABEL_Pre_1_6_1 = "Link #2";        // Before 1.6.1, maybe changed sooner
+	public static final String LINK_2_HEADER_LABEL_Start_1_6_1 = "Linked AA #2"; // On and after 1.6.1, maybe changed sooner
 
 	public static final String CHARGE_HEADER_LABEL = "Charge";
 
@@ -30,7 +36,15 @@ public class KojakFileContentsConstants {
 	
 	public static final String PROTEIN_1_HEADER_LABEL = "Protein #1";
 	public static final String PROTEIN_2_HEADER_LABEL = "Protein #2";
+	
+	public static final String PROTEIN_1_SITE_HEADER_LABEL = "Protein #1 Site";
+	public static final String PROTEIN_2_SITE_HEADER_LABEL = "Protein #2 Site";
+	
+	
 
+	//  PSM Per Peptide Scores - PSM Per Peptide Filterable Annotations
+	public static final String PEPTIDE_1_SCORE_HEADER_LABEL = "Peptide #1 Score";
+	public static final String PEPTIDE_2_SCORE_HEADER_LABEL = "Peptide #2 Score";
 	
 	
 	

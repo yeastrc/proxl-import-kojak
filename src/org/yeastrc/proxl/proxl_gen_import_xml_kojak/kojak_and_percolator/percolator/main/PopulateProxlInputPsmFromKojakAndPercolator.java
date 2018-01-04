@@ -1,60 +1,55 @@
 package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.main;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsm;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SwapPerPeptideScoresBetweenPeptides;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.constants.PercolatorGenImportXML_AnnotationNames_Constants;
-import org.yeastrc.proxl_import.api.xml_dto.DescriptivePsmAnnotation;
-import org.yeastrc.proxl_import.api.xml_dto.DescriptivePsmAnnotations;
 import org.yeastrc.proxl_import.api.xml_dto.FilterablePsmAnnotation;
 import org.yeastrc.proxl_import.api.xml_dto.FilterablePsmAnnotations;
 import org.yeastrc.proxl_import.api.xml_dto.Psm;
 
+/**
+ * 
+ *
+ */
 public class PopulateProxlInputPsmFromKojakAndPercolator {
 
 	private static final Logger log = Logger.getLogger( PopulateProxlInputPsmFromKojakAndPercolator.class );
 
 	//  private constructor
 	private PopulateProxlInputPsmFromKojakAndPercolator() {}
-
-
 	public static PopulateProxlInputPsmFromKojakAndPercolator getInstance() {
-
 		return new PopulateProxlInputPsmFromKojakAndPercolator();
 	}
-
-
-
 
 	/**
 	 * Populate a single PSM in the output object structure for Proxl XML file
 	 * 
-	 * @param percolatorPeptide
-	 * @param psmMatchingAndCollection
+	 * @param kojakPsmDataObject
+	 * @param percolatorPsmData
+	 * @param numPeptidesOnReportedPeptide
+	 * @param swapPerPeptideScoresBetweenPeptides
 	 * @return
 	 * @throws ProxlGenXMLDataException 
 	 */
-	public Psm populateProxlInputPsm( KojakPsmDataObject kojakPsmDataObject, IPsm percolatorPsmData ) throws ProxlGenXMLDataException {
+	public Psm populateProxlInputPsm( 
+			KojakPsmDataObject kojakPsmDataObject, 
+			IPsm percolatorPsmData,
+			int numPeptidesOnReportedPeptide,
+			SwapPerPeptideScoresBetweenPeptides swapPerPeptideScoresBetweenPeptides ) throws ProxlGenXMLDataException {
 
-		Psm proxlInputPsm = new Psm();
-
-		proxlInputPsm.setPrecursorCharge( BigInteger.valueOf( kojakPsmDataObject.getCharge() ) );
-
-		proxlInputPsm.setLinkerMass( kojakPsmDataObject.getLinkerMass() );
-
-		//  Leave null since only have one scan file.  Whatever scan file is imported will be used.
-		//		proxlInputPsm.setScanFileName(  );
-
-		proxlInputPsm.setScanNumber( BigInteger.valueOf( kojakPsmDataObject.getScanNumber() ) );
-
+		//  Create Psm with Kojak data
+		Psm proxlInputPsm = 
+				Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations.getInstance()
+				.createProxlInputPsm(kojakPsmDataObject, numPeptidesOnReportedPeptide, swapPerPeptideScoresBetweenPeptides );
 
 		///////////////////////////////////////
 
@@ -64,9 +59,11 @@ public class PopulateProxlInputPsmFromKojakAndPercolator {
 
 			//  Percolator annotations:
 
-			FilterablePsmAnnotations filterablePsmAnnotations = new FilterablePsmAnnotations();
-			proxlInputPsm.setFilterablePsmAnnotations( filterablePsmAnnotations );
-
+			FilterablePsmAnnotations filterablePsmAnnotations = proxlInputPsm.getFilterablePsmAnnotations();
+			if ( filterablePsmAnnotations == null ) {
+				filterablePsmAnnotations = new FilterablePsmAnnotations();
+				proxlInputPsm.setFilterablePsmAnnotations( filterablePsmAnnotations );
+			}
 			List<FilterablePsmAnnotation> filterablePsmAnnotationList =
 					filterablePsmAnnotations.getFilterablePsmAnnotation();
 
@@ -198,25 +195,6 @@ public class PopulateProxlInputPsmFromKojakAndPercolator {
 				}
 			}
 
-			////////////   Kojak annotations
-
-			{
-				Map<String, BigDecimal> kojakFilteredAnnotations = kojakPsmDataObject.getFilteredAnnotations();
-
-				for ( Map.Entry<String, BigDecimal> entry : kojakFilteredAnnotations.entrySet() ) {
-
-					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
-					filterablePsmAnnotationList.add( filterablePsmAnnotation );
-
-					filterablePsmAnnotation.setAnnotationName( entry.getKey() );
-
-					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
-
-					filterablePsmAnnotation.setValue( entry.getValue() );
-
-				}
-			}
-
 		}
 
 
@@ -225,11 +203,13 @@ public class PopulateProxlInputPsmFromKojakAndPercolator {
 		/////////////    Descriptive Annotations
 
 		{
-			DescriptivePsmAnnotations descriptivePsmAnnotations = new DescriptivePsmAnnotations();
-			proxlInputPsm.setDescriptivePsmAnnotations( descriptivePsmAnnotations );
-
-			List<DescriptivePsmAnnotation> descriptivePsmAnnotationList =
-					descriptivePsmAnnotations.getDescriptivePsmAnnotation();
+//			DescriptivePsmAnnotations descriptivePsmAnnotations = proxlInputPsm.getDescriptivePsmAnnotations();
+//			if ( descriptivePsmAnnotations == null ) {
+//				descriptivePsmAnnotations = new DescriptivePsmAnnotations();
+//				proxlInputPsm.setDescriptivePsmAnnotations( descriptivePsmAnnotations );
+//			}
+//			List<DescriptivePsmAnnotation> descriptivePsmAnnotationList =
+//					descriptivePsmAnnotations.getDescriptivePsmAnnotation();
 
 
 			//////////////
@@ -252,42 +232,21 @@ public class PopulateProxlInputPsmFromKojakAndPercolator {
 
 			//////////////
 
-			//  Scan Number
-
-			{
-				DescriptivePsmAnnotation descriptivePsmAnnotation = new DescriptivePsmAnnotation();
-				descriptivePsmAnnotationList.add( descriptivePsmAnnotation );
-
-				descriptivePsmAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
-				descriptivePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
-
-				if ( percolatorPsmData.getCalcMass() != null ) {
-					descriptivePsmAnnotation.setValue( Integer.toString( kojakPsmDataObject.getScanNumber() ) );
-				}
-			}
+			//  Remove since scan number added to regular psm processing in core proxl
 			
-			
-			
-
-
-
-			////////////   Kojak annotations
-
-			{
-				Map<String, String> kojakDescriptiveAnnotations = kojakPsmDataObject.getDescriptiveAnnotations();
-
-				for ( Map.Entry<String, String> entry : kojakDescriptiveAnnotations.entrySet() ) {
-
-					DescriptivePsmAnnotation descriptivePsmAnnotation = new DescriptivePsmAnnotation();
-					descriptivePsmAnnotationList.add( descriptivePsmAnnotation );
-
-					descriptivePsmAnnotation.setAnnotationName( entry.getKey() );
-
-					descriptivePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
-
-					descriptivePsmAnnotation.setValue( entry.getValue() );
-				}
-			}
+//			//  Scan Number
+//
+//			{
+//				DescriptivePsmAnnotation descriptivePsmAnnotation = new DescriptivePsmAnnotation();
+//				descriptivePsmAnnotationList.add( descriptivePsmAnnotation );
+//
+//				descriptivePsmAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_SCAN_NUMBER );
+//				descriptivePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
+//
+//				if ( percolatorPsmData.getCalcMass() != null ) {
+//					descriptivePsmAnnotation.setValue( Integer.toString( kojakPsmDataObject.getScanNumber() ) );
+//				}
+//			}
 		}
 
 		//////////////////////////////

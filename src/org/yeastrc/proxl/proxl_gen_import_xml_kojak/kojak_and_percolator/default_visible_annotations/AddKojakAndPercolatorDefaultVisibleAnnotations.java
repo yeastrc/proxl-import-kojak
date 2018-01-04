@@ -2,6 +2,8 @@ package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.defaul
 
 import java.util.List;
 
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.KojakAnnotationTypeConstants;
+
 //import org.apache.log4j.Logger;
 
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
@@ -10,6 +12,7 @@ import org.yeastrc.proxl_import.api.xml_dto.DefaultVisibleAnnotations;
 import org.yeastrc.proxl_import.api.xml_dto.SearchAnnotation;
 import org.yeastrc.proxl_import.api.xml_dto.SearchProgramInfo;
 import org.yeastrc.proxl_import.api.xml_dto.VisiblePsmAnnotations;
+import org.yeastrc.proxl_import.api.xml_dto.VisiblePsmPerPeptideAnnotations;
 import org.yeastrc.proxl_import.api.xml_dto.VisibleReportedPeptideAnnotations;
 
 /**
@@ -104,6 +107,20 @@ public class AddKojakAndPercolatorDefaultVisibleAnnotations {
 				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
 			}
 			
+		}
+		{
+			VisiblePsmPerPeptideAnnotations visiblePsmPerPeptideAnnotations = new VisiblePsmPerPeptideAnnotations();
+			defaultVisibleAnnotations.setVisiblePsmPerPeptideAnnotations( visiblePsmPerPeptideAnnotations );
+
+			List<SearchAnnotation> visiblePsmPerPeptideAnnotationsSearchAnnotationList = visiblePsmPerPeptideAnnotations.getSearchAnnotation();
+
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				visiblePsmPerPeptideAnnotationsSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PSM_PER_PEPTIDE_SCORE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+			}
 		}
 		
 	}

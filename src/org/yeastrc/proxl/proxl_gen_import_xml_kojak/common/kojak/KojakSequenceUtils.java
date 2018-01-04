@@ -31,9 +31,28 @@ public class KojakSequenceUtils {
 	 * would return "PEPTIDE")
 	 * @param pseq
 	 * @return
+	 * @throws ProxlGenXMLDataException 
 	 */
-	public String getPeptideWithDynamicModificationsRemoved( String pseq ) {
-		return pseq.replaceAll( "\\[[^\\[]+\\]",  "" );
+	public String getPeptideWithDynamicModificationsRemoved( final String pseqParam ) throws ProxlGenXMLDataException {
+		String pseq = pseqParam.replaceAll( "\\[[^\\[]+\\]",  "" );
+		//  Remove 'n' and start and 'c' at end
+		if ( pseq.startsWith( "n" ) ) {
+			pseq = pseq.substring( 1 );
+		}
+		if ( pseq.endsWith( "c" ) ) {
+			pseq = pseq.substring( 0, pseq.length() - 1 );
+		}
+		if ( pseq.contains( "n" ) ) {
+			String msg = "peptide sequence contains 'n' in location other than at end.  peptide sequence: " + pseqParam;
+			System.err.println( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+		if ( pseq.contains( "c" ) ) {
+			String msg = "peptide sequence contains 'c' in location other than at end.  peptide sequence: " + pseqParam;
+			System.err.println( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+		return pseq;
 	}
 	
 	/**
@@ -65,10 +84,32 @@ public class KojakSequenceUtils {
 	 * @throws ProxlGenXMLDataException
 	 */
 		
-	public Map<Integer,Collection<BigDecimal>>  getDynamicModsForOneSequence( String pseq ) throws ProxlGenXMLDataException {
+	public Map<Integer,Collection<BigDecimal>>  getDynamicModsForOneSequence( final String pseqParam ) throws ProxlGenXMLDataException {
 
-		String nakedSeq = getPeptideWithDynamicModificationsRemoved( pseq );
+		String nakedSeq = getPeptideWithDynamicModificationsRemoved( pseqParam );
 		
+		//  Just remove 'n' and 'c' here.  Their positions are validated in getPeptideWithDynamicModificationsRemoved
+		String pseq = pseqParam.replace( "n", "" ).replace( "c", "" );
+				
+		if ( pseq.startsWith( "[" ) ) {
+			//  There was a mod right after the 'n' so the first residue letter needs to be moved to the first position of the sequence string.
+			int firstLetterIndex = 0;
+			while ( firstLetterIndex < pseq.length() && ( ! Character.isLetter( pseq.charAt(firstLetterIndex) ) ) ) {
+				firstLetterIndex++;
+			}
+			if ( firstLetterIndex == pseq.length() ) {
+				String msg = "Peptide sequence contains no letters: " + pseqParam;
+				System.err.println( msg );
+				throw new ProxlGenXMLDataException(msg);
+			}
+			//  Move first letter to start of string
+			char firstLetter = pseq.charAt( firstLetterIndex );
+			pseq = firstLetter 
+					//  String before first letter
+					+ pseq.substring( 0, firstLetterIndex )
+					//  String after first letter
+					+ pseq.substring( firstLetterIndex + 1 );
+		}
 
 		Map<Integer,Collection<BigDecimal>> modLocations = new HashMap<Integer,Collection<BigDecimal>>();
 
@@ -124,7 +165,7 @@ public class KojakSequenceUtils {
 		    position++;
 		    seq += c;
 		}
-		
+				
 		// sanity check
 		if( !seq.equals( nakedSeq ) )
 			throw new ProxlGenXMLDataException( "Ending sequence not equal to naked sequence.  seq: '" 

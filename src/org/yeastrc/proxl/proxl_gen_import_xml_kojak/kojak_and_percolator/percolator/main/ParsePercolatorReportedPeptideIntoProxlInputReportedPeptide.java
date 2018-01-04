@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPeptide;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.Proxl_XML_Peptide_UniqueId_Constants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakSequenceUtils;
@@ -131,8 +132,24 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 		ParseKojakReportedPeptideSequenceResult parseKojakReportedPeptideSequenceResult =
 				getSequencesFromKojakSequence( reportedPeptideSequence, linkType );
 		
-		for ( ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem : parseKojakReportedPeptideSequenceResult.parseKojakReportedPeptideSequenceResultItemList ) {
+		String peptideUniqueId = null;
 		
+		int listItemCounter = 0;
+		
+		for ( ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem : parseKojakReportedPeptideSequenceResult.parseKojakReportedPeptideSequenceResultItemList ) {
+
+			listItemCounter++;
+			
+			if ( listItemCounter == 1 ) {
+				peptideUniqueId = Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1;
+			} else if ( listItemCounter == 2 ) {
+				peptideUniqueId = Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2;
+			} else {
+				String msg = "More than 2 entries in parseKojakReportedPeptideSequenceResult.parseKojakReportedPeptideSequenceResultItemList";
+				log.error( msg );
+				throw new ProxlGenXMLDataException( msg );
+			}
+			
 			String peptideSequenceWithMods = parseKojakReportedPeptideSequenceResultItem.peptideSequenceWithMods;
 			
 			String peptideSequenceNoMods = 
@@ -184,9 +201,7 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 			proxlInputPeptide.setSequence( peptideSequenceNoMods );
 			proxlInputPeptide.setModifications( modifications );
 			proxlInputPeptide.setLinkedPositions( linkedPositions );
-
-			
-			
+			proxlInputPeptide.setUniqueId(peptideUniqueId  );
 		}
 		
 		return proxlInputPeptides;

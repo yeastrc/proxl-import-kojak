@@ -51,8 +51,31 @@ public class IsAllProtein_1or2_Decoy {
 		boolean allDecoysForEitherProtein = false;
 		
 		for ( String protein1or2 : proteins ) {
-		
-			String[] protein1or2Split = protein1or2.split( ">" );  //  Split on ">" since when Kojak reports the Protein it reports the whole header, including the ">"
+			
+			//  Proteins found by Kojak may be delimited by ">" (Kojak 1.4.3 or before) or ";" (Kojak 1.6.2)
+			
+			String proteinDelimiterChar = null;
+			
+			if ( protein1or2.contains( ">" ) ) {
+				
+				//  Split on ">" since when Kojak reports the Protein it reports the whole header, including the ">"
+				proteinDelimiterChar = ">";
+				
+			} else if ( protein1or2.contains( ";" ) ) {
+			
+				proteinDelimiterChar = ";";
+			}
+			
+			String[] protein1or2Split = null;
+			
+			if ( proteinDelimiterChar == null ) {
+				protein1or2Split = new String[ 1 ];
+				protein1or2Split[ 0 ] = protein1or2;
+			
+			} else {
+				
+				protein1or2Split = protein1or2.split( proteinDelimiterChar );  
+			}
 
 			boolean allDecoysForProtein = true;
 			

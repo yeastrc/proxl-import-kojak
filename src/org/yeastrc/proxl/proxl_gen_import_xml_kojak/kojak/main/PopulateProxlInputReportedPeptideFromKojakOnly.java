@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.Proxl_XML_Peptide_UniqueId_Constants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_crosslink_looplink_in_conf.IsCrosslinkOrLooplinkMassInConf;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
@@ -96,8 +97,8 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 			proxlInputReportedPeptide.setType( LinkType.UNLINKED );
 
-			peptideList.add( getPeptide( peptide_1, null /* linkPositionsStrings */, scanNumber ) );
-			peptideList.add( getPeptide( peptide_2, null /* linkPositionsStrings */, scanNumber ) );
+			peptideList.add( getPeptide( peptide_1, null /* linkPositionsStrings */, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
+			peptideList.add( getPeptide( peptide_2, null /* linkPositionsStrings */, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2 ) );
 
 		} else if ( linkTypeAndReportedPeptideString.getKojakGenImportInternalLinkTypeEnum() 
 				== KojakGenImportInternalLinkTypeEnum.CROSSLINK ) {
@@ -120,8 +121,8 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 			String[] linkPositionsStrings_2 = { link_2 };
 
 
-			peptideList.add( getPeptide( peptide_1, linkPositionsStrings_1, scanNumber ) );
-			peptideList.add( getPeptide( peptide_2, linkPositionsStrings_2, scanNumber ) );
+			peptideList.add( getPeptide( peptide_1, linkPositionsStrings_1, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
+			peptideList.add( getPeptide( peptide_2, linkPositionsStrings_2, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2 ) );
 
 		} else if ( linkTypeAndReportedPeptideString.getKojakGenImportInternalLinkTypeEnum() 
 				== KojakGenImportInternalLinkTypeEnum.LOOPLINK ) {
@@ -143,7 +144,7 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 			String[] linkPositionsStrings = { link_1, link_2 };
 
-			peptideList.add( getPeptide( peptide_1, linkPositionsStrings, scanNumber ) );
+			peptideList.add( getPeptide( peptide_1, linkPositionsStrings, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
 
 		} else {
 
@@ -151,7 +152,7 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 			proxlInputReportedPeptide.setType( LinkType.UNLINKED );
 
-			peptideList.add( getPeptide( peptide_1, null /* linkPositionsStrings */, scanNumber ) );
+			peptideList.add( getPeptide( peptide_1, null /* linkPositionsStrings */, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
 		}
 
 
@@ -165,7 +166,7 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 	 * @return
 	 * @throws ProxlGenXMLDataException
 	 */
-	private Peptide getPeptide( String peptideSequence, String[] linkPositionsStrings, int scanNumber ) throws ProxlGenXMLDataException {
+	private Peptide getPeptide( String peptideSequence, String[] linkPositionsStrings, int scanNumber, String peptideUniqueId ) throws ProxlGenXMLDataException {
 
 
 		String peptideSequenceNoMods = 
@@ -180,6 +181,8 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 		Peptide proxlInputPeptide = new Peptide();
 
 		proxlInputPeptide.setSequence( peptideSequenceNoMods );
+		
+		proxlInputPeptide.setUniqueId( peptideUniqueId );
 
 		if ( dynamicModLocationsAndMasses != null && ( ! dynamicModLocationsAndMasses.isEmpty() ) ) {
 

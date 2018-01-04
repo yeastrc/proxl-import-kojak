@@ -282,8 +282,16 @@ public class ProcessPercolatorFileList {
 				throw new ProxlGenXMLDataException( msg );
 			}
 
+
+			int numPeptidesOnReportedPeptide = reportedPeptide.getPeptides().getPeptide().size();
 			
-			Psm proxlInputPsm = PopulateProxlInputPsmFromKojakAndPercolator.getInstance().populateProxlInputPsm( kojakPsmDataObject, percolatorPsmData );
+			Psm proxlInputPsm = 
+					PopulateProxlInputPsmFromKojakAndPercolator.getInstance()
+					.populateProxlInputPsm( 
+							kojakPsmDataObject, 
+							percolatorPsmData, 
+							numPeptidesOnReportedPeptide, 
+							psmMatchingPSMDataHolder.getSwapPerPeptideScoresBetweenPeptides() );
 					
 
 			proxlImportPsmList.add( proxlInputPsm );

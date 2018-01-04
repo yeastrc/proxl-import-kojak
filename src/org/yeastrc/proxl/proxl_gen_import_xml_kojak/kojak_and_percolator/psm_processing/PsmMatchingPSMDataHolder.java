@@ -1,6 +1,7 @@
 package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_processing;
 
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsm;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SwapPerPeptideScoresBetweenPeptides;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.objects.PsmIdSplitObject;
 
@@ -15,6 +16,8 @@ public class PsmMatchingPSMDataHolder {
 	private PsmIdSplitObject psmIdSplitObject;
 	
 	private KojakPsmDataObject kojakPsmDataObject;
+	
+	private SwapPerPeptideScoresBetweenPeptides swapPerPeptideScoresBetweenPeptides;
 	
 	private boolean kojakMatchesMultiplePercolatorPsms;
 	
@@ -44,6 +47,13 @@ public class PsmMatchingPSMDataHolder {
 	}
 	public void setPsmIdSplitObject(PsmIdSplitObject psmIdSplitObject) {
 		this.psmIdSplitObject = psmIdSplitObject;
+	}
+	public SwapPerPeptideScoresBetweenPeptides getSwapPerPeptideScoresBetweenPeptides() {
+		return swapPerPeptideScoresBetweenPeptides;
+	}
+	public void setSwapPerPeptideScoresBetweenPeptides(
+			SwapPerPeptideScoresBetweenPeptides swapPerPeptideScoresBetweenPeptides) {
+		this.swapPerPeptideScoresBetweenPeptides = swapPerPeptideScoresBetweenPeptides;
 	}
 	
 }

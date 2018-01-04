@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsm;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SwapPerPeptideScoresBetweenPeptides;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.percolator.objects.PsmIdSplitObject;
@@ -121,7 +123,13 @@ public class PsmMatchingAndCollection {
 
 			psmDataByPercolator_psm_id_List = new ArrayList<>();
 			psmDataByPercolator_psm_id_List.add( internalPSMDataHolder );
-			psmDataByPercolator_psm_id_Map.put( psmIdString, psmDataByPercolator_psm_id_List);
+			if ( psmDataByPercolator_psm_id_Map.put( psmIdString, psmDataByPercolator_psm_id_List) != null ) {
+
+				String msg = "Already have Percolator PSM record (in psmDataByPercolator_psm_id_Map) with psm_id: " + psmIdString
+						+ " and sequence: " + psmReportedPeptideSequence;
+				log.error( msg );
+				throw new ProxlGenXMLDataException(msg);
+			}
 
 		} else {
 			
@@ -135,9 +143,7 @@ public class PsmMatchingAndCollection {
 					
 					String msg = "Already have Percolator PSM record with psm_id: " + psmIdString
 							+ " and sequence: " + psmReportedPeptideSequence;
-					
 					log.error( msg );
-					
 					throw new ProxlGenXMLDataException(msg);
 				}
 			}
@@ -156,12 +162,7 @@ public class PsmMatchingAndCollection {
 		}
 		
 		psmDataByScanNumberList.add( internalPSMDataHolder );
-		
-		
-
 	}
-	
-	
 	
 	/**
 	 * Match the Kojak PSM data to the Percolator PSM data 
@@ -200,6 +201,11 @@ public class PsmMatchingAndCollection {
 		String comparisonString2 = null;
 		String comparisonString3 = null;
 		String comparisonString4 = null;
+
+//		boolean comparisonString_1_peptideOrderReversed = false;
+		boolean comparisonString_2_peptideOrderReversed = false;
+//		boolean comparisonString_3_peptideOrderReversed = false;
+//		boolean comparisonString_4_peptideOrderReversed = false;
 		
 		
 		if ( ( "-1".equals( link_1 ) ) && ( "-1".equals( link_2 ) ) && ( ! "-".equals( peptide_1 ) ) && ( ! "-".equals( peptide_2 ) ) ) {
@@ -209,6 +215,9 @@ public class PsmMatchingAndCollection {
 			comparisonString1 = peptide_1 + "+" + peptide_2 ;
 			comparisonString2 = peptide_2 + "+" + peptide_1 ;
 
+			comparisonString_2_peptideOrderReversed = true;
+
+
 		} else if ( ! "-".equals( peptide_2 ) && ( ! "-1".equals( link_1 ) ) && ( ! "-1".equals( link_2 ) )  ) {
 		
 			//  cross link
@@ -216,6 +225,8 @@ public class PsmMatchingAndCollection {
 			comparisonString1 = peptide_1 + "(" + link_1 + ")--" + peptide_2 + "(" + link_2 + ")";
 			comparisonString2 = peptide_2 + "(" + link_2 + ")--" + peptide_1 + "(" + link_1 + ")";
 		
+			comparisonString_2_peptideOrderReversed = true;
+
 		} else if ( ( ! "-".equals( link_2 ) ) && ( ! "-1".equals( link_2 ) ) && ( "-".equals( peptide_2 ) ) ) {
 			
 			//  loop link
@@ -272,9 +283,9 @@ public class PsmMatchingAndCollection {
 		
 		PsmMatchingPSMDataHolder matchingInternalPSMDataHolder = null;
 		
-		for ( PsmMatchingPSMDataHolder psmDataByScanNumberObject : psmDataByScanNumberList ) {
+		for ( PsmMatchingPSMDataHolder psmMatchingPSMDataHolderByScanNumberObject : psmDataByScanNumberList ) {
 			
-			IPsm psmFromList = psmDataByScanNumberObject.getPercolatorPsmData();
+			IPsm psmFromList = psmMatchingPSMDataHolderByScanNumberObject.getPercolatorPsmData();
 			
 			String psmSequenceFromList = psmFromList.getPeptideSeq().getSeq();
 			
@@ -284,6 +295,13 @@ public class PsmMatchingAndCollection {
 					|| psmSequenceFromList.equals( comparisonString4 ) 
 				) {
 				
+				SwapPerPeptideScoresBetweenPeptides swapPerPeptideScoresBetweenPeptides = SwapPerPeptideScoresBetweenPeptides.NO;
+						
+				if ( comparisonString_2_peptideOrderReversed && psmSequenceFromList.equals( comparisonString2 ) ) {
+
+					swapPerPeptideScoresBetweenPeptides = SwapPerPeptideScoresBetweenPeptides.YES;
+				}
+				
 				if ( matchingInternalPSMDataHolder != null ) {
 					
 					//  if not null then while processing contents of percPsmToKojakMatchingItemList,
@@ -291,7 +309,7 @@ public class PsmMatchingAndCollection {
 					
 
 					matchingInternalPSMDataHolder.setKojakMatchesMultiplePercolatorPsms( true ); //  flag previously found as Kojak matching multiple Percolator PSMs.
-					psmDataByScanNumberObject.setKojakMatchesMultiplePercolatorPsms( true ); //  flag currently found as Kojak matching multiple Percolator PSMs.
+					psmMatchingPSMDataHolderByScanNumberObject.setKojakMatchesMultiplePercolatorPsms( true ); //  flag currently found as Kojak matching multiple Percolator PSMs.
 					
 					foundMoreThanOnePsmHolderObject = true;  // flag
 
@@ -325,9 +343,11 @@ public class PsmMatchingAndCollection {
 					
 				} else {
 				
-					matchingInternalPSMDataHolder = psmDataByScanNumberObject;
+					matchingInternalPSMDataHolder = psmMatchingPSMDataHolderByScanNumberObject;
 					
-					psmDataByScanNumberObject.setKojakPsmDataObject( kojakPsmDataObject );
+					psmMatchingPSMDataHolderByScanNumberObject.setKojakPsmDataObject( kojakPsmDataObject );
+					
+					psmMatchingPSMDataHolderByScanNumberObject.setSwapPerPeptideScoresBetweenPeptides( swapPerPeptideScoresBetweenPeptides );
 				}
 				
 			}
@@ -411,8 +431,9 @@ public class PsmMatchingAndCollection {
 		
 		boolean foundMissing = false;
 		
+		Set<Map.Entry<String, List<PsmMatchingPSMDataHolder>>> psmDataByPercolator_psm_id_Map_EntrySet = psmDataByPercolator_psm_id_Map.entrySet();
 
-		for ( Map.Entry<String, List<PsmMatchingPSMDataHolder>> mapEntry : psmDataByPercolator_psm_id_Map.entrySet() ) {
+		for ( Map.Entry<String, List<PsmMatchingPSMDataHolder>> mapEntry : psmDataByPercolator_psm_id_Map_EntrySet ) {
 			
 			List<PsmMatchingPSMDataHolder> psmDataByPercolator_psm_id_List = mapEntry.getValue();
 
@@ -429,7 +450,7 @@ public class PsmMatchingAndCollection {
 
 						foundMissing = true;
 
-						if ( log.isInfoEnabled() ) {
+//						if ( log. ) {
 
 							String msg = "ERROR: PercPSM record found without matching Kojak record.";
 
@@ -441,7 +462,7 @@ public class PsmMatchingAndCollection {
 							log.error( msg );
 //							System.out.println( msg );
 //							System.err.println( msg );
-						}
+//						}
 						
 						break;
 
