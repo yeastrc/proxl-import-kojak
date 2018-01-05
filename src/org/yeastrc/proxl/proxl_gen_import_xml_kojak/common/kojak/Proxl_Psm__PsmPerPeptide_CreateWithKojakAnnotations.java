@@ -90,7 +90,7 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 				BigDecimal perPeptide_HighScore = null;
 				BigDecimal perPeptide_LowScore = null;
 				
-				if ( kojakPsmDataObject.getPeptide_2_score() == null ) {
+				if ( numPeptidesOnReportedPeptide == 1 || kojakPsmDataObject.getPeptide_2_score() == null ) {
 					perPeptide_HighScore = kojakPsmDataObject.getPeptide_1_score(); 
 					perPeptide_LowScore = kojakPsmDataObject.getPeptide_1_score();
 				} else if ( kojakPsmDataObject.getPeptide_1_score().equals( kojakPsmDataObject.getPeptide_2_score() ) ) {
