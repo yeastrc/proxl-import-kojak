@@ -12,11 +12,14 @@ import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPercolatorOutput;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.annotation_sort_order.AddKojakAndPercolatorAnnotationSortOrder;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.builder.MatchedProteinsBuilder;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.builder.MatchedProteins_IsotopeLabel_Param;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.IsotopeLabelValuesConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.cutoffs_on_import.AddPercolatorCutoffsOnImport;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.default_visible_annotations.AddKojakAndPercolatorDefaultVisibleAnnotations;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.ProcessKojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.kojak.ProcessKojakFile;
@@ -199,6 +202,7 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 			KojakConfFileReaderResult kojakConfFileReaderResult =
 					ProcessKojakConfFile.getInstance().processKojakConfFile( kojakConfFile, proxlInputRoot );
 			
+			Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile = kojakConfFileReaderResult.getIsotopes_SpecifiedIn_KojakConfFile();
 			
 			System.out.println( "FASTA file found in Kojak configuration file: " + kojakConfFileReaderResult.getFastaFile().getCanonicalPath() );
 			
@@ -272,10 +276,20 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 							percolatorVersion, 
 							skipPopulatingMatchedProteins );
 			
-			
+
+			List<MatchedProteins_IsotopeLabel_Param> isotopeLabels_MatchedProteinsParam = new ArrayList<>();
+			 
+			if ( isotopes_SpecifiedIn_KojakConfFile != null && isotopes_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+				// Found Isotope label in Kojak conf file so add it to the list isotopeLabels_MatchedProteinsParam
+				MatchedProteins_IsotopeLabel_Param matchedProteins_IsotopeLabel_Param = new MatchedProteins_IsotopeLabel_Param();
+				matchedProteins_IsotopeLabel_Param.setIsotopeLabel_ProteinNamePrefix( isotopes_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() );
+				matchedProteins_IsotopeLabel_Param.setIsotopeLabel_ForProxlXMLFile( IsotopeLabelValuesConstants.ISOTOPE_LABEL_FOR_PROXL_XML_FILE_15N );
+				isotopeLabels_MatchedProteinsParam.add( matchedProteins_IsotopeLabel_Param );
+			}
+
 			
 			MatchedProteinsBuilder.getInstance().buildMatchedProteins( 
-					proxlInputRoot, kojakConfFileReaderResult.getFastaFile(), kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList() );
+					proxlInputRoot, kojakConfFileReaderResult.getFastaFile(), isotopeLabels_MatchedProteinsParam, kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList() );
 
 			
 			try {

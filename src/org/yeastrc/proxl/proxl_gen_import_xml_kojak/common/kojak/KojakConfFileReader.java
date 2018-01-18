@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFile;
 import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMass;
 import org.yeastrc.proxl_import.api.xml_dto.CrosslinkMasses;
@@ -52,6 +53,7 @@ public class KojakConfFileReader {
 	
 	public static final String DECOY_FILTER_CONFIG_KEY = "decoy_filter";
 	
+	public static final String ISOTOPE_FILTER_15N_FILTER = "15N_filter";
 
 	/**
 	 * private constructor
@@ -106,6 +108,8 @@ public class KojakConfFileReader {
 		File fastaFile = null;
 		
 		String kojakInputFilenamePossiblyWithPath = null;
+		
+		String isotopeLabel_15N_filter_Value = null;
 		
 		
 
@@ -222,6 +226,12 @@ public class KojakConfFileReader {
 				} else if ( DECOY_FILTER_CONFIG_KEY.equals( lineParsed.key ) ) {
 					
 					decoyIdentificationStringFromConfFileList.add( lineParsed.value );
+				
+				} else if ( ISOTOPE_FILTER_15N_FILTER.equals( lineParsed.key ) ) {
+					
+					if ( StringUtils.isNotEmpty( lineParsed.value ) ) {
+						isotopeLabel_15N_filter_Value = lineParsed.value;
+					}
 					
 //				} else if ( KOJAK_OUTPUT_FILENAME_CONFIG_KEY.equals( lineParsed.getKojakConfFileKey() ) ) {
 //					
@@ -275,12 +285,26 @@ public class KojakConfFileReader {
 		validateStaticMods( staticModificationList, kojakConfFile );
 		
 		
+		
+		Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile = null;
+		
+		
 		KojakConfFileReaderResult kojakConfFileReaderResult = new KojakConfFileReaderResult();
 		
 		kojakConfFileReaderResult.setConfigurationFile( configurationFile );
 		kojakConfFileReaderResult.setStaticModificationListForThisFile( staticModificationList );
 		
 		kojakConfFileReaderResult.setDecoyIdentificationStringFromConfFileList( decoyIdentificationStringFromConfFileList );
+		
+		if ( isotopeLabel_15N_filter_Value != null ) {
+			
+			if ( isotopes_SpecifiedIn_KojakConfFile == null ) {
+				isotopes_SpecifiedIn_KojakConfFile = new Isotope_Labels_SpecifiedIn_KojakConfFile();
+				isotopes_SpecifiedIn_KojakConfFile.setIsotopeLabel_15N_filter_Value( isotopeLabel_15N_filter_Value );
+			}
+		}
+		
+		kojakConfFileReaderResult.setIsotopes_SpecifiedIn_KojakConfFile( isotopes_SpecifiedIn_KojakConfFile );
 		
 		kojakConfFileReaderResult.setKojakInputFilenamePossiblyWithPath( kojakInputFilenamePossiblyWithPath );
 		

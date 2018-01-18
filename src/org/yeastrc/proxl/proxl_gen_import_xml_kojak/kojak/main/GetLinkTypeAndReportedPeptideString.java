@@ -32,6 +32,14 @@ public class GetLinkTypeAndReportedPeptideString {
 		String peptide_2 = kojakPsmDataObject.getPeptide_2();
 		String link_1 = kojakPsmDataObject.getLink_1();
 		String link_2 = kojakPsmDataObject.getLink_2();
+		
+		//  Add Isotope label to end of peptide string if applicable
+		if ( kojakPsmDataObject.getPeptide_1_Isotope_Label_Suffix_From_Kojak_File() != null ) {
+			peptide_1 += kojakPsmDataObject.getPeptide_1_Isotope_Label_Suffix_From_Kojak_File();
+		}
+		if ( kojakPsmDataObject.getPeptide_2_Isotope_Label_Suffix_From_Kojak_File() != null ) {
+			peptide_2 += kojakPsmDataObject.getPeptide_2_Isotope_Label_Suffix_From_Kojak_File();
+		}
 
 
 		if ( "-".equals( peptide_1 )  ) {

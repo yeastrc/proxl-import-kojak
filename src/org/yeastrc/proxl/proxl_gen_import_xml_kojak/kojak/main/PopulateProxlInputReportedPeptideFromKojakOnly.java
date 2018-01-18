@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.IsotopeLabelValuesConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.Proxl_XML_Peptide_UniqueId_Constants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_crosslink_looplink_in_conf.IsCrosslinkOrLooplinkMassInConf;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakSequenceUtils;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.enums.KojakGenImportInternalLinkTypeEnum;
@@ -24,6 +26,8 @@ import org.yeastrc.proxl_import.api.xml_dto.Peptide;
 import org.yeastrc.proxl_import.api.xml_dto.Peptides;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.ReportedPeptide;
+import org.yeastrc.proxl_import.api.xml_dto.Peptide.PeptideIsotopeLabels;
+import org.yeastrc.proxl_import.api.xml_dto.Peptide.PeptideIsotopeLabels.PeptideIsotopeLabel;
 
 
 
@@ -54,12 +58,15 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 	public ReportedPeptide populateProxlInputReportedPeptide( 
 			KojakPsmDataObject kojakPsmDataObject,
 			LinkTypeAndReportedPeptideString linkTypeAndReportedPeptideString,
+			Isotope_Labels_SpecifiedIn_KojakConfFile isotope_Labels_SpecifiedIn_KojakConfFile,
 			ProxlInput proxlInputRoot ) throws ProxlGenXMLDataException {
 
 
 		int scanNumber = kojakPsmDataObject.getScanNumber();
 		String peptide_1 = kojakPsmDataObject.getPeptide_1();
 		String peptide_2 = kojakPsmDataObject.getPeptide_2();
+		String peptide_1_Isotope_LabelString = kojakPsmDataObject.getPeptide_1_Isotope_Label_For_ProxlXML_File();
+		String peptide_2_Isotope_LabelString = kojakPsmDataObject.getPeptide_2_Isotope_Label_For_ProxlXML_File();
 		String link_1 = kojakPsmDataObject.getLink_1();
 		String link_2 = kojakPsmDataObject.getLink_2();
 
@@ -97,8 +104,23 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 			proxlInputReportedPeptide.setType( LinkType.UNLINKED );
 
-			peptideList.add( getPeptide( peptide_1, null /* linkPositionsStrings */, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
-			peptideList.add( getPeptide( peptide_2, null /* linkPositionsStrings */, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2 ) );
+			peptideList.add( 
+					getPeptide( 
+							peptide_1, 
+							peptide_1_Isotope_LabelString, 
+							null /* linkPositionsStrings */, 
+							isotope_Labels_SpecifiedIn_KojakConfFile,
+							scanNumber, 
+							Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
+			
+			peptideList.add( 
+					getPeptide( 
+							peptide_2, 
+							peptide_2_Isotope_LabelString, 
+							null /* linkPositionsStrings */,
+							isotope_Labels_SpecifiedIn_KojakConfFile,
+							scanNumber, 
+							Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2 ) );
 
 		} else if ( linkTypeAndReportedPeptideString.getKojakGenImportInternalLinkTypeEnum() 
 				== KojakGenImportInternalLinkTypeEnum.CROSSLINK ) {
@@ -121,8 +143,23 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 			String[] linkPositionsStrings_2 = { link_2 };
 
 
-			peptideList.add( getPeptide( peptide_1, linkPositionsStrings_1, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
-			peptideList.add( getPeptide( peptide_2, linkPositionsStrings_2, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2 ) );
+			peptideList.add( 
+					getPeptide( 
+							peptide_1, 
+							peptide_1_Isotope_LabelString, 
+							linkPositionsStrings_1, 
+							isotope_Labels_SpecifiedIn_KojakConfFile,
+							scanNumber, 
+							Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
+			
+			peptideList.add( 
+					getPeptide( 
+							peptide_2, 
+							peptide_2_Isotope_LabelString, 
+							linkPositionsStrings_2, 
+							isotope_Labels_SpecifiedIn_KojakConfFile,
+							scanNumber, 
+							Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2 ) );
 
 		} else if ( linkTypeAndReportedPeptideString.getKojakGenImportInternalLinkTypeEnum() 
 				== KojakGenImportInternalLinkTypeEnum.LOOPLINK ) {
@@ -144,7 +181,14 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 			String[] linkPositionsStrings = { link_1, link_2 };
 
-			peptideList.add( getPeptide( peptide_1, linkPositionsStrings, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
+			peptideList.add( 
+					getPeptide( 
+							peptide_1, 
+							peptide_1_Isotope_LabelString, 
+							linkPositionsStrings, 
+							isotope_Labels_SpecifiedIn_KojakConfFile,
+							scanNumber, 
+							Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
 
 		} else {
 
@@ -152,7 +196,14 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 			proxlInputReportedPeptide.setType( LinkType.UNLINKED );
 
-			peptideList.add( getPeptide( peptide_1, null /* linkPositionsStrings */, scanNumber, Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
+			peptideList.add( 
+					getPeptide( 
+							peptide_1, 
+							peptide_1_Isotope_LabelString, 
+							null /* linkPositionsStrings */,
+							isotope_Labels_SpecifiedIn_KojakConfFile,
+							scanNumber, 
+							Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1 ) );
 		}
 
 
@@ -166,21 +217,47 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 	 * @return
 	 * @throws ProxlGenXMLDataException
 	 */
-	private Peptide getPeptide( String peptideSequence, String[] linkPositionsStrings, int scanNumber, String peptideUniqueId ) throws ProxlGenXMLDataException {
+	private Peptide getPeptide( 
+			String peptideSequence, 
+			String peptideIsotopeLabelString,
+			String[] linkPositionsStrings,
+			Isotope_Labels_SpecifiedIn_KojakConfFile isotope_Labels_SpecifiedIn_KojakConfFile,
+			int scanNumber, 
+			String peptideUniqueId) throws ProxlGenXMLDataException {
 
 
-		String peptideSequenceNoMods = 
+		String peptideSequenceForProxlXML_PeptideObject = 
 				KojakSequenceUtils.getInstance()
-				.getPeptideWithDynamicModificationsRemoved( peptideSequence );
+				.getPeptideWithDynamicModificationsRemoved( peptideSequence, isotope_Labels_SpecifiedIn_KojakConfFile );
+		
+		if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+			if ( peptideSequenceForProxlXML_PeptideObject.endsWith( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR ) ) {
+				peptideSequenceForProxlXML_PeptideObject = 
+						peptideSequenceForProxlXML_PeptideObject.substring( 
+								0,
+								peptideSequenceForProxlXML_PeptideObject.length() - IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() );
+			}
+		}
+
 
 		Map<Integer,Collection<BigDecimal>> dynamicModLocationsAndMasses =
 				KojakSequenceUtils.getInstance()
-				.getDynamicModsForOneSequence( peptideSequence );
+				.getDynamicModsForOneSequence( peptideSequence, isotope_Labels_SpecifiedIn_KojakConfFile );
 
 
 		Peptide proxlInputPeptide = new Peptide();
 
-		proxlInputPeptide.setSequence( peptideSequenceNoMods );
+		proxlInputPeptide.setSequence( peptideSequenceForProxlXML_PeptideObject );
+		
+		if ( peptideIsotopeLabelString != null ) {
+
+			PeptideIsotopeLabel peptideIsotopeLabel = new PeptideIsotopeLabel();
+			peptideIsotopeLabel.setLabel( peptideIsotopeLabelString );
+			
+			PeptideIsotopeLabels peptideIsotopeLabels = new PeptideIsotopeLabels();
+			proxlInputPeptide.setPeptideIsotopeLabels( peptideIsotopeLabels );
+			peptideIsotopeLabels.setPeptideIsotopeLabel( peptideIsotopeLabel );
+		}
 		
 		proxlInputPeptide.setUniqueId( peptideUniqueId );
 

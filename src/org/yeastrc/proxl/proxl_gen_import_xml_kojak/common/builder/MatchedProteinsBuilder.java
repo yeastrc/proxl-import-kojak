@@ -13,8 +13,12 @@ import org.yeastrc.fasta.FASTAHeader;
 import org.yeastrc.fasta.FASTAReader;
 import org.yeastrc.proxl_import.api.xml_dto.MatchedProteins;
 import org.yeastrc.proxl_import.api.xml_dto.Peptide;
+import org.yeastrc.proxl_import.api.xml_dto.Peptide.PeptideIsotopeLabels;
+import org.yeastrc.proxl_import.api.xml_dto.Peptide.PeptideIsotopeLabels.PeptideIsotopeLabel;
 import org.yeastrc.proxl_import.api.xml_dto.Peptides;
 import org.yeastrc.proxl_import.api.xml_dto.Protein;
+import org.yeastrc.proxl_import.api.xml_dto.Protein.ProteinIsotopeLabels;
+import org.yeastrc.proxl_import.api.xml_dto.Protein.ProteinIsotopeLabels.ProteinIsotopeLabel;
 import org.yeastrc.proxl_import.api.xml_dto.ProteinAnnotation;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.ReportedPeptide;
@@ -40,16 +44,17 @@ public class MatchedProteinsBuilder {
 	 * 
 	 * @param proxlInputRoot
 	 * @param fastaFile
+	 * @param isotopeLabels
 	 * @param decoyIdentifiers
 	 * @throws Exception
 	 */
-	public void buildMatchedProteins( ProxlInput proxlInputRoot, File fastaFile, Collection<String> decoyIdentifiers ) throws Exception {
+	public void buildMatchedProteins( ProxlInput proxlInputRoot, File fastaFile, List<MatchedProteins_IsotopeLabel_Param> isotopeLabels, Collection<String> decoyIdentifiers ) throws Exception {
 		
 		// get all distinct peptides found in this search
-		Collection<String> allPetpideSequences = getDistinctPeptides( proxlInputRoot );
+//		Collection<PeptideOrProteinDistinctHolder> distinctPeptide = getDistinctPeptides( proxlInputRoot );
 		
 		// the proteins we've found
-		Map<String, Collection<FastaProteinAnnotation>> proteins = getProteins( allPetpideSequences, fastaFile, decoyIdentifiers );
+		Map<PeptideOrProteinDistinctHolder, Collection<FastaProteinAnnotation>> proteins = getProteins( fastaFile, decoyIdentifiers, isotopeLabels );
 		
 		// create the XML and add to root element
 		buildAndAddMatchedProteinsToXML( proxlInputRoot, proteins );
@@ -63,21 +68,32 @@ public class MatchedProteinsBuilder {
 	 * @param proteins
 	 * @throws Exception
 	 */
-	private void buildAndAddMatchedProteinsToXML( ProxlInput proxlInputRoot, Map<String, Collection<FastaProteinAnnotation>> proteins ) throws Exception {
+	private void buildAndAddMatchedProteinsToXML( ProxlInput proxlInputRoot, Map<PeptideOrProteinDistinctHolder, Collection<FastaProteinAnnotation>> proteins ) throws Exception {
 		
 		MatchedProteins xmlMatchedProteins = new MatchedProteins();
 		proxlInputRoot.setMatchedProteins( xmlMatchedProteins );
 		
-		for( String sequence : proteins.keySet() ) {
+		for( Map.Entry<PeptideOrProteinDistinctHolder, Collection<FastaProteinAnnotation>> entry : proteins.entrySet() ) {
 			
-			if( proteins.get( sequence ).isEmpty() ) continue;
+			PeptideOrProteinDistinctHolder peptideOrProteinDistinctHolder = entry.getKey();
+			String sequence = peptideOrProteinDistinctHolder.sequence;
+			String isotopeLabelString = peptideOrProteinDistinctHolder.isotopeLabel;
 			
 			Protein xmlProtein = new Protein();
         	xmlMatchedProteins.getProtein().add( xmlProtein );
         	
         	xmlProtein.setSequence( sequence );
-        	        	
-        	for( FastaProteinAnnotation anno : proteins.get( sequence ) ) {
+        	
+        	if ( isotopeLabelString != null ) {
+        		// Add isotope label
+        		ProteinIsotopeLabels proteinIsotopeLabels = new ProteinIsotopeLabels();
+        		xmlProtein.setProteinIsotopeLabels( proteinIsotopeLabels );
+        		ProteinIsotopeLabel proteinIsotopeLabel = new ProteinIsotopeLabel();
+        		proteinIsotopeLabels.setProteinIsotopeLabel( proteinIsotopeLabel );
+        		proteinIsotopeLabel.setLabel( isotopeLabelString );
+        	}
+        	
+        	for( FastaProteinAnnotation anno : entry.getValue() ) {
         		ProteinAnnotation xmlProteinAnnotation = new ProteinAnnotation();
         		xmlProtein.getProteinAnnotation().add( xmlProteinAnnotation );
         		
@@ -95,17 +111,24 @@ public class MatchedProteinsBuilder {
 
 	/**
 	 * Get a map of the distinct target protein sequences mapped to a collection of target annotations for that sequence
+	 * from the given fasta file
+	 * 
+	 * Old Description, is Incorrect:
+	 * 
+	 * Get a map of the distinct target protein sequences mapped to a collection of target annotations for that sequence
 	 * from the given fasta file, where the sequence contains any of the supplied peptide sequences
 	 * 
 	 * @param allPetpideSequences
-	 * @param fastaFile
 	 * @param decoyIdentifiers
 	 * @return
 	 * @throws Exception
 	 */
-	private Map<String, Collection<FastaProteinAnnotation>> getProteins( Collection<String> allPetpideSequences, File fastaFile, Collection<String> decoyIdentifiers ) throws Exception {
+	private Map<PeptideOrProteinDistinctHolder, Collection<FastaProteinAnnotation>> getProteins( 
+			File fastaFile, Collection<String> decoyIdentifiers, List<MatchedProteins_IsotopeLabel_Param> isotopeLabels ) throws Exception {
 		
-		Map<String, Collection<FastaProteinAnnotation>> proteinAnnotations = new HashMap<>();
+		///  !!!!!  WARNING  Only use peptides if also add in the I & L equivalence code
+		
+		Map<PeptideOrProteinDistinctHolder, Collection<FastaProteinAnnotation>> proteinAnnotations = new HashMap<>();
 		
 		FASTAReader fastaReader = null;
 		
@@ -120,21 +143,39 @@ public class MatchedProteinsBuilder {
 				
 				for( FASTAHeader header : entry.getHeaders() ) {
 					
-					if( !proteinAnnotations.containsKey( entry.getSequence() ) )
-						proteinAnnotations.put( entry.getSequence(), new HashSet<FastaProteinAnnotation>() );
-					
 					FastaProteinAnnotation anno = new FastaProteinAnnotation();
 					anno.setName( header.getName() );
 					anno.setDescription( header.getDescription() );
 					
             		Integer taxId = GetTaxonomyId.getInstance().getTaxonomyId( header.getName(), header.getDescription() );
-            		if( taxId != null )
+            		if( taxId != null ) {
             			anno.setTaxonomId( taxId );
+            		}
+
+            		//  Determine if header name starts with the isotope label identifier in the Kojak.conf file
+            		String isotopeLabel_ForProxlXML_File = null;
+            		for ( MatchedProteins_IsotopeLabel_Param isotopeLabelParam : isotopeLabels ) {
+            			if ( header.getName().startsWith( isotopeLabelParam.getIsotopeLabel_ProteinNamePrefix() ) ) {
+            				isotopeLabel_ForProxlXML_File = isotopeLabelParam.getIsotopeLabel_ForProxlXMLFile();
+            				break;
+            			}
+            		}
             		
-					proteinAnnotations.get( entry.getSequence() ).add( anno );
+            		//  Key to Map, protein sequence and isotopeLabel (if found in header name)
+					PeptideOrProteinDistinctHolder peptideOrProteinDistinctHolder = new PeptideOrProteinDistinctHolder();
+					peptideOrProteinDistinctHolder.sequence = entry.getSequence();
+					peptideOrProteinDistinctHolder.isotopeLabel = isotopeLabel_ForProxlXML_File;
+
+            		Collection<FastaProteinAnnotation> fastaProteinAnnotationsForKey = proteinAnnotations.get( peptideOrProteinDistinctHolder );
+            		
+					if( fastaProteinAnnotationsForKey == null ) {
+						fastaProteinAnnotationsForKey = new HashSet<>();
+						proteinAnnotations.put( peptideOrProteinDistinctHolder, fastaProteinAnnotationsForKey );
+					}
+					
+					fastaProteinAnnotationsForKey.add( anno );
 				}
 			}
-			
 			
 		} finally {
 			if( fastaReader != null ) {
@@ -142,8 +183,6 @@ public class MatchedProteinsBuilder {
 				fastaReader = null;
 			}
 		}
-		
-		
 		
 		return proteinAnnotations;
 	}
@@ -174,46 +213,98 @@ public class MatchedProteinsBuilder {
 	}
 	
 	
+//	/**
+//	 * Get all distinct peptides from a proxlxml doc's reported peptide section
+//	 * 
+//	 * @param proxlInputRoot
+//	 * @return
+//	 * @throws Exception
+//	 */
+//	private Collection<PeptideOrProteinDistinctHolder> getDistinctPeptides( ProxlInput proxlInputRoot ) throws Exception {
+//		
+//		Collection<PeptideOrProteinDistinctHolder> distinctPeptides = new HashSet<>();
+//		
+//		ReportedPeptides reportedPeptides = proxlInputRoot.getReportedPeptides();
+//		
+//		if ( reportedPeptides != null ) {
+//
+//			List<ReportedPeptide> reportedPeptideList = reportedPeptides.getReportedPeptide();
+//			
+//			if ( reportedPeptideList != null && ( ! reportedPeptideList.isEmpty() ) ) {
+//				
+//				for ( ReportedPeptide reportedPeptide : reportedPeptideList ) {
+//					
+//					if ( reportedPeptides != null ) {
+//
+//						Peptides peptidesProxlXML = reportedPeptide.getPeptides();
+//						List<Peptide> peptideProxlXMLList = peptidesProxlXML.getPeptide();
+//
+//						if ( peptideProxlXMLList != null && ( ! peptideProxlXMLList.isEmpty() ) ) {
+//							
+//							for ( Peptide peptideProxlXML : peptideProxlXMLList ) {
+//								
+//								PeptideOrProteinDistinctHolder peptideUniqueHolder = new PeptideOrProteinDistinctHolder();
+//								peptideUniqueHolder.sequence = peptideProxlXML.getSequence();
+//								
+//								PeptideIsotopeLabels peptideIsotopeLabels = peptideProxlXML.getPeptideIsotopeLabels();
+//								if ( peptideIsotopeLabels != null ) {
+//									PeptideIsotopeLabel peptideIsotopeLabel = peptideIsotopeLabels.getPeptideIsotopeLabel();
+//									if ( peptideIsotopeLabel != null ) {
+//										peptideUniqueHolder.isotopeLabel = peptideIsotopeLabel.getLabel();
+//									}
+//								}
+//								
+//								distinctPeptides.add( peptideUniqueHolder );
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//		
+//		
+//		return distinctPeptides;
+//	}
+	
 	/**
-	 * Get all distinct peptides from a proxlxml doc's reported peptide section
-	 * 
-	 * @param proxlInputRoot
-	 * @return
-	 * @throws Exception
+	 * Holder of Peptide Data to track a unique peptide
+	 *
+	 * Currently the peptide sequence and the isotope label (if one is assigned)
 	 */
-	private Collection<String> getDistinctPeptides( ProxlInput proxlInputRoot ) throws Exception {
+	private static class PeptideOrProteinDistinctHolder {
 		
-		Collection<String> allPeptideSequences = new HashSet<>();
+		private String sequence;
+		private String isotopeLabel; // Assume only one
 		
-		ReportedPeptides reportedPeptides = proxlInputRoot.getReportedPeptides();
-		
-		if ( reportedPeptides != null ) {
-
-			List<ReportedPeptide> reportedPeptideList = reportedPeptides.getReportedPeptide();
-			
-			if ( reportedPeptideList != null && ( ! reportedPeptideList.isEmpty() ) ) {
-				
-				for ( ReportedPeptide reportedPeptide : reportedPeptideList ) {
-					
-					if ( reportedPeptides != null ) {
-
-						Peptides peptidesProxlXML = reportedPeptide.getPeptides();
-						List<Peptide> peptideProxlXMLList = peptidesProxlXML.getPeptide();
-
-						if ( peptideProxlXMLList != null && ( ! peptideProxlXMLList.isEmpty() ) ) {
-							
-							for ( Peptide peptideProxlXML : peptideProxlXMLList ) {
-								
-								allPeptideSequences.add( peptideProxlXML.getSequence() );
-							}
-						}
-					}
-				}
-			}
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((isotopeLabel == null) ? 0 : isotopeLabel.hashCode());
+			result = prime * result + ((sequence == null) ? 0 : sequence.hashCode());
+			return result;
 		}
-		
-		
-		return allPeptideSequences;
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			PeptideOrProteinDistinctHolder other = (PeptideOrProteinDistinctHolder) obj;
+			if (isotopeLabel == null) {
+				if (other.isotopeLabel != null)
+					return false;
+			} else if (!isotopeLabel.equals(other.isotopeLabel))
+				return false;
+			if (sequence == null) {
+				if (other.sequence != null)
+					return false;
+			} else if (!sequence.equals(other.sequence))
+				return false;
+			return true;
+		}
 	}
 	
 	/**

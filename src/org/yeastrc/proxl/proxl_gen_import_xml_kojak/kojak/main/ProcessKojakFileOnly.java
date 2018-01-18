@@ -12,6 +12,7 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgr
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SwapPerPeptideScoresBetweenPeptides;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_crosslink_looplink_in_conf.IsCrosslinkOrLooplinkMassInConf;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.IsAllProtein_1or2_Decoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents;
@@ -62,6 +63,7 @@ public class ProcessKojakFileOnly {
 			Set<String> proteinNameStrings,
 			KojakConfFileReaderResult kojakConfFileReaderResult ) throws Exception {
 		
+		Isotope_Labels_SpecifiedIn_KojakConfFile isotope_Labels_SpecifiedIn_KojakConfFile = kojakConfFileReaderResult.getIsotopes_SpecifiedIn_KojakConfFile();
 
 		SearchProgramInfo searchProgramInfo = proxlInputRoot.getSearchProgramInfo();
 		
@@ -77,7 +79,7 @@ public class ProcessKojakFileOnly {
 		
 		try {
 			KojakFileGetContentsResult kojakFileGetContentsResult =
-					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile );
+					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile, isotope_Labels_SpecifiedIn_KojakConfFile );
 			
 			KojakFileReader kojakFileReader = kojakFileGetContentsResult.getKojakFileReader();
 			List<KojakPsmDataObject> kojakPsmDataObjectList = kojakFileGetContentsResult.getKojakPsmDataObjectList();
@@ -167,7 +169,8 @@ public class ProcessKojakFileOnly {
 					
 					reportedPeptide = 
 							PopulateProxlInputReportedPeptideFromKojakOnly.getInstance()
-							.populateProxlInputReportedPeptide( kojakPsmDataObject, linkTypeAndReportedPeptideString, proxlInputRoot );
+							.populateProxlInputReportedPeptide(
+									kojakPsmDataObject, linkTypeAndReportedPeptideString, isotope_Labels_SpecifiedIn_KojakConfFile, proxlInputRoot );
 					
 					ReportedPeptides reportedPeptides = proxlInputRoot.getReportedPeptides();
 					

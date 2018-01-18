@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl_import.api.xml_dto.ConfigurationFile;
 import org.yeastrc.proxl_import.api.xml_dto.StaticModification;
 
@@ -18,6 +19,8 @@ public class KojakConfFileReaderResult {
 	private List<StaticModification> staticModificationListForThisFile = new ArrayList<>();
 	
 	private List<String> decoyIdentificationStringFromConfFileList;
+	
+	private Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile;
 	
 	private File fastaFile;
 
@@ -71,6 +74,14 @@ public class KojakConfFileReaderResult {
 		this.fastaFile = fastaFile;
 	}
 
+	public Isotope_Labels_SpecifiedIn_KojakConfFile getIsotopes_SpecifiedIn_KojakConfFile() {
+		return isotopes_SpecifiedIn_KojakConfFile;
+	}
+
+	public void setIsotopes_SpecifiedIn_KojakConfFile(
+			Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile) {
+		this.isotopes_SpecifiedIn_KojakConfFile = isotopes_SpecifiedIn_KojakConfFile;
+	}
 
 
 }

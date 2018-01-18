@@ -177,9 +177,19 @@ public class PsmMatchingAndCollection {
 		int scanNumber = kojakPsmDataObject.getScanNumber();
 		String peptide_1 = kojakPsmDataObject.getPeptide_1();
 		String peptide_2 = kojakPsmDataObject.getPeptide_2();
+		String peptide_1_Isotope_Label_Suffix_From_Kojak_File = kojakPsmDataObject.getPeptide_1_Isotope_Label_Suffix_From_Kojak_File();
+		String peptide_2_Isotope_Label_Suffix_From_Kojak_File = kojakPsmDataObject.getPeptide_2_Isotope_Label_Suffix_From_Kojak_File();
 		String link_1 = kojakPsmDataObject.getLink_1();
 		String link_2 = kojakPsmDataObject.getLink_2();
 
+		//  Change to empty string if null since will append to peptide_1
+		if ( peptide_1_Isotope_Label_Suffix_From_Kojak_File == null ) {
+			peptide_1_Isotope_Label_Suffix_From_Kojak_File = "";
+		}
+		//  Change to empty string if null since will append to peptide_2
+		if ( peptide_2_Isotope_Label_Suffix_From_Kojak_File == null ) {
+			peptide_2_Isotope_Label_Suffix_From_Kojak_File = "";
+		}
 		
 		
 		if ( "-".equals( peptide_1 )  ) {
@@ -212,8 +222,13 @@ public class PsmMatchingAndCollection {
 		
 			//		dimer
 			
-			comparisonString1 = peptide_1 + "+" + peptide_2 ;
-			comparisonString2 = peptide_2 + "+" + peptide_1 ;
+			comparisonString1 = 
+					peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File
+					+ "+" + peptide_2 + peptide_2_Isotope_Label_Suffix_From_Kojak_File;
+			
+			comparisonString2 = 
+					peptide_2 + peptide_2_Isotope_Label_Suffix_From_Kojak_File
+					+ "+" + peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File;
 
 			comparisonString_2_peptideOrderReversed = true;
 
@@ -222,8 +237,14 @@ public class PsmMatchingAndCollection {
 		
 			//  cross link
 			
-			comparisonString1 = peptide_1 + "(" + link_1 + ")--" + peptide_2 + "(" + link_2 + ")";
-			comparisonString2 = peptide_2 + "(" + link_2 + ")--" + peptide_1 + "(" + link_1 + ")";
+			comparisonString1 = 
+					peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File + "(" + link_1 + ")"
+					+ "--" 
+					+ peptide_2 + peptide_2_Isotope_Label_Suffix_From_Kojak_File + "(" + link_2 + ")";
+			
+			comparisonString2 = 
+					peptide_2 + peptide_2_Isotope_Label_Suffix_From_Kojak_File + "(" + link_2 + ")"
+							+ "--" + peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File + "(" + link_1 + ")";
 		
 			comparisonString_2_peptideOrderReversed = true;
 
@@ -231,18 +252,18 @@ public class PsmMatchingAndCollection {
 			
 			//  loop link
 
-			comparisonString1 = peptide_1 + "(" + link_1 + "," + link_2 + ")-LOOP";
-			comparisonString2 = peptide_1 + "(" + link_2 + "," + link_1 + ")-LOOP";
+			comparisonString1 = peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File + "(" + link_1 + "," + link_2 + ")-LOOP";
+			comparisonString2 = peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File + "(" + link_2 + "," + link_1 + ")-LOOP";
 
-			comparisonString3 = peptide_1 + "(" + link_1 + "," + link_2 + ")-Loop";
-			comparisonString4 = peptide_1 + "(" + link_2 + "," + link_1 + ")-Loop";
+			comparisonString3 = peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File + "(" + link_1 + "," + link_2 + ")-Loop";
+			comparisonString4 = peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File + "(" + link_2 + "," + link_1 + ")-Loop";
 
 			
 		} else {
 			
 			//  unlinked
 			
-			comparisonString1 = peptide_1;
+			comparisonString1 = peptide_1 + peptide_1_Isotope_Label_Suffix_From_Kojak_File;
 			
 			
 		}

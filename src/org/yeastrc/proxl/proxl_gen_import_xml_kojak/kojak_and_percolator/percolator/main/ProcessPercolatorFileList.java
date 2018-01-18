@@ -13,6 +13,8 @@ import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsm;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPsmIds;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.command_line_options_container.CommandLineOptionsContainer;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLInternalException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakProteinNonDecoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
@@ -110,6 +112,7 @@ public class ProcessPercolatorFileList {
 	 * @param reportedPeptideStrings
 	 * @param proteinNameStrings
 	 * @throws ProxlGenXMLDataException
+	 * @throws ProxlGenXMLInternalException 
 	 */
 	private void processSinglePercolatorFileData( 
 
@@ -118,7 +121,7 @@ public class ProcessPercolatorFileList {
 			List<ReportedPeptide> proxlInputReportedPeptideList,
 			PsmMatchingAndCollection psmMatchingAndCollection,
 			Set<String> reportedPeptideStrings,
-			Set<String> proteinNameStrings ) throws ProxlGenXMLDataException {
+			Set<String> proteinNameStrings ) throws ProxlGenXMLDataException, ProxlGenXMLInternalException {
 
 		IPeptides percolatorPeptides = percolatorOutput.getPeptides();
 
@@ -150,13 +153,15 @@ public class ProcessPercolatorFileList {
 	 * @param proteinNameStrings
 	 * @return
 	 * @throws ProxlGenXMLDataException
+	 * @throws ProxlGenXMLInternalException 
 	 */
 	private ReportedPeptide getProxlInputReportedPeptide( 
 			IPeptide percolatorPeptide, 
 			KojakConfFileReaderResult kojakConfFileReaderResult,
 			PsmMatchingAndCollection psmMatchingAndCollection,
-			Set<String> proteinNameStrings ) throws ProxlGenXMLDataException {
+			Set<String> proteinNameStrings ) throws ProxlGenXMLDataException, ProxlGenXMLInternalException {
 
+		Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile = kojakConfFileReaderResult.getIsotopes_SpecifiedIn_KojakConfFile();
 
 		//  Get proxlInputReportedPeptide Populated With:
 		//
@@ -166,7 +171,7 @@ public class ProcessPercolatorFileList {
 
 		ReportedPeptide proxlInputReportedPeptide = 
 				ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide.getInstance()
-				.parsePercolatorReportedPeptideIntoProxlInputReportedPeptide( percolatorPeptide );
+				.parsePercolatorReportedPeptideIntoProxlInputReportedPeptide( percolatorPeptide, isotopes_SpecifiedIn_KojakConfFile );
 
 
 		//  Add Reported Peptide Level Annotations to Proxl Input Reported Peptide

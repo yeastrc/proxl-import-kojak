@@ -13,8 +13,10 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.IsotopeLabelValuesConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.KojakFileContentsConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 
 
 /**
@@ -30,9 +32,13 @@ public class KojakFileReader {
 			
 	private static final int INDEX_INIT_VALUE = -2;
 	
+	private Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile;
+	
 	private File inputFile;
 	
 	private BufferedReader reader;
+	
+	private int kojakFileLineNumber = 0;
 	
 	private String programVersionLine;
 	
@@ -101,11 +107,12 @@ public class KojakFileReader {
 	
 	//  Make Package Private
 	
-	static KojakFileReader getInstance( File inputFile ) throws Exception {
+	static KojakFileReader getInstance( File inputFile, Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile ) throws Exception {
 		
 		KojakFileReader kojakFileReader = new KojakFileReader();
 		
 		kojakFileReader.inputFile = inputFile;
+		kojakFileReader.isotopes_SpecifiedIn_KojakConfFile = isotopes_SpecifiedIn_KojakConfFile;
 		
 		try {
 			
@@ -126,6 +133,64 @@ public class KojakFileReader {
 	}
 	
 
+	/**
+	 * @param inputFile
+	 * @return
+	 * @throws Exception 
+	 */
+	static String getKojakVersionOnly( File inputFile ) throws Exception {
+
+		String programVersion = null;
+		
+		FileInputStream fileInputStream = null;
+		InputStreamReader inputStreamReader = null;
+		BufferedReader reader = null;
+		
+		try {
+
+			fileInputStream = new FileInputStream( inputFile );
+
+			inputStreamReader = new InputStreamReader( fileInputStream, KojakFileContentsConstants.KOJAK_FILE_INPUT_CHARACTER_SET );
+
+			reader = new BufferedReader( inputStreamReader );
+			
+			String headerLine = reader.readLine();
+
+			if ( headerLine == null ) {
+				String msg = "Kojak file header line does not exist.  Kojak file: " + inputFile.getAbsolutePath();
+				log.error( msg );
+				throw new Exception(msg);
+			}
+
+			if ( StringUtils.isEmpty( headerLine ) ) {
+				String msg = "Kojak file header line is empty.  Kojak file: " + inputFile.getAbsolutePath();
+				log.error( msg );
+				throw new Exception(msg);
+			}
+
+			if ( headerLine.startsWith( KojakFileContentsConstants.PROGRAM_VERSION_LINE_STARTS_WITH_KOJAK ) ) {
+
+				String programVersionLine = headerLine;
+				programVersion = programVersionLine.substring( KojakFileContentsConstants.PROGRAM_VERSION_LINE_STARTS_WITH_KOJAK.length() );
+			}
+		} catch ( Exception e ) {
+			throw e;
+			
+		} finally {
+			if ( reader != null ) {
+				reader.close();
+				reader = null;
+			}
+			if ( inputStreamReader != null ) {
+				inputStreamReader.close();
+			}
+			if ( fileInputStream != null ) {
+				fileInputStream.close();
+			}
+		}
+
+		return programVersion;
+	}
 	
 	/**
 	 * @throws Exception 
@@ -144,60 +209,45 @@ public class KojakFileReader {
 			reader = new BufferedReader( inputStreamReader );
 			
 			headerLine = reader.readLine();
+			kojakFileLineNumber++;
 
 			if ( headerLine == null ) {
-
 				String msg = "Kojak file header line does not exist.  Kojak file: " + inputFile.getAbsolutePath();
-
 				log.error( msg );
-
 				throw new Exception(msg);
 			}
 
 			if ( StringUtils.isEmpty( headerLine ) ) {
-
 				String msg = "Kojak file header line is empty.  Kojak file: " + inputFile.getAbsolutePath();
-
 				log.error( msg );
-
 				throw new Exception(msg);
 			}
 
 			if ( headerLine.startsWith( KojakFileContentsConstants.PROGRAM_VERSION_LINE_STARTS_WITH_KOJAK ) ) {
 
 				programVersionLine = headerLine;
-				
 				programVersion = programVersionLine.substring( KojakFileContentsConstants.PROGRAM_VERSION_LINE_STARTS_WITH_KOJAK.length() );
 
 				//  Next line is actually the header line so read it
 
 				headerLine = reader.readLine();
-
+				kojakFileLineNumber++;
+				
 				if ( headerLine == null ) {
-
 					String msg = "Kojak file header line does not exist.  Kojak file: " + inputFile.getAbsolutePath();
-
 					log.error( msg );
-
 					throw new Exception(msg);
 				}
 
 				if ( StringUtils.isEmpty( headerLine ) ) {
-
 					String msg = "Kojak file header line is empty.  Kojak file: " + inputFile.getAbsolutePath();
-
 					log.error( msg );
-
 					throw new Exception(msg);
 				}
 			} else {
-				
-
 				String msg = "Kojak file does not start with version header line.  Kojak file: " + inputFile.getAbsolutePath()
 						+ ".  First line in file: " + headerLine;
-
 				log.error( msg );
-
 				throw new Exception(msg);
 			}
 
@@ -205,16 +255,11 @@ public class KojakFileReader {
 
 			headerLineElementCount = headerLineSplit.length;
 			
-			
 			headerStrings = headerLineSplit;
-
-			
 
 			for ( int headerElementIndex = 0; headerElementIndex < headerLineSplit.length; headerElementIndex++ ) {
 
 				String headerElement = headerLineSplit[ headerElementIndex ];
-
-
 
 				//  This first block contains headers that will not be stored:
 				
@@ -317,7 +362,7 @@ public class KojakFileReader {
 						
 						String msg = "Column header value '" + headerElement + "' occurs more than once in "
 								 + " Kojak file: " + inputFile.getAbsolutePath()
-										+ ", headerLine: " + headerLine;
+								 + ", headerLine: " + headerLine;
 						log.error( msg );
 						throw new ProxlGenXMLDataException( msg );
 					}
@@ -330,7 +375,7 @@ public class KojakFileReader {
 						
 						String msg = "Column header value '" + headerElement + "' occurs more than once in "
 								 + " Kojak file: " + inputFile.getAbsolutePath()
-										+ ", headerLine: " + headerLine;
+								 + ", headerLine: " + headerLine;
 						log.error( msg );
 						throw new ProxlGenXMLDataException( msg );
 					}
@@ -368,9 +413,6 @@ public class KojakFileReader {
 			}
 
 			
-			
-			
-			
 			if ( SCAN_NUMBER_HeaderIndex == INDEX_INIT_VALUE ) {
 
 				String msg = "Kojak file header line does not contain header label '" 
@@ -380,7 +422,6 @@ public class KojakFileReader {
 				throw new Exception(msg);
 			}
 
-
 			if ( CHARGE_HeaderIndex == INDEX_INIT_VALUE ) {
 
 				String msg = "Kojak file header line does not contain header label '" 
@@ -389,7 +430,6 @@ public class KojakFileReader {
 				log.error( msg );
 				throw new Exception(msg);
 			}
-
 
 			if ( SCORE_HeaderIndex == INDEX_INIT_VALUE ) {
 
@@ -445,7 +485,6 @@ public class KojakFileReader {
 				throw new Exception(msg);
 			}
 
-
 			if ( PEPTIDE_2_HeaderIndex == INDEX_INIT_VALUE ) {
 
 				String msg = "Kojak file header line does not contain header label '" 
@@ -497,27 +536,16 @@ public class KojakFileReader {
 			}
 
 		} catch ( Exception e ) {
-			
 			if ( reader != null ) {
-				
 				reader.close();
-				
 				reader = null;
 			}
-			
-			
 			if ( inputStreamReader != null ) {
-				
 				inputStreamReader.close();
 			}
-			
-			
 			if ( fileInputStream != null ) {
-				
 				fileInputStream.close();
 			}
-			
-			
 			throw e;
 		}
 	}
@@ -553,18 +581,12 @@ public class KojakFileReader {
 	 * @throws IOException
 	 */
 	void close() throws IOException {
-		
 		if ( reader != null ) {
-			
 			try {
 				reader.close();
-			
 			} finally {
-				
 				reader = null;
 			}
-			
-			
 		}
 	}
 	
@@ -573,20 +595,19 @@ public class KojakFileReader {
 	KojakPsmDataObject getNextKojakLine() throws Exception {
 
 		if ( reader == null ) {
-
 			return null;
 		}
 		
 		String line = reader.readLine();
+		kojakFileLineNumber++;
 		
 		if ( line == null ) {
-			
 			close();
-			
 			return null;
 		}
 		
 		KojakPsmDataObject kojakFileParsedLine = parseKojakRecord( line );
+		kojakFileParsedLine.setKojakFileLineNumber( kojakFileLineNumber );
 		
 		return kojakFileParsedLine;
 	}
@@ -598,17 +619,13 @@ public class KojakFileReader {
 	 */
 	private KojakPsmDataObject parseKojakRecord( String line ) throws Exception {
 		
-		
 		KojakPsmDataObject kojakPsmDataObject = new KojakPsmDataObject();
 		
-
 		Map<String, BigDecimal> filteredAnnotations = new HashMap<>();
-		
 		Map<String, String> descriptiveAnnotations = new HashMap<>();
 		
 		kojakPsmDataObject.setFilteredAnnotations( filteredAnnotations );
 		kojakPsmDataObject.setDescriptiveAnnotations( descriptiveAnnotations );
-		
 		
 		String[] lineSplit = line.split( "\t" );
 		
@@ -628,7 +645,6 @@ public class KojakFileReader {
 		}
 
 		for ( int lineSplitIndex = 0; lineSplitIndex < lineSplit.length; lineSplitIndex++ ) {
-		
 
 			//  This first block contains headers that will not be stored:
 			
@@ -666,16 +682,42 @@ public class KojakFileReader {
 			
 				String peptide_1 = lineSplit[ lineSplitIndex ];
 				
+				if ( isotopes_SpecifiedIn_KojakConfFile != null
+						&& isotopes_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null
+						&& peptide_1.endsWith( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR ) ) {
+	
+					kojakPsmDataObject.setPeptide_1_Isotope_Label_For_ProxlXML_File( IsotopeLabelValuesConstants.ISOTOPE_LABEL_15N );
+					
+					String peptide_1_Isotope_Label_Suffix_From_Kojak_File = 
+							peptide_1.substring( peptide_1.length() - IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() );
+					
+					kojakPsmDataObject.setPeptide_1_Isotope_Label_Suffix_From_Kojak_File( peptide_1_Isotope_Label_Suffix_From_Kojak_File );
+
+					peptide_1 = peptide_1.substring( 0, peptide_1.length() - IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() );
+				}
+				
 				kojakPsmDataObject.setPeptide_1( peptide_1 );
 				
 
 			} else if ( lineSplitIndex == PEPTIDE_2_HeaderIndex ) {
 			
 				String peptide_2 = lineSplit[ lineSplitIndex ];
+
+				if ( isotopes_SpecifiedIn_KojakConfFile != null
+						&& isotopes_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null
+						&& peptide_2.endsWith( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR ) ) {
+	
+					kojakPsmDataObject.setPeptide_2_Isotope_Label_For_ProxlXML_File( IsotopeLabelValuesConstants.ISOTOPE_LABEL_15N );
+					
+					String peptide_2_Isotope_Label_Suffix_From_Kojak_File = 
+							peptide_2.substring( peptide_2.length() - IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() );
+					
+					kojakPsmDataObject.setPeptide_2_Isotope_Label_Suffix_From_Kojak_File( peptide_2_Isotope_Label_Suffix_From_Kojak_File );
+
+					peptide_2 = peptide_2.substring( 0, peptide_2.length() - IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() );
+				}
 				
 				kojakPsmDataObject.setPeptide_2( peptide_2 );
-
-
 				
 				
 			} else if ( lineSplitIndex == LINK_1_HeaderIndex ) {

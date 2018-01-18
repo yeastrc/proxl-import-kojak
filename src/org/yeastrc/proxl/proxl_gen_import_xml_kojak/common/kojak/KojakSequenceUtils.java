@@ -6,8 +6,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.IsotopeLabelValuesConstants;
 //import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 
 
 
@@ -33,7 +35,7 @@ public class KojakSequenceUtils {
 	 * @return
 	 * @throws ProxlGenXMLDataException 
 	 */
-	public String getPeptideWithDynamicModificationsRemoved( final String pseqParam ) throws ProxlGenXMLDataException {
+	public String getPeptideWithDynamicModificationsRemoved( final String pseqParam, Isotope_Labels_SpecifiedIn_KojakConfFile isotope_Labels_SpecifiedIn_KojakConfFile ) throws ProxlGenXMLDataException {
 		String pseq = pseqParam.replaceAll( "\\[[^\\[]+\\]",  "" );
 		//  Remove 'n' and start and 'c' at end
 		if ( pseq.startsWith( "n" ) ) {
@@ -42,13 +44,37 @@ public class KojakSequenceUtils {
 		if ( pseq.endsWith( "c" ) ) {
 			pseq = pseq.substring( 0, pseq.length() - 1 );
 		}
+		
+		if ( pseq.contains( "c" ) ) {
+			// 'c' not at end of string.  
+			//  Strip off other text that would be appended to the end of the string to find the 'c' at the end of the sequence
+			String mainSequence = pseq;
+			String stringAfterSequence = "";
+			int leftParenPos = pseq.indexOf( '(' );
+			if ( leftParenPos != -1 ) {
+				stringAfterSequence = mainSequence.substring( leftParenPos ) + stringAfterSequence; // add the link position
+				mainSequence = mainSequence.substring( 0, leftParenPos ); // Reduce to string before link position
+			}
+			if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+				if ( mainSequence.endsWith( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR ) ) {
+					stringAfterSequence = IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR + stringAfterSequence; // add 15N Isotope Label Suffix
+					mainSequence = mainSequence.substring( 0, mainSequence.length() - IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() ); // Reduce to string before 15N Isotope Label Suffix
+				}
+			}
+			
+			if ( mainSequence.endsWith( "c" ) ) {
+				mainSequence = pseq.substring( 0, mainSequence.length() - 1 );
+			}
+			pseq = mainSequence + stringAfterSequence;
+		}
+		
 		if ( pseq.contains( "n" ) ) {
 			String msg = "peptide sequence contains 'n' in location other than at end.  peptide sequence: " + pseqParam;
 			System.err.println( msg );
 			throw new ProxlGenXMLDataException(msg);
 		}
 		if ( pseq.contains( "c" ) ) {
-			String msg = "peptide sequence contains 'c' in location other than at end.  peptide sequence: " + pseqParam;
+			String msg = "peptide sequence contains 'c' in location other than at end of sequence.  peptide sequence: " + pseqParam;
 			System.err.println( msg );
 			throw new ProxlGenXMLDataException(msg);
 		}
@@ -84,12 +110,20 @@ public class KojakSequenceUtils {
 	 * @throws ProxlGenXMLDataException
 	 */
 		
-	public Map<Integer,Collection<BigDecimal>>  getDynamicModsForOneSequence( final String pseqParam ) throws ProxlGenXMLDataException {
+	public Map<Integer,Collection<BigDecimal>>  getDynamicModsForOneSequence( final String pseqParam, Isotope_Labels_SpecifiedIn_KojakConfFile isotope_Labels_SpecifiedIn_KojakConfFile ) throws ProxlGenXMLDataException {
 
-		String nakedSeq = getPeptideWithDynamicModificationsRemoved( pseqParam );
+		String nakedSeq = getPeptideWithDynamicModificationsRemoved( pseqParam, isotope_Labels_SpecifiedIn_KojakConfFile );
+		
+		if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+			nakedSeq = nakedSeq.replace( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR, "" );
+		}
 		
 		//  Just remove 'n' and 'c' here.  Their positions are validated in getPeptideWithDynamicModificationsRemoved
 		String pseq = pseqParam.replace( "n", "" ).replace( "c", "" );
+		
+		if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+			pseq = pseq.replace( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR, "" );
+		}
 				
 		if ( pseq.startsWith( "[" ) ) {
 			//  There was a mod right after the 'n' so the first residue letter needs to be moved to the first position of the sequence string.

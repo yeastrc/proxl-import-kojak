@@ -12,9 +12,12 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.yeastrc.proteomics.percolator.out.perc_out_common_interfaces.IPeptide;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.IsotopeLabelValuesConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.Proxl_XML_Peptide_UniqueId_Constants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLDataException;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.exceptions.ProxlGenXMLInternalException;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModificationAMonolink;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakSequenceUtils;
 import org.yeastrc.proxl_import.api.xml_dto.LinkType;
 import org.yeastrc.proxl_import.api.xml_dto.LinkedPosition;
@@ -24,6 +27,8 @@ import org.yeastrc.proxl_import.api.xml_dto.Modifications;
 import org.yeastrc.proxl_import.api.xml_dto.Peptide;
 import org.yeastrc.proxl_import.api.xml_dto.Peptides;
 import org.yeastrc.proxl_import.api.xml_dto.ReportedPeptide;
+import org.yeastrc.proxl_import.api.xml_dto.Peptide.PeptideIsotopeLabels;
+import org.yeastrc.proxl_import.api.xml_dto.Peptide.PeptideIsotopeLabels.PeptideIsotopeLabel;
 
 
 /**
@@ -57,8 +62,11 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 	 * @param percolatorPeptide
 	 * @return ReportedPeptide proxlInputReportedPeptide
 	 * @throws ProxlGenXMLDataException 
+	 * @throws ProxlGenXMLInternalException 
 	 */
-	public ReportedPeptide parsePercolatorReportedPeptideIntoProxlInputReportedPeptide( IPeptide percolatorPeptide ) throws ProxlGenXMLDataException {
+	public ReportedPeptide parsePercolatorReportedPeptideIntoProxlInputReportedPeptide( 
+			IPeptide percolatorPeptide, 
+			Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile ) throws ProxlGenXMLDataException, ProxlGenXMLInternalException {
 			
 		ReportedPeptide proxlInputReportedPeptide = new ReportedPeptide();
 
@@ -70,7 +78,7 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 		
 		proxlInputReportedPeptide.setType( linkType );
 
-		Peptides proxlInputPeptides = getProxlInputPeptides( reportedPeptideSequence, linkType );
+		Peptides proxlInputPeptides = getProxlInputPeptides( reportedPeptideSequence, linkType, isotopes_SpecifiedIn_KojakConfFile );
 		
 		proxlInputReportedPeptide.setPeptides( proxlInputPeptides );
 	
@@ -121,8 +129,12 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 	 * @param linkType
 	 * @return
 	 * @throws ProxlGenXMLDataException 
+	 * @throws ProxlGenXMLInternalException 
 	 */
-	private Peptides getProxlInputPeptides( String reportedPeptideSequence, LinkType linkType ) throws ProxlGenXMLDataException {
+	private Peptides getProxlInputPeptides( 
+			String reportedPeptideSequence, 
+			LinkType linkType,
+			Isotope_Labels_SpecifiedIn_KojakConfFile isotope_Labels_SpecifiedIn_KojakConfFile ) throws ProxlGenXMLDataException, ProxlGenXMLInternalException {
 	
 		Peptides proxlInputPeptides = new Peptides();
 	
@@ -130,7 +142,7 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 		
 		
 		ParseKojakReportedPeptideSequenceResult parseKojakReportedPeptideSequenceResult =
-				getSequencesFromKojakSequence( reportedPeptideSequence, linkType );
+				getSequencesFromPercolatorReportedPeptideSequence( reportedPeptideSequence, linkType, isotope_Labels_SpecifiedIn_KojakConfFile );
 		
 		String peptideUniqueId = null;
 		
@@ -151,14 +163,37 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 			}
 			
 			String peptideSequenceWithMods = parseKojakReportedPeptideSequenceResultItem.peptideSequenceWithMods;
+
+			String peptideIsotopeLabelString = parseKojakReportedPeptideSequenceResultItem.isotope_Label_For_ProxlXML_File;
+
+
 			
-			String peptideSequenceNoMods = 
+			String peptideSequenceForProxlXML_PeptideObject = 
 					KojakSequenceUtils.getInstance()
-					.getPeptideWithDynamicModificationsRemoved( peptideSequenceWithMods );
-			
+					.getPeptideWithDynamicModificationsRemoved( peptideSequenceWithMods, isotope_Labels_SpecifiedIn_KojakConfFile );
+
+			if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+				if ( peptideSequenceForProxlXML_PeptideObject.endsWith( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR ) ) {
+					
+					if ( peptideIsotopeLabelString == null ) {
+						String msg = "peptideIsotopeLabelString == null but found '"
+								+ IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR
+								+ "' on end of peptide sequence: " + peptideSequenceForProxlXML_PeptideObject
+								+ ", reportedPeptideSequence: " + reportedPeptideSequence;
+						log.error( msg );
+						throw new ProxlGenXMLInternalException( msg );
+					}
+					
+					peptideSequenceForProxlXML_PeptideObject = 
+							peptideSequenceForProxlXML_PeptideObject.substring( 
+									0,
+									peptideSequenceForProxlXML_PeptideObject.length() - IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() );
+				}
+			}
+
 			Map<Integer,Collection<BigDecimal>> dynamicModLocationsAndMasses =
 					KojakSequenceUtils.getInstance()
-					.getDynamicModsForOneSequence( peptideSequenceWithMods );
+					.getDynamicModsForOneSequence( peptideSequenceWithMods, isotope_Labels_SpecifiedIn_KojakConfFile );
 			
 			List<Integer> linkPositions = parseKojakReportedPeptideSequenceResultItem.linkPositions;
 			
@@ -194,13 +229,24 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 				
 				linkedPosition.setPosition( BigInteger.valueOf( linkPosition ) );
 			}
-
+			
 			Peptide proxlInputPeptide = new Peptide();
 			proxlInputPeptideList.add( proxlInputPeptide );
 			
-			proxlInputPeptide.setSequence( peptideSequenceNoMods );
+			proxlInputPeptide.setSequence( peptideSequenceForProxlXML_PeptideObject );
 			proxlInputPeptide.setModifications( modifications );
 			proxlInputPeptide.setLinkedPositions( linkedPositions );
+
+			if ( peptideIsotopeLabelString != null ) {
+
+				PeptideIsotopeLabel peptideIsotopeLabel = new PeptideIsotopeLabel();
+				peptideIsotopeLabel.setLabel( peptideIsotopeLabelString );
+				
+				PeptideIsotopeLabels peptideIsotopeLabels = new PeptideIsotopeLabels();
+				proxlInputPeptide.setPeptideIsotopeLabels( peptideIsotopeLabels );
+				peptideIsotopeLabels.setPeptideIsotopeLabel( peptideIsotopeLabel );
+			}
+			
 			proxlInputPeptide.setUniqueId(peptideUniqueId  );
 		}
 		
@@ -218,6 +264,10 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 		
 		private String peptideSequenceWithMods;
 		private List<Integer> linkPositions = new ArrayList<>();
+		
+		//  Isotope Label Info
+		private String isotope_Label_For_ProxlXML_File;
+		private String isotope_Label_Suffix_From_Kojak_File; // TODO  Not Currently Used
 	}
 	
 	/**
@@ -236,7 +286,10 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 	 * @param linkType
 	 * @return Map where Key is each sequence, including dynamic modifications, and the List is the link position(s)
 	 */
-	public ParseKojakReportedPeptideSequenceResult getSequencesFromKojakSequence( String reportedPeptideSequence, LinkType linkType ) throws ProxlGenXMLDataException {
+	private ParseKojakReportedPeptideSequenceResult getSequencesFromPercolatorReportedPeptideSequence( 
+			String reportedPeptideSequence, 
+			LinkType linkType,
+			Isotope_Labels_SpecifiedIn_KojakConfFile isotope_Labels_SpecifiedIn_KojakConfFile ) throws ProxlGenXMLDataException {
 		
 		ParseKojakReportedPeptideSequenceResult parseKojakReportedPeptideSequenceResult = new ParseKojakReportedPeptideSequenceResult();
 		List<ParseKojakReportedPeptideSequenceResultItem> parseKojakReportedPeptideSequenceResultItemList = new ArrayList<>();
@@ -266,6 +319,25 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 					ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem = new ParseKojakReportedPeptideSequenceResultItem();
 					parseKojakReportedPeptideSequenceResultItemList.add( parseKojakReportedPeptideSequenceResultItem );
 
+					if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+
+						String peptideSequenceNoMods = 
+								KojakSequenceUtils.getInstance()
+								.getPeptideWithDynamicModificationsRemoved( peptideSequence, isotope_Labels_SpecifiedIn_KojakConfFile );
+
+						if ( peptideSequenceNoMods.endsWith( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR ) ) { 
+
+							// -15N label suffix is immediately before the '(' of the link position so remove it
+							peptideSequence = peptideSequence.replace( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR, "" );
+
+							parseKojakReportedPeptideSequenceResultItem.isotope_Label_For_ProxlXML_File = 
+									IsotopeLabelValuesConstants.ISOTOPE_LABEL_FOR_PROXL_XML_FILE_15N;
+
+							parseKojakReportedPeptideSequenceResultItem.isotope_Label_Suffix_From_Kojak_File = 
+									IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR;
+						}
+					}
+					
 					parseKojakReportedPeptideSequenceResultItem.peptideSequenceWithMods = peptideSequence;
 				}
 					
@@ -275,6 +347,25 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 				
 				ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem = new ParseKojakReportedPeptideSequenceResultItem();
 				parseKojakReportedPeptideSequenceResultItemList.add( parseKojakReportedPeptideSequenceResultItem );
+
+				if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+
+					String peptideSequenceNoMods = 
+							KojakSequenceUtils.getInstance()
+							.getPeptideWithDynamicModificationsRemoved( reportedPeptideSequenceForProcessing, isotope_Labels_SpecifiedIn_KojakConfFile );
+
+					if ( peptideSequenceNoMods.endsWith( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR ) ) { 
+
+						// -15N label suffix is immediately before the '(' of the link position so remove it
+						reportedPeptideSequenceForProcessing = reportedPeptideSequenceForProcessing.replace( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR, "" );
+
+						parseKojakReportedPeptideSequenceResultItem.isotope_Label_For_ProxlXML_File = 
+								IsotopeLabelValuesConstants.ISOTOPE_LABEL_FOR_PROXL_XML_FILE_15N;
+
+						parseKojakReportedPeptideSequenceResultItem.isotope_Label_Suffix_From_Kojak_File = 
+								IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR;
+					}
+				}
 				
 				parseKojakReportedPeptideSequenceResultItem.peptideSequenceWithMods = reportedPeptideSequenceForProcessing;
 			}
@@ -288,15 +379,61 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 			
 			for( String eachCrosslinkedPeptideSequenceWithModsAndLinkPosition : crosslinkedPeptideSequencesWithModsAndLinkPosition ) {
 
+				ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem = new ParseKojakReportedPeptideSequenceResultItem();
+				parseKojakReportedPeptideSequenceResultItemList.add( parseKojakReportedPeptideSequenceResultItem );
+
+				
 				String peptideSequenceNoMods = 
 						KojakSequenceUtils.getInstance()
-						.getPeptideWithDynamicModificationsRemoved( eachCrosslinkedPeptideSequenceWithModsAndLinkPosition );
+						.getPeptideWithDynamicModificationsRemoved( eachCrosslinkedPeptideSequenceWithModsAndLinkPosition, isotope_Labels_SpecifiedIn_KojakConfFile );
 
+				if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+
+					int isotope_15N_SuffixPosition = peptideSequenceNoMods.indexOf( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR );
+	
+					if ( isotope_15N_SuffixPosition != -1 ) {
+						
+						//  Remove Isotope Label, after peptide sequence, before link position: '-15N' in  TVKDQVLELENNSDVQSLKLR-15N(19)
+						int leftParenPos = peptideSequenceNoMods.indexOf( '(' );
+						if ( leftParenPos == -1 ) {
+							String msg = "Could not get position of crosslinked peptide |" 
+									+ eachCrosslinkedPeptideSequenceWithModsAndLinkPosition
+									+ "|, missing '(' to start link position. "
+									+ " crosslinked peptide with modifications removed: "
+									+ peptideSequenceNoMods
+									+ "  Reported Peptide String in Percolator file: " + reportedPeptideSequence;
+							log.error( msg );
+							throw new ProxlGenXMLDataException(  );
+						}
+						
+						if ( isotope_15N_SuffixPosition + IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() 
+								== leftParenPos ) {
+							
+							// -15N label suffix is immediately before the '(' of the link position so remove it
+							peptideSequenceNoMods = 
+									peptideSequenceNoMods.substring(0, isotope_15N_SuffixPosition ) 
+									+ peptideSequenceNoMods.substring( leftParenPos );
+
+							parseKojakReportedPeptideSequenceResultItem.isotope_Label_For_ProxlXML_File = 
+									IsotopeLabelValuesConstants.ISOTOPE_LABEL_FOR_PROXL_XML_FILE_15N;
+							
+							parseKojakReportedPeptideSequenceResultItem.isotope_Label_Suffix_From_Kojak_File = 
+									IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR;
+
+						}
+					}
+				}
 				
 				Matcher m = regexPatternGetLinkPositionForCrosslinkEachPeptide.matcher( peptideSequenceNoMods );
 				if( ! m.matches() ) {
-					throw new ProxlGenXMLDataException( "Could not get position of crosslinked peptide |" 
-							+ eachCrosslinkedPeptideSequenceWithModsAndLinkPosition + "| from " + reportedPeptideSequence );
+					String msg = "Could not get position of crosslinked peptide |" 
+							+ eachCrosslinkedPeptideSequenceWithModsAndLinkPosition
+							+ "|. "
+							+ " crosslinked peptide with modifications removed: "
+							+ peptideSequenceNoMods
+							+ "  Reported Peptide String in Percolator file: " + reportedPeptideSequence;
+					log.error( msg );
+					throw new ProxlGenXMLDataException(  );
 				}
 				
 				String eachCrosslinkedPeptideSequenceWithMods = getPeptideSequenceWithPositonsRemoved( eachCrosslinkedPeptideSequenceWithModsAndLinkPosition );
@@ -316,17 +453,17 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 				}
 				
 
-				ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem = new ParseKojakReportedPeptideSequenceResultItem();
-				parseKojakReportedPeptideSequenceResultItemList.add( parseKojakReportedPeptideSequenceResultItem );
-
 				parseKojakReportedPeptideSequenceResultItem.peptideSequenceWithMods = eachCrosslinkedPeptideSequenceWithMods;
 				parseKojakReportedPeptideSequenceResultItem.linkPositions.add( linkPositionInt );
-
+				
 			}
 
 			
 		} else if ( LinkType.LOOPLINK.equals( linkType ) ) {
-			
+
+			ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem = new ParseKojakReportedPeptideSequenceResultItem();
+			parseKojakReportedPeptideSequenceResultItemList.add( parseKojakReportedPeptideSequenceResultItem );
+
 			String looplink_ReportedPeptideSequence = reportedPeptideSequenceForProcessing;
 
 			if( looplink_ReportedPeptideSequence.endsWith( "-Loop" ) ) {
@@ -340,8 +477,44 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 
 			String peptideSequenceNoMods = 
 					KojakSequenceUtils.getInstance()
-					.getPeptideWithDynamicModificationsRemoved( looplink_ReportedPeptideSequence );
+					.getPeptideWithDynamicModificationsRemoved( looplink_ReportedPeptideSequence, isotope_Labels_SpecifiedIn_KojakConfFile );
 
+			if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
+
+				int isotope_15N_SuffixPosition = peptideSequenceNoMods.indexOf( IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR );
+
+				if ( isotope_15N_SuffixPosition != -1 ) {
+					
+					//  Remove Isotope Label, after peptide sequence, before link position: '-15N' in  TVKDQVLELENNSDVQSLKLR-15N(19)
+					int leftParenPos = peptideSequenceNoMods.indexOf( '(' );
+					if ( leftParenPos == -1 ) {
+						String msg = "Could not get position of looplink peptide |" 
+								+ looplink_ReportedPeptideSequence
+								+ "|, missing '(' to start link position. "
+								+ " looplinked peptide with modifications removed: "
+								+ peptideSequenceNoMods
+								+ "  Reported Peptide String in Percolator file: " + reportedPeptideSequence;
+						log.error( msg );
+						throw new ProxlGenXMLDataException(  );
+					}
+					
+					if ( isotope_15N_SuffixPosition + IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR.length() 
+							== leftParenPos ) {
+						
+						// -15N label suffix is immediately before the '(' of the link position so remove it
+						peptideSequenceNoMods = 
+								peptideSequenceNoMods.substring(0, isotope_15N_SuffixPosition ) 
+								+ peptideSequenceNoMods.substring( leftParenPos );
+
+						parseKojakReportedPeptideSequenceResultItem.isotope_Label_For_ProxlXML_File = 
+								IsotopeLabelValuesConstants.ISOTOPE_LABEL_FOR_PROXL_XML_FILE_15N;
+						
+						parseKojakReportedPeptideSequenceResultItem.isotope_Label_Suffix_From_Kojak_File = 
+								IsotopeLabelValuesConstants.ISOTOPE_LABEL__15N___FOR_END_OF_PEPTIDE_WITH_SEPARATOR;
+
+					}
+				}
+			}
 			
 			Matcher m = regexPatternGetLinkPositionsForLooplinkPeptide.matcher( peptideSequenceNoMods );
 			if( !m.matches() ) {
@@ -382,9 +555,6 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 			}
 			
 
-			ParseKojakReportedPeptideSequenceResultItem parseKojakReportedPeptideSequenceResultItem = new ParseKojakReportedPeptideSequenceResultItem();
-			parseKojakReportedPeptideSequenceResultItemList.add( parseKojakReportedPeptideSequenceResultItem );
-
 			parseKojakReportedPeptideSequenceResultItem.peptideSequenceWithMods = peptideSequenceWithMods;
 			
 			parseKojakReportedPeptideSequenceResultItem.linkPositions.add( linkPosition_1_Int );
@@ -402,8 +572,7 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 		
 		return parseKojakReportedPeptideSequenceResult;
 	}
-
-	
+		
 	/**
 	 * Remove Position(s) from peptide sequence
 	 * 

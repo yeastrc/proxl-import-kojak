@@ -2,12 +2,10 @@ package org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 
 /**
  * Get the contents of the Kojak file
@@ -17,7 +15,6 @@ public class KojakFileGetContents {
 
 	private static final Logger log = Logger.getLogger(KojakFileReader.class);
 	
-	private KojakFileGetContents() {}
 	
 	/**
 	 * Method result
@@ -42,12 +39,16 @@ public class KojakFileGetContents {
 		}
 	}
 	
-
+	
+	/**
+	 * private constructor
+	 */
+	private KojakFileGetContents() {}
 	static public KojakFileGetContents getInstance() throws Exception {
 		return new KojakFileGetContents();
 	}
 	
-	public KojakFileGetContentsResult kojakFileGetContents( File inputFile ) throws Exception {
+	public KojakFileGetContentsResult kojakFileGetContents( File inputFile, Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile ) throws Exception {
 
 		List<KojakPsmDataObject> kojakPsmDataObjectInitialList = new ArrayList<>( 1000000 );
 		KojakFileReader kojakFileReader = null;
@@ -56,7 +57,7 @@ public class KojakFileGetContents {
 			
 			//  The reader reads the version line and the header lines in the getInstance(...) method
 			
-			kojakFileReader = KojakFileReader.getInstance( inputFile );
+			kojakFileReader = KojakFileReader.getInstance( inputFile, isotopes_SpecifiedIn_KojakConfFile );
 			
 			//  Process the data lines:
 
@@ -120,7 +121,7 @@ public class KojakFileGetContents {
 //		
 //		List<KojakPsmDataObject> kojakPsmDataObjectFinalList = new ArrayList<>( kojakPsmDataObjectSet );
 //		
-//		Collections.sort( kojakPsmDataObjectFinalList );
+//		Collections.sort( kojakPsmDataObjectFinalList ); Sort on kojakFileLineNumber
 
 		List<KojakPsmDataObject> kojakPsmDataObjectFinalList = kojakPsmDataObjectInitialList;
 				

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.IsAllProtein_1or2_Decoy;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakConfFileReaderResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents;
@@ -47,6 +48,7 @@ public class ProcessKojakFile {
 			PsmMatchingAndCollection psmMatchingAndCollection,
 			KojakConfFileReaderResult kojakConfFileReaderResult ) throws Exception {
 		
+		Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile = kojakConfFileReaderResult.getIsotopes_SpecifiedIn_KojakConfFile();
 
 		SearchProgramInfo searchProgramInfo = proxlInputRoot.getSearchProgramInfo();
 		
@@ -63,7 +65,7 @@ public class ProcessKojakFile {
 		try {
 
 			KojakFileGetContentsResult kojakFileGetContentsResult =
-					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile );
+					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile, isotopes_SpecifiedIn_KojakConfFile );
 			
 			KojakFileReader kojakFileReader = kojakFileGetContentsResult.getKojakFileReader();
 			List<KojakPsmDataObject> kojakPsmDataObjectList = kojakFileGetContentsResult.getKojakPsmDataObjectList();

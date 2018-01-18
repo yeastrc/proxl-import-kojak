@@ -7,7 +7,12 @@ import java.util.Map;
  * 
  *
  */
-public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
+public class KojakPsmDataObject { 
+	
+	/**
+	 * Line number in Kojak file
+	 */
+	private int kojakFileLineNumber;
 
 	private int scanNumber;
 	private int charge;
@@ -16,6 +21,13 @@ public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 	
 	private String peptide_1;
 	private String peptide_2;
+
+	//  Used to create reported peptide
+	private String peptide_1_Isotope_Label_Suffix_From_Kojak_File;
+	private String peptide_2_Isotope_Label_Suffix_From_Kojak_File;
+
+	private String peptide_1_Isotope_Label_For_ProxlXML_File;
+	private String peptide_2_Isotope_Label_For_ProxlXML_File;
 	
 	private String link_1;
 	private String link_2;
@@ -43,97 +55,24 @@ public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 	private Map<String, String> descriptiveAnnotations;
 
 
+
 	@Override
 	public String toString() {
 		return "KojakPsmDataObject [scanNumber=" + scanNumber + ", charge=" + charge + ", linkerMass=" + linkerMass
-				+ ", peptide_1=" + peptide_1 + ", peptide_2=" + peptide_2 + ", link_1=" + link_1 + ", link_2=" + link_2
-				+ ", peptide_1_score=" + peptide_1_score + ", peptide_2_score=" + peptide_2_score + ", protein_1="
-				+ protein_1 + ", protein_1_site=" + protein_1_site + ", protein_2=" + protein_2 + ", protein_2_site="
-				+ protein_2_site + ", obsMass=" + obsMass + ", psmMass=" + psmMass + ", ppmError=" + ppmError + "]";
+				+ ", peptide_1=" + peptide_1 + ", peptide_2=" + peptide_2
+				+ ", peptide_1_Isotope_Label_For_ProxlXML_File=" + peptide_1_Isotope_Label_For_ProxlXML_File
+				+ ", peptide_2_Isotope_Label_For_ProxlXML_File=" + peptide_2_Isotope_Label_For_ProxlXML_File
+				+ ", link_1=" + link_1 + ", link_2=" + link_2 + ", peptide_1_score=" + peptide_1_score
+				+ ", peptide_2_score=" + peptide_2_score + ", protein_1=" + protein_1 + ", protein_1_site="
+				+ protein_1_site + ", protein_2=" + protein_2 + ", protein_2_site=" + protein_2_site + ", obsMass="
+				+ obsMass + ", psmMass=" + psmMass + ", ppmError=" + ppmError + ", filteredAnnotations="
+				+ filteredAnnotations + ", descriptiveAnnotations=" + descriptiveAnnotations + "]";
 	}
 
 	
-	//  Excluded from hashCode and equals and compareTo:  protein_1, protein_1_site, protein_2, protein_2_site, filteredAnnotations, descriptiveAnnotations
+	//  Excluded from hashCode and equals:  protein_1, protein_1_site, protein_2, protein_2_site, filteredAnnotations, descriptiveAnnotations
 
 
-	@Override
-	public int compareTo(KojakPsmDataObject o) {
-		if ( this.scanNumber < o.scanNumber ) {
-			return -1;
-		}
-		if ( this.scanNumber > o.scanNumber ) {
-			return 1;
-		}
-		if ( this.charge < o.charge ) {
-			return -1;
-		}
-		if ( this.charge > o.charge ) {
-			return 1;
-		}
-		{
-			int compareTo = linkerMass.compareTo( o.linkerMass );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = peptide_1.compareTo( o.peptide_1 );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = peptide_2.compareTo( o.peptide_2 );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = link_1.compareTo( o.link_1 );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = link_2.compareTo( o.link_2 );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = peptide_1_score.compareTo( o.peptide_1_score );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = peptide_2_score.compareTo( o.peptide_2_score );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = obsMass.compareTo( o.obsMass );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = psmMass.compareTo( o.psmMass );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		{
-			int compareTo = ppmError.compareTo( o.ppmError );
-			if ( compareTo != 0 ) {
-				return compareTo;
-			}
-		}
-		return 0;
-	}
-
-	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -144,8 +83,12 @@ public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 		result = prime * result + ((linkerMass == null) ? 0 : linkerMass.hashCode());
 		result = prime * result + ((obsMass == null) ? 0 : obsMass.hashCode());
 		result = prime * result + ((peptide_1 == null) ? 0 : peptide_1.hashCode());
+		result = prime * result + ((peptide_1_Isotope_Label_For_ProxlXML_File == null) ? 0
+				: peptide_1_Isotope_Label_For_ProxlXML_File.hashCode());
 		result = prime * result + ((peptide_1_score == null) ? 0 : peptide_1_score.hashCode());
 		result = prime * result + ((peptide_2 == null) ? 0 : peptide_2.hashCode());
+		result = prime * result + ((peptide_2_Isotope_Label_For_ProxlXML_File == null) ? 0
+				: peptide_2_Isotope_Label_For_ProxlXML_File.hashCode());
 		result = prime * result + ((peptide_2_score == null) ? 0 : peptide_2_score.hashCode());
 		result = prime * result + ((ppmError == null) ? 0 : ppmError.hashCode());
 		result = prime * result + ((psmMass == null) ? 0 : psmMass.hashCode());
@@ -189,6 +132,11 @@ public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 				return false;
 		} else if (!peptide_1.equals(other.peptide_1))
 			return false;
+		if (peptide_1_Isotope_Label_For_ProxlXML_File == null) {
+			if (other.peptide_1_Isotope_Label_For_ProxlXML_File != null)
+				return false;
+		} else if (!peptide_1_Isotope_Label_For_ProxlXML_File.equals(other.peptide_1_Isotope_Label_For_ProxlXML_File))
+			return false;
 		if (peptide_1_score == null) {
 			if (other.peptide_1_score != null)
 				return false;
@@ -198,6 +146,11 @@ public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 			if (other.peptide_2 != null)
 				return false;
 		} else if (!peptide_2.equals(other.peptide_2))
+			return false;
+		if (peptide_2_Isotope_Label_For_ProxlXML_File == null) {
+			if (other.peptide_2_Isotope_Label_For_ProxlXML_File != null)
+				return false;
+		} else if (!peptide_2_Isotope_Label_For_ProxlXML_File.equals(other.peptide_2_Isotope_Label_For_ProxlXML_File))
 			return false;
 		if (peptide_2_score == null) {
 			if (other.peptide_2_score != null)
@@ -218,7 +171,9 @@ public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 			return false;
 		return true;
 	}
-	
+
+
+
 	public int getScanNumber() {
 		return scanNumber;
 	}
@@ -362,7 +317,54 @@ public class KojakPsmDataObject implements Comparable<KojakPsmDataObject> {
 	public void setProtein_2_site(String protein_2_site) {
 		this.protein_2_site = protein_2_site;
 	}
+	
+	public String getPeptide_1_Isotope_Label_For_ProxlXML_File() {
+		return peptide_1_Isotope_Label_For_ProxlXML_File;
+	}
 
 
+	public void setPeptide_1_Isotope_Label_For_ProxlXML_File(String peptide_1_Isotope_Label_For_ProxlXML_File) {
+		this.peptide_1_Isotope_Label_For_ProxlXML_File = peptide_1_Isotope_Label_For_ProxlXML_File;
+	}
+
+
+	public String getPeptide_2_Isotope_Label_For_ProxlXML_File() {
+		return peptide_2_Isotope_Label_For_ProxlXML_File;
+	}
+
+
+	public void setPeptide_2_Isotope_Label_For_ProxlXML_File(String peptide_2_Isotope_Label_For_ProxlXML_File) {
+		this.peptide_2_Isotope_Label_For_ProxlXML_File = peptide_2_Isotope_Label_For_ProxlXML_File;
+	}
+
+
+	public int getKojakFileLineNumber() {
+		return kojakFileLineNumber;
+	}
+
+
+	public void setKojakFileLineNumber(int kojakFileLineNumber) {
+		this.kojakFileLineNumber = kojakFileLineNumber;
+	}
+
+
+	public String getPeptide_1_Isotope_Label_Suffix_From_Kojak_File() {
+		return peptide_1_Isotope_Label_Suffix_From_Kojak_File;
+	}
+
+
+	public void setPeptide_1_Isotope_Label_Suffix_From_Kojak_File(String peptide_1_Isotope_Label_Suffix_From_Kojak_File) {
+		this.peptide_1_Isotope_Label_Suffix_From_Kojak_File = peptide_1_Isotope_Label_Suffix_From_Kojak_File;
+	}
+
+
+	public String getPeptide_2_Isotope_Label_Suffix_From_Kojak_File() {
+		return peptide_2_Isotope_Label_Suffix_From_Kojak_File;
+	}
+
+
+	public void setPeptide_2_Isotope_Label_Suffix_From_Kojak_File(String peptide_2_Isotope_Label_Suffix_From_Kojak_File) {
+		this.peptide_2_Isotope_Label_Suffix_From_Kojak_File = peptide_2_Isotope_Label_Suffix_From_Kojak_File;
+	}
 
 }
