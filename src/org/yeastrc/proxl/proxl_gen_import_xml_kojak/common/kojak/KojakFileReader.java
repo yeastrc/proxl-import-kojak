@@ -79,7 +79,10 @@ public class KojakFileReader {
 	private int CHARGE_HeaderIndex = INDEX_INIT_VALUE;
 
 	//  These are extracted for specific processing and storage
-	
+
+	private int PEPTIDE_1_E_VALUE_HeaderIndex = INDEX_INIT_VALUE;
+	private int PEPTIDE_2_E_VALUE_HeaderIndex = INDEX_INIT_VALUE;
+
 	private int PEPTIDE_1_SCORE_HeaderIndex = INDEX_INIT_VALUE;
 	private int PEPTIDE_2_SCORE_HeaderIndex = INDEX_INIT_VALUE;
 
@@ -87,6 +90,8 @@ public class KojakFileReader {
 	
 	//   Filterable annotations
 	
+	//  e-value: The expect value, or the number of hits with this score or better one can expect to see by chance.(smaller is better) 
+	private int E_VALUE_HeaderIndex = INDEX_INIT_VALUE;
 	
 //	Score is Kojak's primary score assignment (bigger is better) 
 //	dScore is the difference between that score and the next score (bigger is better).
@@ -285,6 +290,14 @@ public class KojakFileReader {
 					//   This block contains value that will be saved off for specific processing
 				
 
+				} else if ( KojakFileContentsConstants.PEPTIDE_1_E_VALUE_HEADER_LABEL.equals( headerElement ) ) {
+
+					PEPTIDE_1_E_VALUE_HeaderIndex = headerElementIndex;
+
+				} else if ( KojakFileContentsConstants.PEPTIDE_2_E_VALUE_HEADER_LABEL.equals( headerElement ) ) {
+
+					PEPTIDE_2_E_VALUE_HeaderIndex = headerElementIndex;
+
 				} else if ( KojakFileContentsConstants.PEPTIDE_1_SCORE_HEADER_LABEL.equals( headerElement ) ) {
 
 					PEPTIDE_1_SCORE_HeaderIndex = headerElementIndex;
@@ -353,6 +366,19 @@ public class KojakFileReader {
 					/////////////////////////////
 					
 					//   This block contains value that will be saved in Filtered Annotations
+
+				} else if ( KojakFileContentsConstants.E_VALUE_HEADER_LABEL.equals( headerElement ) ) {
+
+					E_VALUE_HeaderIndex = headerElementIndex;
+					
+					if ( ! filteredAnnotationNamesFromColumnHeaders.add( headerElement ) ) {
+						
+						String msg = "Column header value '" + headerElement + "' occurs more than once in "
+								 + " Kojak file: " + inputFile.getAbsolutePath()
+								 + ", headerLine: " + headerLine;
+						log.error( msg );
+						throw new ProxlGenXMLDataException( msg );
+					}
 
 				} else if ( KojakFileContentsConstants.SCORE_HEADER_LABEL.equals( headerElement ) ) {
 
@@ -513,6 +539,19 @@ public class KojakFileReader {
 				throw new Exception(msg);
 			}
 
+			if ( ( PEPTIDE_1_E_VALUE_HeaderIndex == INDEX_INIT_VALUE && PEPTIDE_2_E_VALUE_HeaderIndex != INDEX_INIT_VALUE ) 
+					|| ( PEPTIDE_1_E_VALUE_HeaderIndex != INDEX_INIT_VALUE && PEPTIDE_2_E_VALUE_HeaderIndex == INDEX_INIT_VALUE ) ) {
+
+				String msg = "Kojak file header line must either contain both header labels"
+						+ " '" + KojakFileContentsConstants.PEPTIDE_1_E_VALUE_HEADER_LABEL + "' "
+						+ " and '" + KojakFileContentsConstants.PEPTIDE_2_E_VALUE_HEADER_LABEL + "' "
+						+ " or it must not contain either of them. "
+						+ "  Kojak file: " + inputFile.getAbsolutePath()
+						+ ", headerLine: " + headerLine;
+				log.error( msg );
+				throw new Exception(msg);
+			}
+			
 			if ( ( PEPTIDE_1_SCORE_HeaderIndex == INDEX_INIT_VALUE && PEPTIDE_2_SCORE_HeaderIndex != INDEX_INIT_VALUE ) 
 					|| ( PEPTIDE_1_SCORE_HeaderIndex != INDEX_INIT_VALUE && PEPTIDE_2_SCORE_HeaderIndex == INDEX_INIT_VALUE ) ) {
 
@@ -565,7 +604,15 @@ public class KojakFileReader {
 	public String getProgramVersion() {
 		return programVersion;
 	}
-	
+
+	public boolean headerHasPeptide_1_e_value() {
+		return PEPTIDE_1_E_VALUE_HeaderIndex != INDEX_INIT_VALUE;
+	}
+
+	public boolean headerHasPeptide_2_e_value() {
+		return PEPTIDE_2_E_VALUE_HeaderIndex != INDEX_INIT_VALUE;
+	}
+
 
 	public boolean headerHasPeptide_1_score() {
 		return PEPTIDE_1_SCORE_HeaderIndex != INDEX_INIT_VALUE;
@@ -778,6 +825,46 @@ public class KojakFileReader {
 
 
 
+			} else if ( lineSplitIndex == PEPTIDE_1_E_VALUE_HeaderIndex ) {
+
+				String peptide_1_e_value_String = lineSplit[ lineSplitIndex ];
+
+				try {
+					BigDecimal peptide_1_e_value = new BigDecimal( peptide_1_e_value_String );
+					kojakPsmDataObject.setPeptide_1_e_value( peptide_1_e_value );
+
+				} catch ( Exception e ) {
+					String msg = "Kojak file 'Peptide 1 E-value'"
+							+ " as identified by the header label '" + KojakFileContentsConstants.PEPTIDE_1_E_VALUE_HEADER_LABEL
+							+ "' is not parsible as decimal."
+							+ " peptide_1_e_value_String: '" + peptide_1_e_value_String
+							+ "', Kojak file: " + inputFile.getAbsolutePath()
+							+ ", line: " + line;
+					log.error( msg );
+					throw new ProxlGenXMLDataException(msg);
+				}
+
+
+			} else if ( lineSplitIndex == PEPTIDE_2_E_VALUE_HeaderIndex ) {
+
+				String peptide_2_e_value_String = lineSplit[ lineSplitIndex ];
+
+				try {
+					BigDecimal peptide_2_e_value = new BigDecimal( peptide_2_e_value_String );
+					kojakPsmDataObject.setPeptide_2_e_value( peptide_2_e_value );
+
+				} catch ( Exception e ) {
+					String msg = "Kojak file 'Peptide 2 E-value'"
+							+ " as identified by the header label '" + KojakFileContentsConstants.PEPTIDE_2_E_VALUE_HEADER_LABEL
+							+ "' is not parsible as decimal."
+							+ " peptide_2_e_value_String: '" + peptide_2_e_value_String
+							+ "', Kojak file: " + inputFile.getAbsolutePath()
+							+ ", line: " + line;
+					log.error( msg );
+					throw new ProxlGenXMLDataException(msg);
+				}
+
+
 			} else if ( lineSplitIndex == PEPTIDE_1_SCORE_HeaderIndex ) {
 
 				String peptide_1_scoreString = lineSplit[ lineSplitIndex ];
@@ -849,21 +936,30 @@ public class KojakFileReader {
 				/////////////////////////////
 				
 				//   This block contains value that will be saved in Filtered Annotations
-			
 
+			} else if ( lineSplitIndex == E_VALUE_HeaderIndex ) {
+
+				String scoreString = lineSplit[ lineSplitIndex ];
+				try {
+					BigDecimal score = new BigDecimal( scoreString );
+					filteredAnnotations.put( KojakFileContentsConstants.E_VALUE_HEADER_LABEL, score );
+				} catch ( Exception ex ) {
+					String msg = "Kojak file 'E-value'"
+							+ " as identified by the header label '" + KojakFileContentsConstants.E_VALUE_HEADER_LABEL
+							+ "' is not parsible as decimal."
+							+ " scoreString: '" + scoreString
+							+ "', Kojak file: " + inputFile.getAbsolutePath()
+							+ ", line: " + line;
+					log.error( msg );
+					throw new Exception(msg);
+				}
 			} else if ( lineSplitIndex == SCORE_HeaderIndex ) {
 
 				String scoreString = lineSplit[ lineSplitIndex ];
-
 				try {
-					
 					BigDecimal score = new BigDecimal( scoreString );
-					
 					filteredAnnotations.put( KojakFileContentsConstants.SCORE_HEADER_LABEL, score );
-					
-					
 				} catch ( Exception ex ) {
-					
 					String msg = "Kojak file 'score'"
 							+ " as identified by the header label '" + KojakFileContentsConstants.SCORE_HEADER_LABEL
 							+ "' is not parsible as decimal."
@@ -873,20 +969,13 @@ public class KojakFileReader {
 					log.error( msg );
 					throw new Exception(msg);
 				}
-
 			} else if ( lineSplitIndex == DSCORE_HeaderIndex ) {
 
 				String dScoreString = lineSplit[ lineSplitIndex ];
-
 				try {
-					
 					BigDecimal dScore = new BigDecimal( dScoreString );
-					
 					filteredAnnotations.put( KojakFileContentsConstants.DSCORE_HEADER_LABEL, dScore );
-					
-					
 				} catch ( Exception ex ) {
-					
 					String msg = "Kojak file 'dscore'"
 							+ " as identified by the header label '" + KojakFileContentsConstants.DSCORE_HEADER_LABEL
 							+ "' is not parsible as decimal."

@@ -64,17 +64,50 @@ public class PopulateOnlyKojakAnnotationTypesInSearchProgram {
 		Set<String> filteredAnnotationNamesFromColumnHeaders =
 				kojakFileReader.getFilteredAnnotationNamesFromColumnHeaders();
 		
+		//  Process filteredAnnotationNamesFromColumnHeaders twice
+		//    1)  Process for E_VALUE_HEADER_LABEL
+		//    2)  Process for Other Than E_VALUE_HEADER_LABEL
+		
+
+		boolean foundEvalue = false;
+		
+		//  E-value
+		
 		for ( String name : filteredAnnotationNamesFromColumnHeaders ) {
-			
-			
-			if ( KojakFileContentsConstants.SCORE_HEADER_LABEL.equals( name ) ) {
+
+			if ( KojakFileContentsConstants.E_VALUE_HEADER_LABEL.equals( name ) ) {
+				
+				foundEvalue = true;
+				FilterablePsmAnnotationType filterablePsmAnnotationType = getKojakFilterableAnnTypeObjects.getEValueAnnTypeObject();
+				
+				if ( setKojakDefaultCutoffs == SetKojakDefaultCutoffs.YES ) {
+					filterablePsmAnnotationType.setDefaultFilter( true );
+					filterablePsmAnnotationType.setDefaultFilterValue( KojakOnlyDefaultFilterValueConstants.KOJAK_E_VALUE_PSM_VALUE_DEFAULT );
+				}
+				
+				filterablePsmAnnotationTypeList.add( filterablePsmAnnotationType );
+				
+				break;
+			}
+		}
+
+		//  Other than E-value
+		
+		for ( String name : filteredAnnotationNamesFromColumnHeaders ) {
+		
+			if ( KojakFileContentsConstants.E_VALUE_HEADER_LABEL.equals( name ) ) {
+				//  Processed in first loop
+
+			} else if ( KojakFileContentsConstants.SCORE_HEADER_LABEL.equals( name ) ) {
 				
 				FilterablePsmAnnotationType filterablePsmAnnotationType = 
 						getKojakFilterableAnnTypeObjects.getScoreAnnTypeObject();
 				
-				if ( setKojakDefaultCutoffs == SetKojakDefaultCutoffs.YES ) {
-					filterablePsmAnnotationType.setDefaultFilter( true );
-					filterablePsmAnnotationType.setDefaultFilterValue( KojakOnlyDefaultFilterValueConstants.KOJAK_SCORE_PSM_VALUE_DEFAULT );
+				if ( ! foundEvalue ) { //  No E-value so Score is default cutoff
+					if ( setKojakDefaultCutoffs == SetKojakDefaultCutoffs.YES ) {
+						filterablePsmAnnotationType.setDefaultFilter( true );
+						filterablePsmAnnotationType.setDefaultFilterValue( KojakOnlyDefaultFilterValueConstants.KOJAK_SCORE_PSM_VALUE_DEFAULT );
+					}
 				}
 				
 				filterablePsmAnnotationTypeList.add( filterablePsmAnnotationType );
@@ -102,6 +135,31 @@ public class PopulateOnlyKojakAnnotationTypesInSearchProgram {
 		}
 		
 		//   Filterable at PSM and PSM Per Peptide
+
+		//  Kojak E-value at PSM Per Peptide
+
+		if ( kojakFileReader.headerHasPeptide_1_e_value() && kojakFileReader.headerHasPeptide_2_e_value() ) {
+			
+			//  Process Per-peptide E-value
+			
+			//  At PSM level, add High E-value and Low E-value Ann Types
+			{
+				FilterablePsmAnnotationType filterablePsmAnnotationType = 
+						getKojakFilterableAnnTypeObjects.getPerPeptideHighEValueeAnnTypeObject();
+				filterablePsmAnnotationTypeList.add( filterablePsmAnnotationType );
+			}
+			{
+				FilterablePsmAnnotationType filterablePsmAnnotationType = 
+						getKojakFilterableAnnTypeObjects.getPerPeptideLowEValueAnnTypeObject();
+				filterablePsmAnnotationTypeList.add( filterablePsmAnnotationType );
+			}
+
+			//  At Psm Per Peptide Level, Add Per Peptide E-value
+			
+			addPsmPerPeptide_E_Value_FilterableAnnotationTypes( searchProgram, getKojakFilterableAnnTypeObjects );
+		}
+		
+		//  Kojak Score at PSM Per Peptide:
 		
 		if ( kojakFileReader.headerHasPeptide_1_score() && kojakFileReader.headerHasPeptide_2_score() ) {
 			
@@ -121,7 +179,7 @@ public class PopulateOnlyKojakAnnotationTypesInSearchProgram {
 
 			//  At Psm Per Peptide Level, Add Per Peptide Score
 			
-			addPsmPerPeptideFilterableAnnotationTypes( searchProgram, getKojakFilterableAnnTypeObjects );
+			addPsmPerPeptide_KojakScore_FilterableAnnotationTypes( searchProgram, getKojakFilterableAnnTypeObjects );
 		}
 		
 		/////////////  Descriptive
@@ -146,21 +204,61 @@ public class PopulateOnlyKojakAnnotationTypesInSearchProgram {
 		}
 	}
 	
+
 	/**
 	 * @param searchProgram
+	 * @param getKojakFilterableAnnTypeObjects
 	 */
-	private void addPsmPerPeptideFilterableAnnotationTypes( SearchProgram searchProgram, GetKojakFilterableAnnTypeObjects getKojakFilterableAnnTypeObjects ) {
+	private void addPsmPerPeptide_E_Value_FilterableAnnotationTypes( SearchProgram searchProgram, GetKojakFilterableAnnTypeObjects getKojakFilterableAnnTypeObjects ) {
+
+		//  At Psm Per Peptide Level, Add Per Peptide E-value
+		
+		PsmPerPeptideAnnotationTypes psmPerPeptideAnnotationTypes = searchProgram.getPsmPerPeptideAnnotationTypes();
+		if ( psmPerPeptideAnnotationTypes == null ) {
+			psmPerPeptideAnnotationTypes = new PsmPerPeptideAnnotationTypes();
+			searchProgram.setPsmPerPeptideAnnotationTypes( psmPerPeptideAnnotationTypes );
+		}
+		
+		/////////////  Filterable
+		
+		FilterablePsmPerPeptideAnnotationTypes filterablePsmPerPeptideAnnotationTypes = psmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationTypes();
+		if ( filterablePsmPerPeptideAnnotationTypes == null ) {
+			filterablePsmPerPeptideAnnotationTypes = new FilterablePsmPerPeptideAnnotationTypes();
+			psmPerPeptideAnnotationTypes.setFilterablePsmPerPeptideAnnotationTypes( filterablePsmPerPeptideAnnotationTypes );
+		}
+		
+		List<FilterablePsmPerPeptideAnnotationType> filterablePsmPerPeptideAnnotationTypeList =
+				filterablePsmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationType();
+				
+		FilterablePsmPerPeptideAnnotationType filterablePsmPerPeptideAnnotationType = 
+				getKojakFilterableAnnTypeObjects.getPsmPerPeptideEValueAnnTypeObject();
+
+		filterablePsmPerPeptideAnnotationTypeList.add( filterablePsmPerPeptideAnnotationType );
+	}
+	
+	
+	/**
+	 * @param searchProgram
+	 * @param getKojakFilterableAnnTypeObjects
+	 */
+	private void addPsmPerPeptide_KojakScore_FilterableAnnotationTypes( SearchProgram searchProgram, GetKojakFilterableAnnTypeObjects getKojakFilterableAnnTypeObjects ) {
 
 		//  At Psm Per Peptide Level, Add Per Peptide Score
 		
-		PsmPerPeptideAnnotationTypes psmPerPeptideAnnotationTypes = new PsmPerPeptideAnnotationTypes();
-		searchProgram.setPsmPerPeptideAnnotationTypes( psmPerPeptideAnnotationTypes );
+		PsmPerPeptideAnnotationTypes psmPerPeptideAnnotationTypes = searchProgram.getPsmPerPeptideAnnotationTypes();
+		if ( psmPerPeptideAnnotationTypes == null ) {
+			psmPerPeptideAnnotationTypes = new PsmPerPeptideAnnotationTypes();
+			searchProgram.setPsmPerPeptideAnnotationTypes( psmPerPeptideAnnotationTypes );
+		}
 
 		/////////////  Filterable
 		
-		FilterablePsmPerPeptideAnnotationTypes filterablePsmPerPeptideAnnotationTypes = new FilterablePsmPerPeptideAnnotationTypes();
-		psmPerPeptideAnnotationTypes.setFilterablePsmPerPeptideAnnotationTypes( filterablePsmPerPeptideAnnotationTypes );
-		
+		FilterablePsmPerPeptideAnnotationTypes filterablePsmPerPeptideAnnotationTypes = psmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationTypes();
+		if ( filterablePsmPerPeptideAnnotationTypes == null ) {
+			filterablePsmPerPeptideAnnotationTypes = new FilterablePsmPerPeptideAnnotationTypes();
+			psmPerPeptideAnnotationTypes.setFilterablePsmPerPeptideAnnotationTypes( filterablePsmPerPeptideAnnotationTypes );
+		}
+				
 		List<FilterablePsmPerPeptideAnnotationType> filterablePsmPerPeptideAnnotationTypeList =
 				filterablePsmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationType();
 				

@@ -52,6 +52,20 @@ public class AddKojakAndPercolatorDefaultVisibleAnnotations {
 				SearchAnnotation searchAnnotation = new SearchAnnotation();
 				visiblePsmAnnotationsSearchAnnotationList.add( searchAnnotation );
 
+				searchAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_E_VALUE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+			}
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				visiblePsmAnnotationsSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_LOW_E_VALUE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+			}
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				visiblePsmAnnotationsSearchAnnotationList.add( searchAnnotation );
+
 				searchAnnotation.setAnnotationName( PercolatorGenImportXML_AnnotationNames_Constants.ANNOTATION_NAME_Q_VALUE );
 				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.PERCOLATOR );
 			}
@@ -114,6 +128,13 @@ public class AddKojakAndPercolatorDefaultVisibleAnnotations {
 
 			List<SearchAnnotation> visiblePsmPerPeptideAnnotationsSearchAnnotationList = visiblePsmPerPeptideAnnotations.getSearchAnnotation();
 
+			{
+				SearchAnnotation searchAnnotation = new SearchAnnotation();
+				visiblePsmPerPeptideAnnotationsSearchAnnotationList.add( searchAnnotation );
+
+				searchAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PSM_PER_PEPTIDE_E_VALUE );
+				searchAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+			}
 			{
 				SearchAnnotation searchAnnotation = new SearchAnnotation();
 				visiblePsmPerPeptideAnnotationsSearchAnnotationList.add( searchAnnotation );

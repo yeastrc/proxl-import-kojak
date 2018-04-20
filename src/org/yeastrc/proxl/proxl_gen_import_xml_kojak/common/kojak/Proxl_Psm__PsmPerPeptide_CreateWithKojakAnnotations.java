@@ -80,9 +80,48 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
 
 					filterablePsmAnnotation.setValue( entry.getValue() );
-
 				}
 			}
+			
+			//   Compute and save High and Low Per Peptide E-value and save at PSM level
+
+			if ( kojakPsmDataObject.getPeptide_1_e_value() != null ) {
+				
+				//  At PSM level, add Per Peptide High and Low Score entries.
+				BigDecimal perPeptide_High_E_Value = null;
+				BigDecimal perPeptide_Low_E_Value = null;
+				
+				if ( numPeptidesOnReportedPeptide == 1 || kojakPsmDataObject.getPeptide_2_e_value() == null ) {
+					perPeptide_High_E_Value = kojakPsmDataObject.getPeptide_1_e_value(); 
+					perPeptide_Low_E_Value = kojakPsmDataObject.getPeptide_1_e_value();
+				} else if ( kojakPsmDataObject.getPeptide_1_e_value().equals( kojakPsmDataObject.getPeptide_2_e_value() ) ) {
+					perPeptide_High_E_Value = kojakPsmDataObject.getPeptide_1_e_value(); 
+					perPeptide_Low_E_Value = kojakPsmDataObject.getPeptide_1_e_value();
+				} else if ( kojakPsmDataObject.getPeptide_1_e_value().compareTo( kojakPsmDataObject.getPeptide_2_e_value() ) > 0 ) {
+					perPeptide_High_E_Value = kojakPsmDataObject.getPeptide_1_e_value(); 
+					perPeptide_Low_E_Value = kojakPsmDataObject.getPeptide_2_e_value();
+				} else {
+					perPeptide_High_E_Value = kojakPsmDataObject.getPeptide_2_e_value(); 
+					perPeptide_Low_E_Value = kojakPsmDataObject.getPeptide_1_e_value();
+				}
+
+				{
+					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
+					filterablePsmAnnotationList.add( filterablePsmAnnotation );
+					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_HIGH_E_VALUE );
+					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+					filterablePsmAnnotation.setValue( perPeptide_High_E_Value );
+				}
+				{
+					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
+					filterablePsmAnnotationList.add( filterablePsmAnnotation );
+					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_LOW_E_VALUE );
+					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+					filterablePsmAnnotation.setValue( perPeptide_Low_E_Value );
+				}
+			}
+			
+			//   Compute and save High and Low Per Peptide Score and save at PSM level
 
 			if ( kojakPsmDataObject.getPeptide_1_score() != null ) {
 				
@@ -103,7 +142,7 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 					perPeptide_HighScore = kojakPsmDataObject.getPeptide_2_score(); 
 					perPeptide_LowScore = kojakPsmDataObject.getPeptide_1_score();
 				}
-				
+
 				{
 					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
 					filterablePsmAnnotationList.add( filterablePsmAnnotation );
@@ -154,8 +193,8 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 		}
 		
 		//  PSM Per Peptide Annotations
-
-		if ( kojakPsmDataObject.getPeptide_1_score() != null ) {
+		
+		if ( kojakPsmDataObject.getPeptide_1_e_value() != null || kojakPsmDataObject.getPeptide_1_score() != null ) {
 			
 			String peptide_uniqueId_1 = Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1;
 			String peptide_uniqueId_2 = Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__2;
@@ -168,13 +207,17 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 
 			List<PerPeptideAnnotations> perPeptideAnnotationsList = proxlInputPsm.getPerPeptideAnnotations();
 
-			addPsmPerPeptideEntryForPeptide( 
+			addPsmPerPeptide_Score_EntryForPeptide( 
+					kojakPsmDataObject.getPeptide_1_e_value(),
 					kojakPsmDataObject.getPeptide_1_score(), 
 					peptide_uniqueId_1, 
 					perPeptideAnnotationsList );
 			
-			if ( numPeptidesOnReportedPeptide == 2 &&  kojakPsmDataObject.getPeptide_2_score() != null ) {
-				addPsmPerPeptideEntryForPeptide( 
+			if ( numPeptidesOnReportedPeptide == 2 
+					&& ( kojakPsmDataObject.getPeptide_2_e_value() != null || kojakPsmDataObject.getPeptide_2_score() != null ) ) {
+
+				addPsmPerPeptide_Score_EntryForPeptide( 
+						 kojakPsmDataObject.getPeptide_2_e_value(),
 						kojakPsmDataObject.getPeptide_2_score(), 
 						peptide_uniqueId_2, 
 						perPeptideAnnotationsList );
@@ -186,8 +229,14 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 		return proxlInputPsm;
 	}
 
-
-	public void addPsmPerPeptideEntryForPeptide( BigDecimal score, String uniqueId, List<PerPeptideAnnotations> perPeptideAnnotationsList ) {
+	/**
+	 * Add PSM Per Peptide Kojak Score 
+	 * 
+	 * @param score
+	 * @param uniqueId
+	 * @param perPeptideAnnotationsList
+	 */
+	public void addPsmPerPeptide_Score_EntryForPeptide( BigDecimal e_value, BigDecimal score, String uniqueId, List<PerPeptideAnnotations> perPeptideAnnotationsList ) {
 		{
 			PerPeptideAnnotations perPeptideAnnotations = new PerPeptideAnnotations();
 			perPeptideAnnotationsList.add( perPeptideAnnotations );
@@ -201,11 +250,21 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 			List<FilterablePsmPerPeptideAnnotation> filterablePsmPerPeptideAnnotationList = 
 					filterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation();
 			
-			FilterablePsmPerPeptideAnnotation filterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
-			filterablePsmPerPeptideAnnotationList.add( filterablePsmPerPeptideAnnotation );
-			filterablePsmPerPeptideAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PSM_PER_PEPTIDE_SCORE );
-			filterablePsmPerPeptideAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
-			filterablePsmPerPeptideAnnotation.setValue( score );
+			if ( e_value != null ) {
+				FilterablePsmPerPeptideAnnotation filterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
+				filterablePsmPerPeptideAnnotationList.add( filterablePsmPerPeptideAnnotation );
+				filterablePsmPerPeptideAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PSM_PER_PEPTIDE_E_VALUE );
+				filterablePsmPerPeptideAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+				filterablePsmPerPeptideAnnotation.setValue( e_value );
+			}
+
+			if ( score != null ) {
+				FilterablePsmPerPeptideAnnotation filterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
+				filterablePsmPerPeptideAnnotationList.add( filterablePsmPerPeptideAnnotation );
+				filterablePsmPerPeptideAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PSM_PER_PEPTIDE_SCORE );
+				filterablePsmPerPeptideAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
+				filterablePsmPerPeptideAnnotation.setValue( score );
+			}
 		}
 	}
 

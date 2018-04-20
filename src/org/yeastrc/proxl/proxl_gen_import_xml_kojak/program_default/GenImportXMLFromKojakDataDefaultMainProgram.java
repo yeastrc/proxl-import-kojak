@@ -63,18 +63,24 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
         String kojakConfFileWithPathCommandLine = null;
         
         
+        //  Change to set only to null to not have cutoffs on import
+        
+        BigDecimal scoreCutoffOnImport = null;
+        BigDecimal qvalueCutoffOnImport = null;
+        
+        
 		String scoreCutoffOnImportString = null;
-		BigDecimal scoreCutoffOnImport = DefaultCutoffOnImportValuesConstants.SCORE_DEFAULT_CUTOFF;
+//		BigDecimal scoreCutoffOnImport = DefaultCutoffOnImportValuesConstants.SCORE_DEFAULT_CUTOFF;
 		
-		boolean skipDefaultScoreCutoffOnImport = false;
+//		boolean skipDefaultScoreCutoffOnImport = false;
 
 		
 		//  For both Peptide and PSM q-value cutoff
 		
 		String qvalueCutoffOnImportString = null;
-		BigDecimal qvalueCutoffOnImport = DefaultCutoffOnImportValuesConstants.Q_VALUE_DEFAULT_CUTOFF;
+//		BigDecimal qvalueCutoffOnImport = DefaultCutoffOnImportValuesConstants.Q_VALUE_DEFAULT_CUTOFF;
 		
-		boolean skipDefaultQvalueCutoffOnImport = false;
+//		boolean skipDefaultQvalueCutoffOnImport = false;
 		
         
         
@@ -243,11 +249,13 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 			scoreCutoffOnImportString = (String)cmdLineParser.getOptionValue( scoreCutoffOnImportCommandLineOpt );
 
-			skipDefaultScoreCutoffOnImport = (Boolean) cmdLineParser.getOptionValue( skipDefaultScoreCutoffOnImportCommandLineOpt, Boolean.FALSE);
-			
 			qvalueCutoffOnImportString = (String)cmdLineParser.getOptionValue( qvalueCutoffOnImportCommandLineOpt );
 
-			skipDefaultQvalueCutoffOnImport = (Boolean) cmdLineParser.getOptionValue( skipDefaultQvalueCutoffOnImportCommandLineOpt, Boolean.FALSE);
+			//  Ignore so no longer have Default cutoffs
+			
+//			skipDefaultScoreCutoffOnImport = (Boolean) cmdLineParser.getOptionValue( skipDefaultScoreCutoffOnImportCommandLineOpt, Boolean.FALSE);
+//			
+//			skipDefaultQvalueCutoffOnImport = (Boolean) cmdLineParser.getOptionValue( skipDefaultQvalueCutoffOnImportCommandLineOpt, Boolean.FALSE);
 			
 	        
 			String[] remainingArgs = cmdLineParser.getRemainingArgs();
@@ -456,14 +464,14 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			
 			if ( StringUtils.isNotEmpty( scoreCutoffOnImportString ) ) {
 				
-				if ( skipDefaultScoreCutoffOnImport ) {
-					
-					System.err.println( "score cutoff on import is not valid with skip default score cutoff on import" );
-					System.err.println( "" );
-					System.err.println( FOR_HELP_STRING );
-
-					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
-				}
+//				if ( skipDefaultScoreCutoffOnImport ) {
+//					
+//					System.err.println( "score cutoff on import is not valid with skip default score cutoff on import" );
+//					System.err.println( "" );
+//					System.err.println( FOR_HELP_STRING );
+//
+//					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+//				}
 
 			
 				if ( ! percolatorFileStringsList.isEmpty() ) {
@@ -475,32 +483,32 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 				}
 				
-				try {
-					
-					scoreCutoffOnImport = new BigDecimal( scoreCutoffOnImportString );
-					
-				} catch ( Exception e ) {
-				
-					System.err.println( "Entered score cutoff on import is not a decimal number " + scoreCutoffOnImportString );
-					System.err.println( "" );
-					System.err.println( FOR_HELP_STRING );
-
-					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
-					
-				}
+//				try {
+//					
+//					scoreCutoffOnImport = new BigDecimal( scoreCutoffOnImportString );
+//					
+//				} catch ( Exception e ) {
+//				
+//					System.err.println( "Entered score cutoff on import is not a decimal number " + scoreCutoffOnImportString );
+//					System.err.println( "" );
+//					System.err.println( FOR_HELP_STRING );
+//
+//					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+//					
+//				}
 			}
 			
 
 			if ( StringUtils.isNotEmpty( qvalueCutoffOnImportString ) ) {
 
-				if ( skipDefaultQvalueCutoffOnImport ) {
-					
-					System.err.println( "q-value cutoff on import is not valid with skip default q-value cutoff on import" );
-					System.err.println( "" );
-					System.err.println( FOR_HELP_STRING );
-
-					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
-				}
+//				if ( skipDefaultQvalueCutoffOnImport ) {
+//					
+//					System.err.println( "q-value cutoff on import is not valid with skip default q-value cutoff on import" );
+//					System.err.println( "" );
+//					System.err.println( FOR_HELP_STRING );
+//
+//					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+//				}
 				
 				if ( percolatorFileStringsList.isEmpty() ) {
 
@@ -511,31 +519,32 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 				}
 				
-				try {
-					
-					qvalueCutoffOnImport = new BigDecimal( qvalueCutoffOnImportString );
-					
-				} catch ( Exception e ) {
-				
-					System.err.println( "Entered q-value cutoff on import is not a decimal number " + qvalueCutoffOnImportString );
-					System.err.println( "" );
-					System.err.println( FOR_HELP_STRING );
-
-					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
-					
-				}
+//				try {
+//					
+//					qvalueCutoffOnImport = new BigDecimal( qvalueCutoffOnImportString );
+//					
+//				} catch ( Exception e ) {
+//				
+//					System.err.println( "Entered q-value cutoff on import is not a decimal number " + qvalueCutoffOnImportString );
+//					System.err.println( "" );
+//					System.err.println( FOR_HELP_STRING );
+//
+//					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+//					
+//				}
 			}
 			
+			//  Not needed so now always null 
 			
-			if ( skipDefaultScoreCutoffOnImport ) {
-				
-				scoreCutoffOnImport = null;
-			};
-
-			if ( skipDefaultQvalueCutoffOnImport ) {
-				
-				qvalueCutoffOnImport = null;
-			};
+//			if ( skipDefaultScoreCutoffOnImport ) {
+//				
+//				scoreCutoffOnImport = null;
+//			};
+//
+//			if ( skipDefaultQvalueCutoffOnImport ) {
+//				
+//				qvalueCutoffOnImport = null;
+//			};
 			
 
 			/////////////////////////////////
@@ -615,21 +624,21 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 	        if( ! percolatorFileStringsList.isEmpty() ) {
 
-	        	if ( qvalueCutoffOnImport != null ) {
-
-	        		//  q-value used to exclude data when importing into Proxl
-	        		System.out.println( "q-value filter on import\t" 
-	        				+ qvalueCutoffOnImport.toString() );
-	        	}
+//	        	if ( qvalueCutoffOnImport != null ) {
+//
+//	        		//  q-value used to exclude data when importing into Proxl
+//	        		System.out.println( "q-value filter on import\t" 
+//	        				+ qvalueCutoffOnImport.toString() );
+//	        	}
 	        	
 	        } else {
 	        	
-	        	if ( scoreCutoffOnImport != null ) {
-
-	        		//  score used to exclude data when importing into Proxl
-	        		System.out.println( "Kojak 'score' filter on import\t" 
-	        				+ scoreCutoffOnImport.toString() );
-	        	}
+//	        	if ( scoreCutoffOnImport != null ) {
+//
+//	        		//  score used to exclude data when importing into Proxl
+//	        		System.out.println( "Kojak 'score' filter on import\t" 
+//	        				+ scoreCutoffOnImport.toString() );
+//	        	}
 	        }
 	        
 	        
