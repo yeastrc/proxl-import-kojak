@@ -7,6 +7,7 @@
 
 #  Build outputs
 /jar_this_project
+/classes
 /deploy
 
 
