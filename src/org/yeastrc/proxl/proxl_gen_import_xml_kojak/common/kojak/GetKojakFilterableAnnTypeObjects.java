@@ -72,7 +72,7 @@ public class GetKojakFilterableAnnTypeObjects {
 
 		FilterablePsmAnnotationType filterablePsmAnnotationType = new FilterablePsmAnnotationType();
 		filterablePsmAnnotationType.setDefaultFilter( false );
-		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_HIGH_E_VALUE );
+		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_WORST_E_VALUE );
 		filterablePsmAnnotationType.setDescription( "For  cross-links, the higher of the two e-values for each peptide." );
 		filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
 		return filterablePsmAnnotationType;
@@ -82,7 +82,7 @@ public class GetKojakFilterableAnnTypeObjects {
 
 		FilterablePsmAnnotationType filterablePsmAnnotationType = new FilterablePsmAnnotationType();
 		filterablePsmAnnotationType.setDefaultFilter( false );
-		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_LOW_E_VALUE );
+		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_BEST_E_VALUE );
 		filterablePsmAnnotationType.setDescription( "For  cross-links, the lower of the two e-values for each peptide." );
 		filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.BELOW );
 		return filterablePsmAnnotationType;
@@ -94,7 +94,7 @@ public class GetKojakFilterableAnnTypeObjects {
 
 		FilterablePsmAnnotationType filterablePsmAnnotationType = new FilterablePsmAnnotationType();
 		filterablePsmAnnotationType.setDefaultFilter( false );
-		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_HIGH_SCORE );
+		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_BEST_SCORE );
 		filterablePsmAnnotationType.setDescription( "For cross-links, the score of the higher scoring peptide." );
 		filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.ABOVE );
 		return filterablePsmAnnotationType;
@@ -104,7 +104,7 @@ public class GetKojakFilterableAnnTypeObjects {
 
 		FilterablePsmAnnotationType filterablePsmAnnotationType = new FilterablePsmAnnotationType();
 		filterablePsmAnnotationType.setDefaultFilter( false );
-		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_LOW_SCORE );
+		filterablePsmAnnotationType.setName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_WORST_SCORE );
 		filterablePsmAnnotationType.setDescription( "For cross-links, the score of the lower scoring peptide." );
 		filterablePsmAnnotationType.setFilterDirection( FilterDirectionType.ABOVE );
 		return filterablePsmAnnotationType;

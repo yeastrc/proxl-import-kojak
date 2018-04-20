@@ -108,14 +108,14 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 				{
 					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
 					filterablePsmAnnotationList.add( filterablePsmAnnotation );
-					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_HIGH_E_VALUE );
+					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_WORST_E_VALUE );
 					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
 					filterablePsmAnnotation.setValue( perPeptide_High_E_Value );
 				}
 				{
 					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
 					filterablePsmAnnotationList.add( filterablePsmAnnotation );
-					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_LOW_E_VALUE );
+					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_BEST_E_VALUE );
 					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
 					filterablePsmAnnotation.setValue( perPeptide_Low_E_Value );
 				}
@@ -146,14 +146,14 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 				{
 					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
 					filterablePsmAnnotationList.add( filterablePsmAnnotation );
-					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_HIGH_SCORE );
+					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_BEST_SCORE );
 					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
 					filterablePsmAnnotation.setValue( perPeptide_HighScore );
 				}
 				{
 					FilterablePsmAnnotation filterablePsmAnnotation = new FilterablePsmAnnotation();
 					filterablePsmAnnotationList.add( filterablePsmAnnotation );
-					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_LOW_SCORE );
+					filterablePsmAnnotation.setAnnotationName( KojakAnnotationTypeConstants.KOJAK_ANNOTATION_NAME_PER_PEPTIDE_WORST_SCORE );
 					filterablePsmAnnotation.setSearchProgram( SearchProgramNameKojakImporterConstants.KOJAK );
 					filterablePsmAnnotation.setValue( perPeptide_LowScore );
 				}
