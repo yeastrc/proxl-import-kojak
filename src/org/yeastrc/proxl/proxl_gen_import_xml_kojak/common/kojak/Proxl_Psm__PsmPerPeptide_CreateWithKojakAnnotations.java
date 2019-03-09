@@ -205,13 +205,17 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 				peptide_uniqueId_2 = Proxl_XML_Peptide_UniqueId_Constants.PEPTIDE_UNIQUE_ID__1;
 			}
 
-			List<PerPeptideAnnotations> perPeptideAnnotationsList = proxlInputPsm.getPerPeptideAnnotations();
+			PerPeptideAnnotations perPeptideAnnotations = new PerPeptideAnnotations();
+			
+			proxlInputPsm.setPerPeptideAnnotations( perPeptideAnnotations );
+			
+			List<PsmPeptide> psmPeptideList = perPeptideAnnotations.getPsmPeptide();
 
 			addPsmPerPeptide_Score_EntryForPeptide( 
 					kojakPsmDataObject.getPeptide_1_e_value(),
 					kojakPsmDataObject.getPeptide_1_score(), 
 					peptide_uniqueId_1, 
-					perPeptideAnnotationsList );
+					psmPeptideList );
 			
 			if ( numPeptidesOnReportedPeptide == 2 
 					&& ( kojakPsmDataObject.getPeptide_2_e_value() != null || kojakPsmDataObject.getPeptide_2_score() != null ) ) {
@@ -220,7 +224,7 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 						 kojakPsmDataObject.getPeptide_2_e_value(),
 						kojakPsmDataObject.getPeptide_2_score(), 
 						peptide_uniqueId_2, 
-						perPeptideAnnotationsList );
+						psmPeptideList );
 			}
 		}
 		
@@ -234,15 +238,14 @@ public class Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations {
 	 * 
 	 * @param score
 	 * @param uniqueId
-	 * @param perPeptideAnnotationsList
+	 * @param psmPeptideList
 	 */
-	public void addPsmPerPeptide_Score_EntryForPeptide( BigDecimal e_value, BigDecimal score, String uniqueId, List<PerPeptideAnnotations> perPeptideAnnotationsList ) {
+	public void addPsmPerPeptide_Score_EntryForPeptide( BigDecimal e_value, BigDecimal score, String uniqueId, List<PsmPeptide> psmPeptideList ) {
 		{
-			PerPeptideAnnotations perPeptideAnnotations = new PerPeptideAnnotations();
-			perPeptideAnnotationsList.add( perPeptideAnnotations );
 			
 			PsmPeptide psmPeptide = new PsmPeptide();
-			perPeptideAnnotations.setPsmPeptide( psmPeptide );
+			psmPeptideList.add( psmPeptide );
+			
 			psmPeptide.setUniqueId( uniqueId );
 			
 			FilterablePsmPerPeptideAnnotations filterablePsmPerPeptideAnnotations = new FilterablePsmPerPeptideAnnotations();
