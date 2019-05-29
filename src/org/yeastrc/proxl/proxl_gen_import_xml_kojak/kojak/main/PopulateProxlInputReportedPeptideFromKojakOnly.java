@@ -15,6 +15,8 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.is_monolink.IsModific
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakSequenceUtils;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.Kojak_GetDynamicModsForOneSequence;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.Kojak_GetDynamicModsForOneSequence.Kojak_GetDynamicModsForOneSequence_Result;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.enums.KojakGenImportInternalLinkTypeEnum;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects.LinkTypeAndReportedPeptideString;
 import org.yeastrc.proxl_import.api.xml_dto.LinkType;
@@ -227,7 +229,7 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 
 
 		String peptideSequenceForProxlXML_PeptideObject = 
-				KojakSequenceUtils.getInstance()
+				KojakSequenceUtils.getSingletonInstance()
 				.getPeptideWithDynamicModificationsRemoved( peptideSequence, isotope_Labels_SpecifiedIn_KojakConfFile );
 		
 		if ( isotope_Labels_SpecifiedIn_KojakConfFile != null && isotope_Labels_SpecifiedIn_KojakConfFile.getIsotopeLabel_15N_filter_Value() != null ) {
@@ -239,9 +241,8 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 			}
 		}
 
-
-		Map<Integer,Collection<BigDecimal>> dynamicModLocationsAndMasses =
-				KojakSequenceUtils.getInstance()
+		Kojak_GetDynamicModsForOneSequence_Result kojak_GetDynamicModsForOneSequence_Result =
+				Kojak_GetDynamicModsForOneSequence.getSingletonInstance()
 				.getDynamicModsForOneSequence( peptideSequence, isotope_Labels_SpecifiedIn_KojakConfFile );
 
 
@@ -261,32 +262,91 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 		
 		proxlInputPeptide.setUniqueId( peptideUniqueId );
 
-		if ( dynamicModLocationsAndMasses != null && ( ! dynamicModLocationsAndMasses.isEmpty() ) ) {
+		if ( kojak_GetDynamicModsForOneSequence_Result.dynamicModsForPositions_KeyPosition != null && ( ! kojak_GetDynamicModsForOneSequence_Result.dynamicModsForPositions_KeyPosition.isEmpty() ) ){
 
-			Modifications modifications = new Modifications();
-			proxlInputPeptide.setModifications( modifications );
-			
-			List<Modification> modificationList = modifications.getModification();
+			Map<Integer,Collection<BigDecimal>> dynamicModLocationsAndMasses = kojak_GetDynamicModsForOneSequence_Result.dynamicModsForPositions_KeyPosition;
 
-			for ( Map.Entry<Integer,Collection<BigDecimal>> dynamicModLocationsAndMassesEntry : dynamicModLocationsAndMasses.entrySet() ) {
+			if ( dynamicModLocationsAndMasses != null && ( ! dynamicModLocationsAndMasses.isEmpty() ) ) {
 
-				int position = dynamicModLocationsAndMassesEntry.getKey();
-
-				for ( BigDecimal modificationMass : dynamicModLocationsAndMassesEntry.getValue() ) {
-
-					boolean isModificationAMonolink = IsModificationAMonolink.getInstance().isModificationAMonolink( modificationMass );
-
-					Modification modification = new Modification();
-					modificationList.add( modification );
-
-					modification.setPosition( BigInteger.valueOf( position ) );
-					modification.setMass( modificationMass );
-					modification.setIsMonolink( isModificationAMonolink );
+				Modifications modifications = proxlInputPeptide.getModifications();
+				if ( modifications == null ) {
+					modifications = new Modifications();
+					proxlInputPeptide.setModifications( modifications );
 				}
+
+				List<Modification> modificationList = modifications.getModification();
+
+				for ( Map.Entry<Integer,Collection<BigDecimal>> dynamicModLocationsAndMassesEntry : dynamicModLocationsAndMasses.entrySet() ) {
+
+					int position = dynamicModLocationsAndMassesEntry.getKey();
+
+					for ( BigDecimal modificationMass : dynamicModLocationsAndMassesEntry.getValue() ) {
+
+						boolean isModificationAMonolink = IsModificationAMonolink.getInstance().isModificationAMonolink( modificationMass );
+
+						Modification modification = new Modification();
+						modificationList.add( modification );
+
+						modification.setPosition( BigInteger.valueOf( position ) );
+						modification.setMass( modificationMass );
+						modification.setIsMonolink( isModificationAMonolink );
+					}
+				}
+
+			}
+		}
+
+		//  Process Modifications at 'n' terminus
+		
+		if ( kojak_GetDynamicModsForOneSequence_Result.n_Terminal_Mods != null && ( ! kojak_GetDynamicModsForOneSequence_Result.n_Terminal_Mods.isEmpty() ) ){
+
+			Modifications modifications = proxlInputPeptide.getModifications();
+			if ( modifications == null ) {
+				modifications = new Modifications();
+				proxlInputPeptide.setModifications( modifications );
 			}
 
+			List<Modification> modificationList = modifications.getModification();
+
+			for ( BigDecimal modificationMass : kojak_GetDynamicModsForOneSequence_Result.n_Terminal_Mods ) {
+
+				boolean isModificationAMonolink = 
+						IsModificationAMonolink.getInstance().isModificationAMonolink( modificationMass );
+				
+				Modification modification = new Modification();
+				modificationList.add( modification );
+
+				modification.setMass( modificationMass );
+				modification.setIsMonolink( isModificationAMonolink );
+				modification.setIsNTerminal( true );
+			}
 		}
+
+		//  Process Modifications at 'c' terminus
 		
+		if ( kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods != null && ( ! kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods.isEmpty() ) ){
+
+			Modifications modifications = proxlInputPeptide.getModifications();
+			if ( modifications == null ) {
+				modifications = new Modifications();
+				proxlInputPeptide.setModifications( modifications );
+			}
+
+			List<Modification> modificationList = modifications.getModification();
+
+			for ( BigDecimal modificationMass : kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods ) {
+
+				boolean isModificationAMonolink = 
+						IsModificationAMonolink.getInstance().isModificationAMonolink( modificationMass );
+				
+				Modification modification = new Modification();
+				modificationList.add( modification );
+
+				modification.setMass( modificationMass );
+				modification.setIsMonolink( isModificationAMonolink );
+				modification.setIsCTerminal( true );
+			}
+		}
 		
 
 		if ( linkPositionsStrings != null && linkPositionsStrings.length > 0 ) {
