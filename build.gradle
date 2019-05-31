@@ -1,0 +1,43 @@
+/*
+    Build executable jar file with gradle shadowJar
+    More info at: https://imperceptiblethoughts.com/shadow/
+    
+    Requires Gradle 5+
+ */
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'info.picocli:picocli:4.0.0-alpha-1'
+    compile fileTree(dir: 'lib', include: ['*.jar'])
+}
+
+processResources {
+    from ('src/main/java') {
+        include '**/*.txt'
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.yeastrc.proxl.xml.kojak.main.MainProgram'
+    }
+}
+
+shadowJar {
+    baseName = 'kojak2ProxlXML'
+    classifier = null
+    version = null
+}
