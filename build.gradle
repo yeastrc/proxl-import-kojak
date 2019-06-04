@@ -25,11 +25,21 @@ repositories {
     maven {
         url 'https://raw.github.com/yeastrc/proxl-import-api/repository/'
     }
+
+    maven {
+        url 'https://raw.github.com/yeastrc/java-fasta-utils/repository/'
+    }
+
+    maven {
+        url 'https://raw.github.com/yeastrc/percolator-utils/repository/'
+    }
 }
 
 dependencies {
+    compile 'org.yeastrc:yrc-percolator-utils:1.0.0'
     compile 'org.yeastrc:yrc-pepxml-jaxb:1.22.2'
     compile 'org.yeastrc:proxl-import-api:1.9.1'
+    compile 'org.yeastrc:yrc-fasta-utils:2.0.2'
     compile 'info.picocli:picocli:4.0.0-alpha-1'
     compile fileTree(dir: 'lib', include: ['*.jar'])
 }
