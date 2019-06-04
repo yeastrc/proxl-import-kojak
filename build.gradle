@@ -17,9 +17,19 @@ targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
+
+    maven {
+        url 'https://raw.github.com/yeastrc/pepxml-parsing-jaxb-libs/repository/'
+    }
+
+    maven {
+        url 'https://raw.github.com/yeastrc/proxl-import-api/repository/'
+    }
 }
 
 dependencies {
+    compile 'org.yeastrc:yrc-pepxml-jaxb:1.22.2'
+    compile 'org.yeastrc:proxl-import-api:1.9.1'
     compile 'info.picocli:picocli:4.0.0-alpha-1'
     compile fileTree(dir: 'lib', include: ['*.jar'])
 }
