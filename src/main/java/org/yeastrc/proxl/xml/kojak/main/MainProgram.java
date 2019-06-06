@@ -31,18 +31,25 @@ import java.io.File;
 )
 public class MainProgram implements Runnable {
 
-    @CommandLine.Option(names = { "-p", "--pepxml" }, required = true, description = "[Required] Full path to Kojak " +
-            "pepXML file.")
+    @CommandLine.Option(names = { "-c", "--conf" }, required = true, description = "[Required] Specify the full path " +
+            "to at least one Kojak conf file (e.g., Kojak.conf). You may specify more than one if using multiple " +
+            "pepXML files; however, all config options (e.g., cross-linker or modifications) must be the same in" +
+            " combined data.")
+    private File[] kojakConfFiles;
+
+    @CommandLine.Option(names = { "-p", "--pepxml" }, required = true, description = "[Required] Full path to at " +
+            "least one Kojak pepXML file. If specifying multiple pepXML files, they will be considered one search " +
+            "in proxl and all MUST use the same config options (e.g., cross-linker or modifications.")
     private File[] pepXMLFiles;
 
-    @CommandLine.Option(names = { "-o", "--out" }, required = true, description = "[Required] Full path to use for the " +
-            "ProXL XML output file (including file name).")
-    private String outFile;
-
     @CommandLine.Option(names = { "-f", "--fasta" }, required = true, description = "[Required] Full path to FASTA file " +
-            "used in the experiment.")
+            "used in the experiment. If uploading multiple pepXML files, they must have ALL been processed with this " +
+            "FASTA file.")
     private String fastaFile;
 
+    @CommandLine.Option(names = { "-o", "--out" }, required = true, description = "[Required] Full path to use for the " +
+            "ProXL XML output file (e.g., ./kojakrun.proxl.xml).")
+    private String outFile;
 
     public static void main( String[] args ) {
         CommandLine.run(new MainProgram(), args);
