@@ -13,4 +13,8 @@ public class ConverterConstants {
     public static final int RUN_TYPE_KOJAK_ONLY = 0;
     public static final int RUN_TYPE_KOJAK_PERCOLATOR = 1;
 
+    public static final int LINK_TYPE_UNLINKED = 0;
+    public static final int LINK_TYPE_LOOPLINK = 1;
+    public static final int LINK_TYPE_CROSSLINK = 2;
+
 }
