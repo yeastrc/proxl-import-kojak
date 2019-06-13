@@ -46,8 +46,8 @@ public class KojakReportedPeptide {
 
             } else {
 
-                this.kojakPeptides.add(peptide1);
                 this.kojakPeptides.add(peptide2);
+                this.kojakPeptides.add(peptide1);
             }
 
         } else {

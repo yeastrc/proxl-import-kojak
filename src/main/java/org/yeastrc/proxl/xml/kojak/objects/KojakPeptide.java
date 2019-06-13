@@ -74,7 +74,16 @@ public class KojakPeptide {
         }
 
         if( this.getLinkedPositions() != null ) {
-            str += "(" + String.join( ",", this.getLinkedPositions() + ")" );
+            str += "(";
+
+            String delim = "";
+            for (Integer i : this.getLinkedPositions()) {
+                str += delim + i;
+                delim = ",";
+            }
+
+            str += ")";
+
         }
 
         return str;

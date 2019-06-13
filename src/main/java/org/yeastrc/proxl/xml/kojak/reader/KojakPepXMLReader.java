@@ -28,22 +28,27 @@ public class KojakPepXMLReader {
 	public static KojakPepXMLReader getInstance() { return _INSTANCE; }
 	private KojakPepXMLReader() { }
 
-	public Map<KojakReportedPeptide, Collection<KojakPSMResult>> getResultsFromAnalysis(KojakAnalysis kojakAnalysis) throws Exception {
+	public KojakResults getResultsFromAnalysis(KojakAnalysis kojakAnalysis) throws Exception {
 
 		Map<KojakReportedPeptide, Collection<KojakPSMResult>> results = new HashMap<>();
+		String kojakVersion = null;
 
 		for (File pepXMLFile : kojakAnalysis.getPepXMLFiles()) {
-			results.putAll(getResultsForPepXMLFile(pepXMLFile, kojakAnalysis));
+
+			MsmsPipelineAnalysis analysis = getJaxbRootForPepXMLFile( pepXMLFile );
+			if( kojakVersion == null ) {
+				kojakVersion = PepXMLUtils.getKojakVersionFromXML( analysis );
+			}
+
+			results.putAll(getResultsForPepXMLFile(analysis, kojakAnalysis));
 		}
 
-		return results;
+		return new KojakResults( kojakVersion, results );
 	}
 
-	private Map<KojakReportedPeptide, Collection<KojakPSMResult>> getResultsForPepXMLFile( File pepXMLFile, KojakAnalysis kojakAnalysis) throws Exception {
+	private Map<KojakReportedPeptide, Collection<KojakPSMResult>> getResultsForPepXMLFile( MsmsPipelineAnalysis analysis, KojakAnalysis kojakAnalysis) throws Exception {
 
 		Map<KojakReportedPeptide, Collection<KojakPSMResult>> results = new HashMap<>();
-
-		MsmsPipelineAnalysis analysis = getJaxbRootForPepXMLFile( pepXMLFile );
 
 		for( MsmsRunSummary runSummary : analysis.getMsmsRunSummary() ) {
 

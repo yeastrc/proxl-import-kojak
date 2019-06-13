@@ -18,13 +18,10 @@
 
 package org.yeastrc.proxl.xml.kojak.main;
 
+import org.yeastrc.proxl.xml.kojak.builder.XMLBuilder;
 import org.yeastrc.proxl.xml.kojak.objects.ConversionParameters;
-import org.yeastrc.proxl.xml.kojak.objects.KojakPSMResult;
-import org.yeastrc.proxl.xml.kojak.objects.KojakReportedPeptide;
+import org.yeastrc.proxl.xml.kojak.objects.KojakResults;
 import org.yeastrc.proxl.xml.kojak.reader.KojakPepXMLReader;
-
-import java.util.Collection;
-import java.util.Map;
 
 public class ConverterRunner {
 
@@ -33,15 +30,13 @@ public class ConverterRunner {
     public void runConversion(ConversionParameters conversionParameters ) throws Throwable {
 
         System.err.print( "Reading pepXML data into memory..." );
-        Map<KojakReportedPeptide, Collection<KojakPSMResult>> kojakResuls = KojakPepXMLReader.getInstance().getResultsFromAnalysis( conversionParameters.getKojakAnalysis() );
+        KojakResults kojakResuls = KojakPepXMLReader.getInstance().getResultsFromAnalysis( conversionParameters.getKojakAnalysis() );
         System.err.println( " Done." );
-
-        /*
 
         System.err.print( "Writing out XML..." );
-        (new XMLBuilder()).buildAndSaveXML( conversionParameters, tppResults, cometParams, ppErrorAnalysis, ipErrorAnalysis );
+        (new XMLBuilder()).buildAndSaveXML( conversionParameters, kojakResuls );
         System.err.println( " Done." );
-        */
+
 
     }
 

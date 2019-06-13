@@ -26,6 +26,10 @@ public class KojakAnalysis {
         return fastaFile;
     }
 
+    public KojakConfReader getKojakConfReader() {
+        return kojakConfReader;
+    }
+
     private File[] pepXMLFiles;
     private File[] kojakConfFiles;
     private File fastaFile;

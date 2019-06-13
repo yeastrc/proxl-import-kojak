@@ -23,6 +23,26 @@ public class KojakConfReader {
 		this.readFileIntoCache();
 	}
 
+	public String getDecoyFilter() throws Exception {
+
+		if( this.decoyFilter == null ) {
+
+			for (String line : this.configFileLines) {
+
+				if (line.startsWith("decoy_filter")) {
+					String[] fields = line.split("\\s+");
+					if (fields.length != 3) {
+						throw new Exception("Did not get three fields on decoy filter line. Got: " + line);
+					}
+
+					this.decoyFilter = fields[ 2 ];
+				}
+			}
+		}
+
+		return this.decoyFilter;
+	}
+
 	public Map<String, BigDecimal> getStaticMods() throws Exception {
 
 		if( this.staticMods == null ) {
@@ -30,10 +50,10 @@ public class KojakConfReader {
 
 			for (String line : this.configFileLines) {
 
-				if (line.startsWith("fixed_modification")) {
+				if (line.startsWith("fixed_modification") && !line.startsWith( "fixed_modification_protN" ) && !line.startsWith( "fixed_modification_protC" )) {
 					String[] fields = line.split("\\s+");
 					if (fields.length != 4) {
-						throw new Exception("Did not get three fields on static mod line. Got: " + line);
+						throw new Exception("Did not get four fields on static mod line. Got: " + line);
 					}
 
 					staticMods.put(fields[2], new BigDecimal(fields[3]));
@@ -70,12 +90,14 @@ public class KojakConfReader {
 
 	private KojakCrosslinker getCrosslinkerForFields( String[] fields ) {
 
+		System.err.println( Arrays.toString( fields ) );
+
 		LinkableEnd linkableEnd1 = getLinkableEnd( fields[ 2 ] );
 		LinkableEnd linkableEnd2 = getLinkableEnd( fields[ 3 ] );
 
 		LinkableEnds linkableEnds = new LinkableEnds( linkableEnd1, linkableEnd2 );
-		BigDecimal linkerModMass = new BigDecimal( fields[ 5 ] );
-		String linkerName = fields[ 6 ];
+		BigDecimal linkerModMass = new BigDecimal( fields[ 4 ] );
+		String linkerName = fields[ 5 ];
 
 		return new KojakCrosslinker( linkerName, linkerModMass, linkableEnds );
 	}
@@ -123,4 +145,5 @@ public class KojakConfReader {
 	private List<String> configFileLines;
 	private Map<String, BigDecimal> staticMods;
 	private Collection<KojakCrosslinker> crossLinkers;
+	private String decoyFilter;
 }

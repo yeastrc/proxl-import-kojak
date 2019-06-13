@@ -15,6 +15,10 @@ public class LinkableEnds {
         this.linkableEnds = Collections.unmodifiableList( tmpList );
     }
 
+    public List<LinkableEnd> getLinkableEnds() {
+        return linkableEnds;
+    }
+
     private List linkableEnds;
 
 }
