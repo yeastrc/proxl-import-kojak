@@ -5,14 +5,19 @@ import java.util.Map;
 
 public class KojakConstants {
 
-	public static final String NAME_KOJAK_SCORE = "kojak_score";
-	public static final String NAME_DELTA_SCORE = "delta_score";
-	public static final String NAME_PPM_ERROR = "ppm_error";
-	public static final String NAME_EVALUE = "e-value";
-	public static final String NAME_ION_MATCH = "ion_match";
-	public static final String NAME_CONSECUTIVE_ION_MATCH = "consecutive_ion_match";
-	
-	
+	public static final String PSM_SCORE_NAME_KOJAK_SCORE = "kojak_score";
+	public static final String PSM_SCORE_NAME_DELTA_SCORE = "delta_score";
+	public static final String PSM_SCORE_NAME_PPM_ERROR = "ppm_error";
+	public static final String PSM_SCORE_NAME_EVALUE = "e-value";
+	public static final String PSM_SCORE_NAME_ION_MATCH = "ion_match";
+	public static final String PSM_SCORE_NAME_CONSECUTIVE_ION_MATCH = "consecutive_ion_match";
+
+	public static final String PSM_PER_PEPTIDE_SCORE_NAME_SCORE = "score";
+	public static final String PSM_PER_PEPTIDE_SCORE_NAME_RANK = "rank";
+	public static final String PSM_PER_PEPTIDE_SCORE_NAME_EVALUE = "e-value";
+	public static final String PSM_PER_PEPTIDE_SCORE_NAME_ION_MATCH = "ion_match";
+	public static final String PSM_PER_PEPTIDE_SCORE_NAME_CONSECUTIVE_ION_MATCH = "consecutive_ion_match";
+
 	/**
 	 * A map of amino acid single letter codes to masses used by Kojak, as found in
 	 * https://github.com/mhoopmann/kojak/blob/master/KIons.cpp

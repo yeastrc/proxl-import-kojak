@@ -11,6 +11,7 @@ public class KojakPeptideBuilder {
     private BigDecimal cTerminalMod;
     private Integer position1;
     private Integer position2;
+    private String n15Label;
 
     public KojakPeptideBuilder setSequence(String sequence) {
         this.sequence = sequence;
@@ -42,7 +43,12 @@ public class KojakPeptideBuilder {
         return this;
     }
 
+    public KojakPeptideBuilder setN15Label(String n15Label) {
+        this.n15Label = n15Label;
+        return this;
+    }
+
     public KojakPeptide createKojakPeptide() {
-        return new KojakPeptide(sequence, modifications, nTerminalMod, cTerminalMod, position1, position2);
+        return new KojakPeptide(sequence, modifications, nTerminalMod, cTerminalMod, position1, position2, n15Label);
     }
 }

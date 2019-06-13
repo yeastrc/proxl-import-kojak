@@ -20,27 +20,27 @@ public class KojakPerPeptidePSM {
         this.linkedPeptide = linkedPeptide;
     }
 
-    public void setKojakScore(BigDecimal kojakScore) {
-        this.kojakScore = kojakScore;
+    public BigDecimal getKojakScore() {
+        return kojakScore;
     }
 
-    public void setRank(int rank) {
-        this.rank = rank;
+    public int getRank() {
+        return rank;
     }
 
-    public void setEvalue(BigDecimal evalue) {
-        this.evalue = evalue;
+    public BigDecimal getEvalue() {
+        return evalue;
     }
 
-    public void setIonMatch(int ionMatch) {
-        this.ionMatch = ionMatch;
+    public int getIonMatch() {
+        return ionMatch;
     }
 
-    public void setConsecutiveIonMatch(int consecutiveIonMatch) {
-        this.consecutiveIonMatch = consecutiveIonMatch;
+    public int getConsecutiveIonMatch() {
+        return consecutiveIonMatch;
     }
 
-    public void setLinkedPeptide(KojakPeptide linkedPeptide) {
-        this.linkedPeptide = linkedPeptide;
+    public KojakPeptide getLinkedPeptide() {
+        return linkedPeptide;
     }
 }

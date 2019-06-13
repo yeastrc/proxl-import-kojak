@@ -21,7 +21,7 @@ package org.yeastrc.proxl.xml.kojak.main;
 import org.yeastrc.proxl.xml.kojak.objects.ConversionParameters;
 import org.yeastrc.proxl.xml.kojak.objects.KojakPSMResult;
 import org.yeastrc.proxl.xml.kojak.objects.KojakReportedPeptide;
-import org.yeastrc.proxl.xml.kojak.reader.KojakResultsParser;
+import org.yeastrc.proxl.xml.kojak.reader.KojakPepXMLReader;
 
 import java.util.Collection;
 import java.util.Map;
@@ -33,7 +33,7 @@ public class ConverterRunner {
     public void runConversion(ConversionParameters conversionParameters ) throws Throwable {
 
         System.err.print( "Reading pepXML data into memory..." );
-        Map<KojakReportedPeptide, Collection<KojakPSMResult>> kojakResuls = KojakResultsParser.getInstance().getResultsFromAnalysis( conversionParameters.getKojakAnalysis() );
+        Map<KojakReportedPeptide, Collection<KojakPSMResult>> kojakResuls = KojakPepXMLReader.getInstance().getResultsFromAnalysis( conversionParameters.getKojakAnalysis() );
         System.err.println( " Done." );
 
         /*

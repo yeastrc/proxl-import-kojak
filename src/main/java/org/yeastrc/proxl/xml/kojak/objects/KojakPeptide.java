@@ -16,12 +16,13 @@ public class KojakPeptide {
                 Objects.equals(modifications, that.modifications) &&
                 Objects.equals(nTerminalMod, that.nTerminalMod) &&
                 Objects.equals(cTerminalMod, that.cTerminalMod) &&
-                Objects.equals(linkedPositions, that.linkedPositions);
+                Objects.equals(linkedPositions, that.linkedPositions) &&
+                Objects.equals(n15Label, that.n15Label);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sequence, modifications, nTerminalMod, cTerminalMod, linkedPositions);
+        return Objects.hash(sequence, modifications, nTerminalMod, cTerminalMod, linkedPositions, n15Label);
     }
 
     /**
@@ -68,6 +69,10 @@ public class KojakPeptide {
             str = str + "c[" + this.getcTerminalMod().setScale( 2, BigDecimal.ROUND_HALF_UP ).toString() +"]";
         }
 
+        if( this.getN15Label() != null ) {
+            str = str + "-" + this.getN15Label();
+        }
+
         if( this.getLinkedPositions() != null ) {
             str += "(" + String.join( ",", this.getLinkedPositions() + ")" );
         }
@@ -96,17 +101,23 @@ public class KojakPeptide {
         return linkedPositions;
     }
 
+    public String getN15Label() {
+        return n15Label;
+    }
+
     private String sequence;
     private Map<Integer, Collection<BigDecimal>> modifications;
     private BigDecimal nTerminalMod;
     private BigDecimal cTerminalMod;
     private List<Integer> linkedPositions;
+    private String n15Label;
 
-    public KojakPeptide(String sequence, Map<Integer, Collection<BigDecimal>> modifications, BigDecimal nTerminalMod, BigDecimal cTerminalMod, Integer position1, Integer position2 ) {
+    public KojakPeptide(String sequence, Map<Integer, Collection<BigDecimal>> modifications, BigDecimal nTerminalMod, BigDecimal cTerminalMod, Integer position1, Integer position2, String n15Label ) {
         this.sequence = sequence;
         this.modifications = modifications;
         this.nTerminalMod = nTerminalMod;
         this.cTerminalMod = cTerminalMod;
+        this.n15Label = n15Label;
 
         if( position1 != null && position2 != null ) {
             this.linkedPositions = new ArrayList<>( 2 );

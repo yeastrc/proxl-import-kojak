@@ -38,4 +38,22 @@ public class PepXMLRunSummaryUtils {
         return null;
     }
 
+    public static String get15NPrefix(MsmsPipelineAnalysis.MsmsRunSummary runSummary ) throws Exception {
+
+        MsmsPipelineAnalysis.MsmsRunSummary.SearchSummary searchSummary = runSummary.getSearchSummary().get( 0 );
+
+        for(NameValueType nvt : searchSummary.getParameter()) {
+
+            if( nvt.getName().equals( "15N_filter" ) ) {
+
+                if( nvt.getValueAttribute() != null && !nvt.getValueAttribute().equals( "" ) ) {
+                    return nvt.getValueAttribute();
+                }
+            }
+        }
+
+        // what we return if no decoy_filter could be found
+        return null;
+    }
+
 }
