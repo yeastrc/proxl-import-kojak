@@ -23,6 +23,27 @@ public class KojakConfReader {
 		this.readFileIntoCache();
 	}
 
+	public Map<String, BigDecimal> getStaticMods() throws Exception {
+
+		if( this.staticMods == null ) {
+			Map staticMods = new HashMap<>();
+
+			for (String line : this.configFileLines) {
+
+				if (line.startsWith("fixed_modification")) {
+					String[] fields = line.split("\\s+");
+					if (fields.length != 4) {
+						throw new Exception("Did not get three fields on static mod line. Got: " + line);
+					}
+
+					staticMods.put(fields[2], new BigDecimal(fields[3]));
+				}
+			}
+			this.staticMods = Collections.unmodifiableMap( staticMods );
+		}
+
+		return this.staticMods;
+	}
 
 	public Collection<KojakCrosslinker> getCrosslinkers() throws Exception {
 
@@ -80,28 +101,6 @@ public class KojakConfReader {
 		return new LinkableEnd( Collections.unmodifiableCollection( residues ), nterm, cterm );
 	}
 
-	public Map<String, BigDecimal> getStaticMods() throws Exception {
-
-		if( this.staticMods == null ) {
-			Map staticMods = new HashMap<>();
-
-			for (String line : this.configFileLines) {
-
-				if (line.startsWith("fixed_modification")) {
-					String[] fields = line.split("\\s+");
-					if (fields.length != 4) {
-						throw new Exception("Did not get three fields on static mod line. Got: " + line);
-					}
-
-					staticMods.put(fields[2], new BigDecimal(fields[3]));
-				}
-			}
-			this.staticMods = Collections.unmodifiableMap( staticMods );
-		}
-
-		return this.staticMods;
-	}
-
 
 	private void readFileIntoCache() throws IOException {
 
@@ -114,6 +113,8 @@ public class KojakConfReader {
 
 				line = line.replaceAll( "#.*", "" );	// strip out comments
 				this.configFileLines.add( line );
+
+				line = br.readLine();
 			}
 		}
 	}

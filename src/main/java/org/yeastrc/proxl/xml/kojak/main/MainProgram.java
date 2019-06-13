@@ -128,8 +128,10 @@ public class MainProgram implements Runnable {
 
     private void warnFileExists( File file, String descriptiveName ) {
 
-        System.err.println( "WARNING: " + descriptiveName + " already exists: " + file.getAbsolutePath() +
-                " Will overwrite." );
+        if( file.exists() ) {
+            System.err.println("WARNING: " + descriptiveName + " already exists: " + file.getAbsolutePath() +
+                    " Will overwrite.");
+        }
     }
 
     /**
