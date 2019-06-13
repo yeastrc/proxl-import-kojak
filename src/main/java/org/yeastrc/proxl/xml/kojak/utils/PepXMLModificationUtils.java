@@ -46,10 +46,11 @@ public class PepXMLModificationUtils {
 
     public static BigDecimal getNTerminalModMassDiff( ModInfoDataType modInfo, Collection<PepXMLModDefinition> dynamicMods ) {
 
+        if( modInfo == null ) { return null; }
         if( dynamicMods.size() < 0 ) { return null; }
         if( modInfo.getModNtermMass() == null ) { return null; }
 
-        BigDecimal nTerminalModMass = BigDecimal.valueOf( modInfo.getModNtermMass() );
+        BigDecimal nTerminalModMass = BigDecimal.valueOf( modInfo.getModNtermMass() ).stripTrailingZeros();
         if( nTerminalModMass == null ) { return null; }
 
 
@@ -65,10 +66,11 @@ public class PepXMLModificationUtils {
 
     public static BigDecimal getCTerminalModMassDiff( ModInfoDataType modInfo, Collection<PepXMLModDefinition> dynamicMods ) {
 
+        if( modInfo == null ) { return null; }
         if( dynamicMods.size() < 0 ) { return null; }
         if( modInfo.getModCtermMass() == null ) { return null; }
 
-        BigDecimal cTerminalModMass = BigDecimal.valueOf( modInfo.getModCtermMass() );
+        BigDecimal cTerminalModMass = BigDecimal.valueOf( modInfo.getModCtermMass() ).stripTrailingZeros();
         if( cTerminalModMass == null ) { return null; }
 
 
@@ -99,8 +101,8 @@ public class PepXMLModificationUtils {
 
             if( aminoAcidModification.getVariable().equals( "Y" ) ) {
 
-                BigDecimal massdiff = aminoAcidModification.getMassdiff();
-                BigDecimal totalmass = aminoAcidModification.getMass();
+                BigDecimal massdiff = aminoAcidModification.getMassdiff().stripTrailingZeros();
+                BigDecimal totalmass = aminoAcidModification.getMass().stripTrailingZeros();
                 String residue = aminoAcidModification.getAminoacid();
 
                 mods.add( new PepXMLModDefinition( massdiff, totalmass, residue ) );
@@ -126,8 +128,8 @@ public class PepXMLModificationUtils {
 
             if( aminoAcidModification.getVariable().equals( "N" ) ) {
 
-                BigDecimal massdiff = aminoAcidModification.getMassdiff();
-                BigDecimal totalmass = aminoAcidModification.getMass();
+                BigDecimal massdiff = aminoAcidModification.getMassdiff().stripTrailingZeros();
+                BigDecimal totalmass = aminoAcidModification.getMass().stripTrailingZeros();
                 String residue = aminoAcidModification.getAminoacid();
 
                 mods.add( new PepXMLModDefinition( massdiff, totalmass, residue ) );
@@ -146,8 +148,8 @@ public class PepXMLModificationUtils {
 
             if( terminalModification.getVariable().equals( "Y" ) && terminalModification.getTerminus().equals( "n" ) ) {
 
-                BigDecimal massdiff = terminalModification.getMassdiff();
-                BigDecimal totalmass = terminalModification.getMass();
+                BigDecimal massdiff = terminalModification.getMassdiff().stripTrailingZeros();
+                BigDecimal totalmass = terminalModification.getMass().stripTrailingZeros();
                 String residue = "n";
 
                 mods.add( new PepXMLModDefinition( massdiff, totalmass, residue ) );
@@ -166,8 +168,8 @@ public class PepXMLModificationUtils {
 
             if( terminalModification.getVariable().equals( "Y" ) && terminalModification.getTerminus().equals( "c" ) ) {
 
-                BigDecimal massdiff = terminalModification.getMassdiff();
-                BigDecimal totalmass = terminalModification.getMass();
+                BigDecimal massdiff = terminalModification.getMassdiff().stripTrailingZeros();
+                BigDecimal totalmass = terminalModification.getMass().stripTrailingZeros();
                 String residue = "c";
 
                 mods.add( new PepXMLModDefinition( massdiff, totalmass, residue ) );
@@ -194,7 +196,7 @@ public class PepXMLModificationUtils {
 
         int position = pepXMLReportedMod.getPosition().intValueExact();
         String testResidue = peptideSequence.substring( position - 1, position );
-        BigDecimal testMass = BigDecimal.valueOf( pepXMLReportedMod.getMass() );
+        BigDecimal testMass = BigDecimal.valueOf( pepXMLReportedMod.getMass() ).stripTrailingZeros();
 
         for( PepXMLModDefinition modDefinition : modDefinitions ) {
 

@@ -41,5 +41,14 @@ public class PepXMLModDefinition {
         this.totalMass = totalMass;
         this.residue = residue;
     }
+
+    @Override
+    public String toString() {
+        return "PepXMLModDefinition{" +
+                "massDiff=" + massDiff +
+                ", totalMass=" + totalMass +
+                ", residue='" + residue + '\'' +
+                '}';
+    }
 }
 

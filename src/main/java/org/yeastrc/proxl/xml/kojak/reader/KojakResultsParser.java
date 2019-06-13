@@ -12,10 +12,7 @@ import net.systemsbiology.regis_web.pepxml.NameValueType;
 import org.yeastrc.proxl.xml.kojak.constants.ConverterConstants;
 import org.yeastrc.proxl.xml.kojak.constants.KojakConstants;
 import org.yeastrc.proxl.xml.kojak.objects.*;
-import org.yeastrc.proxl.xml.kojak.utils.PepXMLDecoyUtils;
-import org.yeastrc.proxl.xml.kojak.utils.PepXMLModificationUtils;
-import org.yeastrc.proxl.xml.kojak.utils.PepXMLRunSummaryUtils;
-import org.yeastrc.proxl.xml.kojak.utils.PepXMLUtils;
+import org.yeastrc.proxl.xml.kojak.utils.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -63,23 +60,34 @@ public class KojakResultsParser {
 				for( SearchResult searchResult : spectrumQuery.getSearchResult() ) {
 					for( SearchHit searchHit : searchResult.getSearchHit() ) {
 
-						// only one interprophet result will appear for a search hit, and we are only
-						// interested in search hits with an interprophet result.
+						try {
+							// only one interprophet result will appear for a search hit, and we are only
+							// interested in search hits with an interprophet result.
 
-						// skip this if it's a decoy
-						if( PepXMLDecoyUtils.isDecoy( decoyFilter, searchHit) )
-							continue;
+							// skip this if it's a decoy
+							if (PepXMLDecoyUtils.isDecoy(decoyFilter, searchHit))
+								continue;
 
-						// get our result
-						KojakPSMResult result = getResult( runSummary, spectrumQuery, searchHit, spectralFile );
+							// get our result
+							KojakPSMResult result = getResult(runSummary, spectrumQuery, searchHit, spectralFile);
 
-						// get our reported peptide
-						KojakReportedPeptide reportedPeptide = getReportedPeptide( searchHit, dynamicMods, staticMods );
+							// get our reported peptide
+							KojakReportedPeptide reportedPeptide = getReportedPeptide(searchHit, dynamicMods, staticMods);
 
-						if( !results.containsKey( reportedPeptide ) )
-							results.put( reportedPeptide, new ArrayList<>() );
+							if (!results.containsKey(reportedPeptide))
+								results.put(reportedPeptide, new ArrayList<>());
 
-						results.get( reportedPeptide ).add( result );
+							results.get(reportedPeptide).add(result);
+						} catch( Throwable t ) {
+
+							System.err.println( "Got error processing search hit" );
+							System.err.println( "Error message: " + t.getMessage() );
+							System.err.println( "SearchHit (XML):" );
+							System.err.println(PepXMLToStrings.searchHitToString( searchHit ) + "\n" );
+
+							throw t;
+
+						}
 					}
 				}
 			}

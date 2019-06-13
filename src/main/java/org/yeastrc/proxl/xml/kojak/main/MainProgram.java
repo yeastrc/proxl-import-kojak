@@ -100,6 +100,7 @@ public class MainProgram implements Runnable {
 
         } catch( Throwable t ) {
             System.err.println( t.getMessage() );
+            t.printStackTrace();    // for testing
             System.exit( 1 );
         }
 
