@@ -23,6 +23,7 @@ import org.yeastrc.proxl.xml.kojak.constants.ConverterConstants;
 import org.yeastrc.proxl.xml.kojak.objects.*;
 import org.yeastrc.proxl_import.api.xml_dto.*;
 import org.yeastrc.proxl_import.api.xml_dto.SearchProgram.PsmAnnotationTypes;
+import org.yeastrc.proxl_import.api.xml_dto.SearchProgram.PsmPerPeptideAnnotationTypes;
 import org.yeastrc.proxl_import.create_import_file_from_java_objects.main.CreateImportFileFromJavaObjectsMain;
 
 import java.io.File;
@@ -30,9 +31,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public class XMLBuilder {
@@ -80,6 +79,7 @@ public class XMLBuilder {
 		searchProgram.setDisplayName( ConverterConstants.PROGRAM_NAME_KOJAK );
 		searchProgram.setVersion( kojakResults.getKojakVersion() );
 
+		// add psm annotation types
 		{
 			PsmAnnotationTypes psmAnnotationTypes = new PsmAnnotationTypes();
 			searchProgram.setPsmAnnotationTypes( psmAnnotationTypes );
@@ -89,19 +89,43 @@ public class XMLBuilder {
 			filterablePsmAnnotationTypes.getFilterablePsmAnnotationType().addAll( PSMAnnotationTypes.getFilterablePsmAnnotationTypes( ConverterConstants.PROGRAM_NAME_KOJAK, runType ) );
 			
 		}
-		
-		//
 
-		// Define which annotation types are visible by default
-		//
-		DefaultVisibleAnnotations xmlDefaultVisibleAnnotations = new DefaultVisibleAnnotations();
-		searchProgramInfo.setDefaultVisibleAnnotations( xmlDefaultVisibleAnnotations );
-		
-		VisiblePsmAnnotations xmlVisiblePsmAnnotations = new VisiblePsmAnnotations();
-		xmlDefaultVisibleAnnotations.setVisiblePsmAnnotations( xmlVisiblePsmAnnotations );
+		// add psm per-peptide annotation types
+		{
+			PsmPerPeptideAnnotationTypes psmPerPeptideAnnotationTypes = new PsmPerPeptideAnnotationTypes();
+			searchProgram.setPsmPerPeptideAnnotationTypes( psmPerPeptideAnnotationTypes );
 
-		xmlVisiblePsmAnnotations.getSearchAnnotation().addAll( PSMDefaultVisibleAnnotationTypes.getDefaultVisibleAnnotationTypes( runType) );
-		
+			FilterablePsmPerPeptideAnnotationTypes filterablePsmPerPeptideAnnotationTypes = new FilterablePsmPerPeptideAnnotationTypes();
+			psmPerPeptideAnnotationTypes.setFilterablePsmPerPeptideAnnotationTypes( filterablePsmPerPeptideAnnotationTypes );
+			filterablePsmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationType().addAll( PSMPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationTypes( ConverterConstants.PROGRAM_NAME_KOJAK ) );
+
+		}
+
+
+		//
+		// Define which psm annotation types are visible by default
+		//
+		{
+			DefaultVisibleAnnotations xmlDefaultVisibleAnnotations = new DefaultVisibleAnnotations();
+			searchProgramInfo.setDefaultVisibleAnnotations(xmlDefaultVisibleAnnotations);
+			{
+				VisiblePsmAnnotations xmlVisiblePsmAnnotations = new VisiblePsmAnnotations();
+				xmlDefaultVisibleAnnotations.setVisiblePsmAnnotations(xmlVisiblePsmAnnotations);
+
+				xmlVisiblePsmAnnotations.getSearchAnnotation().addAll(PSMDefaultVisibleAnnotationTypes.getDefaultVisibleAnnotationTypes(runType));
+			}
+
+			//
+			// Define which psm per-peptide annotation types are visible by default
+			//
+			{
+				VisiblePsmPerPeptideAnnotations xmlVisiblePsmPerPeptideAnnotations = new VisiblePsmPerPeptideAnnotations();
+				xmlDefaultVisibleAnnotations.setVisiblePsmPerPeptideAnnotations(xmlVisiblePsmPerPeptideAnnotations);
+
+				xmlVisiblePsmPerPeptideAnnotations.getSearchAnnotation().addAll(PSMPerPeptideDefaultVisibleAnnotationTypes.getDefaultVisibleAnnotationTypes());
+			}
+		}
+
 		//
 		// Define the linker information
 		//

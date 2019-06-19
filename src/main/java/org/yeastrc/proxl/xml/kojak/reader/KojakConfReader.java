@@ -90,8 +90,6 @@ public class KojakConfReader {
 
 	private KojakCrosslinker getCrosslinkerForFields( String[] fields ) {
 
-		System.err.println( Arrays.toString( fields ) );
-
 		LinkableEnd linkableEnd1 = getLinkableEnd( fields[ 2 ] );
 		LinkableEnd linkableEnd2 = getLinkableEnd( fields[ 3 ] );
 

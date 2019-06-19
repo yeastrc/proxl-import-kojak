@@ -12,7 +12,7 @@ public class PSMPerPeptideDefaultVisibleAnnotationTypes {
 	 * Get the default visibile annotation types for iProphet data
 	 * @return
 	 */
-	public static List<SearchAnnotation> getDefaultVisibleAnnotationTypes( int RUN_TYPE) {
+	public static List<SearchAnnotation> getDefaultVisibleAnnotationTypes() {
 		List<SearchAnnotation> annotations = new ArrayList<SearchAnnotation>();
 		
 			{
