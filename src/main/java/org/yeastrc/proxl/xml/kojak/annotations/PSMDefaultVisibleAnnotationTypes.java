@@ -14,28 +14,29 @@ public class PSMDefaultVisibleAnnotationTypes {
 	 */
 	public static List<SearchAnnotation> getDefaultVisibleAnnotationTypes( int RUN_TYPE) {
 		List<SearchAnnotation> annotations = new ArrayList<SearchAnnotation>();
-		
-		if( RUN_TYPE == ConverterConstants.RUN_TYPE_KOJAK_ONLY ) {
+
 			{
 				SearchAnnotation annotation = new SearchAnnotation();
 				annotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_EVALUE);
 				annotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
 				annotations.add(annotation);
 			}
-			{
-				SearchAnnotation annotation = new SearchAnnotation();
-				annotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_SCORE);
-				annotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
-				annotations.add(annotation);
+
+			if( RUN_TYPE == ConverterConstants.RUN_TYPE_KOJAK_ONLY ) {
+				{
+					SearchAnnotation annotation = new SearchAnnotation();
+					annotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_SCORE);
+					annotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+					annotations.add(annotation);
+				}
+				{
+					SearchAnnotation annotation = new SearchAnnotation();
+					annotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_DELTA_SCORE);
+					annotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+					annotations.add(annotation);
+				}
 			}
-			{
-				SearchAnnotation annotation = new SearchAnnotation();
-				annotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_DELTA_SCORE);
-				annotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
-				annotations.add(annotation);
-			}
-		}
-		
+
 		return annotations;
 	}
 	

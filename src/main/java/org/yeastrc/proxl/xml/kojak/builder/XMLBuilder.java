@@ -37,16 +37,12 @@ import java.util.Map;
 public class XMLBuilder {
 
 	public void buildAndSaveXML( ConversionParameters conversionParameters,
-								 KojakResults kojakResults
+								 KojakResults kojakResults,
+								 int runType
 			                    ) throws Exception {
 
 
 		Object percolatorResults = null;
-		int runType = ConverterConstants.RUN_TYPE_KOJAK_ONLY;
-		if( percolatorResults != null ) {
-			runType = ConverterConstants.RUN_TYPE_KOJAK_PERCOLATOR;
-		}
-
 
 		KojakAnalysis analysis = conversionParameters.getKojakAnalysis();
 
@@ -97,7 +93,7 @@ public class XMLBuilder {
 
 			FilterablePsmPerPeptideAnnotationTypes filterablePsmPerPeptideAnnotationTypes = new FilterablePsmPerPeptideAnnotationTypes();
 			psmPerPeptideAnnotationTypes.setFilterablePsmPerPeptideAnnotationTypes( filterablePsmPerPeptideAnnotationTypes );
-			filterablePsmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationType().addAll( PSMPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationTypes( ConverterConstants.PROGRAM_NAME_KOJAK ) );
+			filterablePsmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationType().addAll( PSMPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationTypes( ConverterConstants.PROGRAM_NAME_KOJAK, runType ) );
 
 		}
 
@@ -122,7 +118,7 @@ public class XMLBuilder {
 				VisiblePsmPerPeptideAnnotations xmlVisiblePsmPerPeptideAnnotations = new VisiblePsmPerPeptideAnnotations();
 				xmlDefaultVisibleAnnotations.setVisiblePsmPerPeptideAnnotations(xmlVisiblePsmPerPeptideAnnotations);
 
-				xmlVisiblePsmPerPeptideAnnotations.getSearchAnnotation().addAll(PSMPerPeptideDefaultVisibleAnnotationTypes.getDefaultVisibleAnnotationTypes());
+				xmlVisiblePsmPerPeptideAnnotations.getSearchAnnotation().addAll(PSMPerPeptideDefaultVisibleAnnotationTypes.getDefaultVisibleAnnotationTypes( runType ));
 			}
 		}
 
@@ -252,18 +248,18 @@ public class XMLBuilder {
 				Modifications xmlModifications = new Modifications();
 				xmlPeptide.setModifications( xmlModifications );
 
-				if( kojakPeptide.getModifications() != null ) {
+				if( kojakPeptide.getDynamicModifications() != null ) {
 
-					for( int position : kojakPeptide.getModifications().keySet() ) {
+					for( int position : kojakPeptide.getDynamicModifications().keySet() ) {
 
-						for( BigDecimal mass : kojakPeptide.getModifications().get( position ) ) {
+						for( KojakDynamicMod kojakDynamicMod : kojakPeptide.getDynamicModifications().get( position ) ) {
 
 							Modification xmlModification = new Modification();
 							xmlModifications.getModification().add( xmlModification );
 
-							xmlModification.setMass( mass );
+							xmlModification.setMass( kojakDynamicMod.getMassDiff() );
 							xmlModification.setPosition( new BigInteger( String.valueOf( position ) ) );
-							//xmlModification.setIsMonolink( ModUtils.isDeadEndMod( modMass.doubleValue(), analysis.getLinker() ) );
+							xmlModification.setIsMonolink( kojakDynamicMod.isMonolink() );
 
 						}
 					}
@@ -274,9 +270,9 @@ public class XMLBuilder {
 					Modification xmlModification = new Modification();
 					xmlModifications.getModification().add( xmlModification );
 
-					xmlModification.setMass( kojakPeptide.getnTerminalMod() );
+					xmlModification.setMass( kojakPeptide.getnTerminalMod().getMassDiff() );
 					xmlModification.setIsNTerminal( true );
-					//xmlModification.setIsMonolink( ModUtils.isDeadEndMod( modMass.doubleValue(), analysis.getLinker() ) );
+					xmlModification.setIsMonolink( kojakPeptide.getnTerminalMod().isMonolink() );
 				}
 
 				// add c-terminal mod
@@ -284,9 +280,9 @@ public class XMLBuilder {
 					Modification xmlModification = new Modification();
 					xmlModifications.getModification().add( xmlModification );
 
-					xmlModification.setMass( kojakPeptide.getcTerminalMod() );
+					xmlModification.setMass( kojakPeptide.getcTerminalMod().getMassDiff() );
 					xmlModification.setIsCTerminal( true );
-					//xmlModification.setIsMonolink( ModUtils.isDeadEndMod( modMass.doubleValue(), analysis.getLinker() ) );
+					xmlModification.setIsMonolink( kojakPeptide.getcTerminalMod().isMonolink());
 				}
 
 				// add in the linked position(s) in this peptide

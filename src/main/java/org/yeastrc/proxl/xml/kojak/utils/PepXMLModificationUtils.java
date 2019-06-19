@@ -2,9 +2,12 @@ package org.yeastrc.proxl.xml.kojak.utils;
 
 import net.systemsbiology.regis_web.pepxml.ModInfoDataType;
 import net.systemsbiology.regis_web.pepxml.MsmsPipelineAnalysis;
+import net.systemsbiology.regis_web.pepxml.NameValueType;
+import org.yeastrc.proxl.xml.kojak.objects.KojakDynamicMod;
 import org.yeastrc.proxl.xml.kojak.objects.PepXMLModDefinition;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,9 +15,21 @@ import java.util.Map;
 
 public class PepXMLModificationUtils {
 
-    public static Map<Integer, Collection<BigDecimal>> getDynamicModMapForModInfoDataType(ModInfoDataType modInfo, String peptideSequence, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods  ) throws Exception {
+    public static boolean isMonolink( BigDecimal massDiff, String residue, Collection<PepXMLModDefinition> monolinkMods ) {
 
-        Map<Integer, Collection<BigDecimal>> mods = new HashMap<>();
+        for( PepXMLModDefinition pxd : monolinkMods ) {
+
+            if( pxd.getMassDiff().equals( massDiff ) && pxd.getResidue().equals( residue ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static Map<Integer, Collection<KojakDynamicMod>> getDynamicModMapForModInfoDataType(ModInfoDataType modInfo, String peptideSequence, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods, Collection<PepXMLModDefinition> monolinkMods  ) throws Exception {
+
+        Map<Integer, Collection<KojakDynamicMod>> mods = new HashMap<>();
 
         if( modInfo!= null && modInfo.getModAminoacidMass() != null && modInfo.getModAminoacidMass().size() > 0 ) {
 
@@ -24,11 +39,12 @@ public class PepXMLModificationUtils {
                 if (massDiff != null) {
 
                     int position = mam.getPosition().intValueExact();
+                    String residue = peptideSequence.substring( position - 1, position );
 
                     if (!mods.containsKey(position))
                         mods.put(position, new HashSet<>());
 
-                    mods.get(position).add(massDiff);
+                    mods.get(position).add( new KojakDynamicMod( massDiff, isMonolink( massDiff, residue, monolinkMods ) ) );
 
                 } else {
 
@@ -44,7 +60,7 @@ public class PepXMLModificationUtils {
         return mods;
     }
 
-    public static BigDecimal getNTerminalModMassDiff( ModInfoDataType modInfo, Collection<PepXMLModDefinition> dynamicMods ) {
+    public static KojakDynamicMod getNTerminalDynamicMod(ModInfoDataType modInfo, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> monolinkMods ) {
 
         if( modInfo == null ) { return null; }
         if( dynamicMods.size() < 0 ) { return null; }
@@ -56,7 +72,10 @@ public class PepXMLModificationUtils {
 
         for( PepXMLModDefinition modDefinition : dynamicMods ) {
             if( modDefinition.getResidue().equals( "n" ) && modDefinition.getTotalMass().equals( nTerminalModMass ) ) {
-                return modDefinition.getMassDiff();
+
+                BigDecimal massDiff = modDefinition.getMassDiff();
+
+                return new KojakDynamicMod( massDiff, isMonolink( massDiff, "n", monolinkMods ) );
             }
         }
 
@@ -64,7 +83,7 @@ public class PepXMLModificationUtils {
     }
 
 
-    public static BigDecimal getCTerminalModMassDiff( ModInfoDataType modInfo, Collection<PepXMLModDefinition> dynamicMods ) {
+    public static KojakDynamicMod getCTerminalDynamicMod(ModInfoDataType modInfo, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> monolinkMods ) {
 
         if( modInfo == null ) { return null; }
         if( dynamicMods.size() < 0 ) { return null; }
@@ -76,7 +95,10 @@ public class PepXMLModificationUtils {
 
         for( PepXMLModDefinition modDefinition : dynamicMods ) {
             if( modDefinition.getResidue().equals( "c" ) && modDefinition.getTotalMass().equals( cTerminalModMass ) ) {
-                return modDefinition.getMassDiff();
+
+                BigDecimal massDiff = modDefinition.getMassDiff();
+
+                return new KojakDynamicMod( massDiff, isMonolink( massDiff, "c", monolinkMods ) );
             }
         }
 
@@ -139,6 +161,29 @@ public class PepXMLModificationUtils {
         return mods;
     }
 
+    public static Collection<PepXMLModDefinition> getMonolinkModsForSearch(MsmsPipelineAnalysis.MsmsRunSummary runSummary ) {
+
+        MsmsPipelineAnalysis.MsmsRunSummary.SearchSummary searchSummary = runSummary.getSearchSummary().get( 0 );
+        Collection<PepXMLModDefinition> mods = new HashSet<>();
+
+        for(NameValueType nvt : searchSummary.getParameter() ) {
+            if( nvt.getName().equals( "mono_link" ) ) {
+
+                String[] fields = nvt.getValueAttribute().split( " " );
+                BigDecimal massDiff = new BigDecimal( fields[ 1 ] );
+
+                String residues = fields[0];
+                for (int i = 0; i < residues.length(); i++){
+                    String r = String.valueOf(residues.charAt(i));
+
+                    mods.add( new PepXMLModDefinition( massDiff, null, r ) );
+                }
+            }
+        }
+
+        return mods;
+    }
+
     public static Collection<PepXMLModDefinition> getNTerminalDynamicModsForSearch(MsmsPipelineAnalysis.MsmsRunSummary runSummary ) {
 
         MsmsPipelineAnalysis.MsmsRunSummary.SearchSummary searchSummary = runSummary.getSearchSummary().get( 0 );
@@ -149,10 +194,11 @@ public class PepXMLModificationUtils {
             if( terminalModification.getVariable().equals( "Y" ) && terminalModification.getTerminus().equals( "n" ) ) {
 
                 BigDecimal massdiff = terminalModification.getMassdiff().stripTrailingZeros();
-                BigDecimal totalmass = terminalModification.getMass().stripTrailingZeros();
                 String residue = "n";
 
-                mods.add( new PepXMLModDefinition( massdiff, totalmass, residue ) );
+                // Kojak rounds terminal mods to four decimal places.
+                mods.add( new PepXMLModDefinition( massdiff, terminalModification.getMass().setScale( 4, RoundingMode.HALF_UP ), residue ) );
+                mods.add( new PepXMLModDefinition( massdiff, terminalModification.getMass().stripTrailingZeros(), residue ) );
             }
         }
 
@@ -169,10 +215,12 @@ public class PepXMLModificationUtils {
             if( terminalModification.getVariable().equals( "Y" ) && terminalModification.getTerminus().equals( "c" ) ) {
 
                 BigDecimal massdiff = terminalModification.getMassdiff().stripTrailingZeros();
-                BigDecimal totalmass = terminalModification.getMass().stripTrailingZeros();
                 String residue = "c";
 
-                mods.add( new PepXMLModDefinition( massdiff, totalmass, residue ) );
+                // Kojak rounds terminal mods to four decimal places.
+                mods.add( new PepXMLModDefinition( massdiff, terminalModification.getMass().setScale( 4, RoundingMode.HALF_UP ), residue ) );
+                mods.add( new PepXMLModDefinition( massdiff, terminalModification.getMass().stripTrailingZeros(), residue ) );
+
             }
         }
 

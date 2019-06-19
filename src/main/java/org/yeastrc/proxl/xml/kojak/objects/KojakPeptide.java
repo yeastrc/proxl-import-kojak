@@ -13,7 +13,7 @@ public class KojakPeptide {
         if (o == null || getClass() != o.getClass()) return false;
         KojakPeptide that = (KojakPeptide) o;
         return sequence.equals(that.sequence) &&
-                Objects.equals(modifications, that.modifications) &&
+                Objects.equals(dynamicModifications, that.dynamicModifications) &&
                 Objects.equals(nTerminalMod, that.nTerminalMod) &&
                 Objects.equals(cTerminalMod, that.cTerminalMod) &&
                 Objects.equals(linkedPositions, that.linkedPositions) &&
@@ -22,7 +22,7 @@ public class KojakPeptide {
 
     @Override
     public int hashCode() {
-        return Objects.hash(sequence, modifications, nTerminalMod, cTerminalMod, linkedPositions, n15Label);
+        return Objects.hash(sequence, dynamicModifications, nTerminalMod, cTerminalMod, linkedPositions, n15Label);
     }
 
     /**
@@ -37,12 +37,12 @@ public class KojakPeptide {
             String r = String.valueOf( this.getSequence().charAt( i - 1 ) );
             str += r;
 
-            if( this.getModifications() != null ) {
+            if( this.getDynamicModifications() != null ) {
                 List<String> modsAtPosition = new ArrayList<String>();
 
-                if( this.getModifications().get( i ) != null ) {
-                    for( BigDecimal mod : this.getModifications().get( i ) ) {
-                        modsAtPosition.add( mod.setScale( 2, BigDecimal.ROUND_HALF_UP ).toString() );
+                if( this.getDynamicModifications().get( i ) != null ) {
+                    for( KojakDynamicMod mod : this.getDynamicModifications().get( i ) ) {
+                        modsAtPosition.add( mod.getMassDiff().setScale( 2, BigDecimal.ROUND_HALF_UP ).toString() );
                     }
 
                     if( modsAtPosition.size() > 0 ) {
@@ -62,11 +62,11 @@ public class KojakPeptide {
         }
 
         if( this.getnTerminalMod() != null ) {
-            str = "n[" + this.getnTerminalMod().setScale( 2, BigDecimal.ROUND_HALF_UP ).toString() +"]" + str;
+            str = "n[" + this.getnTerminalMod().getMassDiff().setScale( 2, BigDecimal.ROUND_HALF_UP ).toString() +"]" + str;
         }
 
         if( this.getcTerminalMod() != null ) {
-            str = str + "c[" + this.getcTerminalMod().setScale( 2, BigDecimal.ROUND_HALF_UP ).toString() +"]";
+            str = str + "c[" + this.getcTerminalMod().getMassDiff().setScale( 2, BigDecimal.ROUND_HALF_UP ).toString() +"]";
         }
 
         if( this.getN15Label() != null ) {
@@ -94,15 +94,15 @@ public class KojakPeptide {
         return sequence;
     }
 
-    public Map<Integer, Collection<BigDecimal>> getModifications() {
-        return modifications;
+    public Map<Integer, Collection<KojakDynamicMod>> getDynamicModifications() {
+        return dynamicModifications;
     }
 
-    public BigDecimal getnTerminalMod() {
+    public KojakDynamicMod getnTerminalMod() {
         return nTerminalMod;
     }
 
-    public BigDecimal getcTerminalMod() {
+    public KojakDynamicMod getcTerminalMod() {
         return cTerminalMod;
     }
 
@@ -115,15 +115,15 @@ public class KojakPeptide {
     }
 
     private String sequence;
-    private Map<Integer, Collection<BigDecimal>> modifications;
-    private BigDecimal nTerminalMod;
-    private BigDecimal cTerminalMod;
+    private Map<Integer, Collection<KojakDynamicMod>> dynamicModifications;
+    private KojakDynamicMod nTerminalMod;
+    private KojakDynamicMod cTerminalMod;
     private List<Integer> linkedPositions;
     private String n15Label;
 
-    public KojakPeptide(String sequence, Map<Integer, Collection<BigDecimal>> modifications, BigDecimal nTerminalMod, BigDecimal cTerminalMod, Integer position1, Integer position2, String n15Label ) {
+    public KojakPeptide(String sequence, Map<Integer, Collection<KojakDynamicMod>> dynamicModifications, KojakDynamicMod nTerminalMod, KojakDynamicMod cTerminalMod, Integer position1, Integer position2, String n15Label ) {
         this.sequence = sequence;
-        this.modifications = modifications;
+        this.dynamicModifications = dynamicModifications;
         this.nTerminalMod = nTerminalMod;
         this.cTerminalMod = cTerminalMod;
         this.n15Label = n15Label;

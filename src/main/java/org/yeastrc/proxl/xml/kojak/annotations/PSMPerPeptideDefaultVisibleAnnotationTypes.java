@@ -9,10 +9,10 @@ import java.util.List;
 public class PSMPerPeptideDefaultVisibleAnnotationTypes {
 
 	/**
-	 * Get the default visibile annotation types for iProphet data
+	 * Get the default annotation types for data
 	 * @return
 	 */
-	public static List<SearchAnnotation> getDefaultVisibleAnnotationTypes() {
+	public static List<SearchAnnotation> getDefaultVisibleAnnotationTypes( int RUNTYPE ) {
 		List<SearchAnnotation> annotations = new ArrayList<SearchAnnotation>();
 		
 			{
@@ -21,6 +21,7 @@ public class PSMPerPeptideDefaultVisibleAnnotationTypes {
 				annotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
 				annotations.add(annotation);
 			}
+
 			{
 				SearchAnnotation annotation = new SearchAnnotation();
 				annotation.setAnnotationName(PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_SCORE);

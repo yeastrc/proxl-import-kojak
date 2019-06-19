@@ -21,7 +21,7 @@ public class PepXMLToStrings {
 
         //If we DO NOT have JAXB annotated class
         JAXBElement<SearchHit> jaxbElement =
-                new JAXBElement<>( new QName("", "employee"),
+                new JAXBElement<>( new QName("", "SearchHit"),
                         SearchHit.class,
                         searchHit);
 

@@ -19,6 +19,7 @@
 package org.yeastrc.proxl.xml.kojak.main;
 
 import org.yeastrc.proxl.xml.kojak.builder.XMLBuilder;
+import org.yeastrc.proxl.xml.kojak.constants.ConverterConstants;
 import org.yeastrc.proxl.xml.kojak.objects.ConversionParameters;
 import org.yeastrc.proxl.xml.kojak.objects.KojakResults;
 import org.yeastrc.proxl.xml.kojak.reader.KojakPepXMLReader;
@@ -33,8 +34,10 @@ public class ConverterRunner {
         KojakResults kojakResuls = KojakPepXMLReader.getInstance().getResultsFromAnalysis( conversionParameters.getKojakAnalysis() );
         System.err.println( " Done." );
 
+        int runType = ConverterConstants.RUN_TYPE_KOJAK_ONLY;
+
         System.err.print( "Writing out XML..." );
-        (new XMLBuilder()).buildAndSaveXML( conversionParameters, kojakResuls );
+        (new XMLBuilder()).buildAndSaveXML( conversionParameters, kojakResuls, runType );
         System.err.println( " Done." );
 
 

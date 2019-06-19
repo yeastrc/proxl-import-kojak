@@ -54,36 +54,37 @@ public class PSMAnnotationTypes {
 
 				types.add( type );
 			}
+
 			{
 				FilterablePsmAnnotationType type = new FilterablePsmAnnotationType();
-				type.setName( KOJAK_ANNOTATION_TYPE_EVALUE );
-				type.setDescription( "Computed expect value for this PSM match" );
-				type.setFilterDirection( FilterDirectionType.BELOW );
-				type.setDefaultFilter( false );
+				type.setName(KOJAK_ANNOTATION_TYPE_EVALUE);
+				type.setDescription("Computed expect value for this PSM match");
+				type.setFilterDirection(FilterDirectionType.BELOW);
+				type.setDefaultFilter(false);
 
-				if( RUNTYPE == ConverterConstants.RUN_TYPE_KOJAK_ONLY ) {
-					type.setDefaultFilterValue( new BigDecimal( "0.01" ) );
+				if (RUNTYPE == ConverterConstants.RUN_TYPE_KOJAK_ONLY) {
+					type.setDefaultFilterValue(new BigDecimal("0.01"));
 				}
 
-				types.add( type );
+				types.add(type);
 			}
 			{
 				FilterablePsmAnnotationType type = new FilterablePsmAnnotationType();
-				type.setName( KOJAK_ANNOTATION_TYPE_ION_MATCH );
-				type.setDescription( "Number of fragment ions matched" );
-				type.setFilterDirection( FilterDirectionType.ABOVE );
-				type.setDefaultFilter( false );
+				type.setName(KOJAK_ANNOTATION_TYPE_ION_MATCH);
+				type.setDescription("Number of fragment ions matched");
+				type.setFilterDirection(FilterDirectionType.ABOVE);
+				type.setDefaultFilter(false);
 
-				types.add( type );
+				types.add(type);
 			}
 			{
 				FilterablePsmAnnotationType type = new FilterablePsmAnnotationType();
-				type.setName( KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH );
-				type.setDescription( "Number of consecutive fragment ions matched" );
-				type.setFilterDirection( FilterDirectionType.ABOVE );
-				type.setDefaultFilter( false );
+				type.setName(KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH);
+				type.setDescription("Number of consecutive fragment ions matched");
+				type.setFilterDirection(FilterDirectionType.ABOVE);
+				type.setDefaultFilter(false);
 
-				types.add( type );
+				types.add(type);
 			}
 		}
 		

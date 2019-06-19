@@ -17,9 +17,9 @@ public class PSMAnnotationTypeSortOrder {
 	public static List<SearchAnnotation> getPSMAnnotationTypeSortOrder( int RUNTYPE ) {
 		List<SearchAnnotation> annotations = new ArrayList<SearchAnnotation>();
 
-		if( RUNTYPE == ConverterConstants.RUN_TYPE_KOJAK_ONLY ) {
+		if( RUNTYPE == ConverterConstants.RUN_TYPE_KOJAK_ONLY) {
 
-			{
+			if( RUNTYPE == ConverterConstants.RUN_TYPE_KOJAK_ONLY) {
 				SearchAnnotation annotation = new SearchAnnotation();
 				annotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_EVALUE);
 				annotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);

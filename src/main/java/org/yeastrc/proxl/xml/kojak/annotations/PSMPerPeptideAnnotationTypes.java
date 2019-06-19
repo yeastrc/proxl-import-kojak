@@ -19,7 +19,7 @@ public class PSMPerPeptideAnnotationTypes {
 	/**
 	 * @return
 	 */
-	public static List<FilterablePsmPerPeptideAnnotationType> getFilterablePsmPerPeptideAnnotationTypes(String programName) {
+	public static List<FilterablePsmPerPeptideAnnotationType> getFilterablePsmPerPeptideAnnotationTypes(String programName, int RUNTYPE ) {
 		List<FilterablePsmPerPeptideAnnotationType> types = new ArrayList<>();
 
 		if( programName.equals(ConverterConstants.PROGRAM_NAME_KOJAK) ) {
@@ -41,27 +41,27 @@ public class PSMPerPeptideAnnotationTypes {
 			}
 			{
 				FilterablePsmPerPeptideAnnotationType type = new FilterablePsmPerPeptideAnnotationType();
-				type.setName( KOJAK_ANNOTATION_TYPE_EVALUE );
-				type.setDescription( "Computed expect value for this PSM match" );
-				type.setFilterDirection( FilterDirectionType.BELOW );
+				type.setName(KOJAK_ANNOTATION_TYPE_EVALUE);
+				type.setDescription("Computed expect value for this PSM match");
+				type.setFilterDirection(FilterDirectionType.BELOW);
 
-				types.add( type );
+				types.add(type);
 			}
 			{
 				FilterablePsmPerPeptideAnnotationType type = new FilterablePsmPerPeptideAnnotationType();
-				type.setName( KOJAK_ANNOTATION_TYPE_ION_MATCH );
-				type.setDescription( "Number of fragment ions matched" );
-				type.setFilterDirection( FilterDirectionType.ABOVE );
+				type.setName(KOJAK_ANNOTATION_TYPE_ION_MATCH);
+				type.setDescription("Number of fragment ions matched");
+				type.setFilterDirection(FilterDirectionType.ABOVE);
 
-				types.add( type );
+				types.add(type);
 			}
 			{
 				FilterablePsmPerPeptideAnnotationType type = new FilterablePsmPerPeptideAnnotationType();
-				type.setName( KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH );
-				type.setDescription( "Number of consecutive fragment ions matched" );
-				type.setFilterDirection( FilterDirectionType.ABOVE );
+				type.setName(KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH);
+				type.setDescription("Number of consecutive fragment ions matched");
+				type.setFilterDirection(FilterDirectionType.ABOVE);
 
-				types.add( type );
+				types.add(type);
 			}
 		}
 		

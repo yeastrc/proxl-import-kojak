@@ -6,9 +6,9 @@ import java.util.Map;
 
 public class KojakPeptideBuilder {
     private String sequence;
-    private Map<Integer, Collection<BigDecimal>> modifications;
-    private BigDecimal nTerminalMod;
-    private BigDecimal cTerminalMod;
+    private Map<Integer, Collection<KojakDynamicMod>> modifications;
+    private KojakDynamicMod nTerminalMod;
+    private KojakDynamicMod cTerminalMod;
     private Integer position1;
     private Integer position2;
     private String n15Label;
@@ -18,17 +18,17 @@ public class KojakPeptideBuilder {
         return this;
     }
 
-    public KojakPeptideBuilder setModifications(Map<Integer, Collection<BigDecimal>> modifications) {
+    public KojakPeptideBuilder setModifications(Map<Integer, Collection<KojakDynamicMod>> modifications) {
         this.modifications = modifications;
         return this;
     }
 
-    public KojakPeptideBuilder setnTerminalMod(BigDecimal nTerminalMod) {
+    public KojakPeptideBuilder setnTerminalMod(KojakDynamicMod nTerminalMod) {
         this.nTerminalMod = nTerminalMod;
         return this;
     }
 
-    public KojakPeptideBuilder setcTerminalMod(BigDecimal cTerminalMod) {
+    public KojakPeptideBuilder setcTerminalMod(KojakDynamicMod cTerminalMod) {
         this.cTerminalMod = cTerminalMod;
         return this;
     }

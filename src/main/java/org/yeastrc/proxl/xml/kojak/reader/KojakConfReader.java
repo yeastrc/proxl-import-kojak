@@ -65,6 +65,33 @@ public class KojakConfReader {
 		return this.staticMods;
 	}
 
+	public Map<String, BigDecimal> getMonolinkMods() throws Exception {
+
+		if( this.mononlinkMods == null ) {
+			Map mononlinkMods = new HashMap<>();
+
+			for (String line : this.configFileLines) {
+
+				if (line.startsWith("mono_link")) {
+					String[] fields = line.split("\\s+");
+					if (fields.length != 4) {
+						throw new Exception("Did not get four fields on monolink mod line. Got: " + line);
+					}
+
+					String residues = fields[2];
+					for (int i = 0; i < residues.length(); i++){
+						String r = String.valueOf(residues.charAt(i));
+						mononlinkMods.put( r, new BigDecimal(fields[3]));
+					}
+
+				}
+			}
+			this.mononlinkMods = Collections.unmodifiableMap( mononlinkMods );
+		}
+
+		return this.mononlinkMods;
+	}
+
 	public Collection<KojakCrosslinker> getCrosslinkers() throws Exception {
 
 		if( this.crossLinkers == null ) {
@@ -142,6 +169,7 @@ public class KojakConfReader {
 	private File configFile;
 	private List<String> configFileLines;
 	private Map<String, BigDecimal> staticMods;
+	private Map<String, BigDecimal> mononlinkMods;
 	private Collection<KojakCrosslinker> crossLinkers;
 	private String decoyFilter;
 }
