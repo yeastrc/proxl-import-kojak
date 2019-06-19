@@ -40,23 +40,20 @@ public class KojakPepXMLReader {
 				kojakVersion = PepXMLUtils.getKojakVersionFromXML( analysis );
 			}
 
-			results.putAll(getResultsForPepXMLFile(analysis, kojakAnalysis));
+			results.putAll(getResultsForPepXMLFile(analysis));
 		}
 
 		return new KojakResults( kojakVersion, results );
 	}
 
-	private Map<KojakReportedPeptide, Collection<KojakPSMResult>> getResultsForPepXMLFile(MsmsPipelineAnalysis analysis, KojakAnalysis kojakAnalysis) throws Exception {
+	private Map<KojakReportedPeptide, Collection<KojakPSMResult>> getResultsForPepXMLFile(MsmsPipelineAnalysis analysis) throws Exception {
 
 		Map<KojakReportedPeptide, Collection<KojakPSMResult>> results = new HashMap<>();
 
 		for( MsmsRunSummary runSummary : analysis.getMsmsRunSummary() ) {
 
-			Collection<PepXMLModDefinition> dynamicMods = PepXMLModificationUtils.getDynamicModsForSearch( runSummary );
-			dynamicMods.addAll( PepXMLModificationUtils.getNTerminalDynamicModsForSearch( runSummary ) );
-			dynamicMods.addAll( PepXMLModificationUtils.getCTerminalDynamicModsForSearch( runSummary ) );
-
-			Collection<PepXMLModDefinition> staticMods = PepXMLModificationUtils.getStaticModsForSearch( runSummary );
+			Collection<PepXMLModDefinition> nTerminalDynamicMods = PepXMLModificationUtils.getNTerminalDynamicModsForSearch( runSummary );
+			Collection<PepXMLModDefinition> cTerminalDynamicMods = PepXMLModificationUtils.getCTerminalDynamicModsForSearch( runSummary );
 			Collection<PepXMLModDefinition> monolinkMods = PepXMLModificationUtils.getMonolinkModsForSearch( runSummary );
 
 			String decoyFilter = PepXMLRunSummaryUtils.getDecoyFilter( runSummary );
@@ -76,10 +73,10 @@ public class KojakPepXMLReader {
 								continue;
 
 							// get our result
-							KojakPSMResult result = getResult(spectrumQuery, searchHit, spectralFile, dynamicMods, staticMods, monolinkMods, n15Prefix );
+							KojakPSMResult result = getResult(spectrumQuery, searchHit, spectralFile, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix );
 
 							// get our reported peptide
-							KojakReportedPeptide reportedPeptide = getReportedPeptide(searchHit, dynamicMods, staticMods, monolinkMods, n15Prefix);
+							KojakReportedPeptide reportedPeptide = getReportedPeptide(searchHit, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix);
 
 							if (!results.containsKey(reportedPeptide))
 								results.put(reportedPeptide, new ArrayList<>());
@@ -119,17 +116,21 @@ public class KojakPepXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	private KojakReportedPeptide getReportedPeptide(SearchHit searchHit, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods, Collection<PepXMLModDefinition> monolinkMods, String n15Prefix ) throws Exception {
+	private KojakReportedPeptide getReportedPeptide(SearchHit searchHit,
+													Collection<PepXMLModDefinition> nTerminalDynamicMods,
+													Collection<PepXMLModDefinition> cTerminalDynamicMods,
+													Collection<PepXMLModDefinition> monolinkMods,
+													String n15Prefix ) throws Exception {
 
 		int type = PepXMLUtils.getHitType( searchHit );
 
 		if( type == ConverterConstants.LINK_TYPE_CROSSLINK )
-			return getCrosslinkReportedPeptide( searchHit, dynamicMods, staticMods, monolinkMods, n15Prefix );
+			return getCrosslinkReportedPeptide( searchHit, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix );
 
 		if( type == ConverterConstants.LINK_TYPE_LOOPLINK )
-			return getLooplinkReportedPeptide( searchHit, dynamicMods, staticMods, monolinkMods, n15Prefix );
+			return getLooplinkReportedPeptide( searchHit, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix );
 
-		return getUnlinkedReportedPeptide( searchHit, dynamicMods, staticMods, monolinkMods, n15Prefix );
+		return getUnlinkedReportedPeptide( searchHit, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix );
 
 	}
 
@@ -139,7 +140,11 @@ public class KojakPepXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	private KojakReportedPeptide getCrosslinkReportedPeptide(SearchHit searchHit, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods, Collection<PepXMLModDefinition> monolinkMods, String n15Prefix ) throws Exception {
+	private KojakReportedPeptide getCrosslinkReportedPeptide(SearchHit searchHit,
+															 Collection<PepXMLModDefinition> nTerminalDynamicMods,
+															 Collection<PepXMLModDefinition> cTerminalDynamicMods,
+															 Collection<PepXMLModDefinition> monolinkMods,
+															 String n15Prefix ) throws Exception {
 
 		List<KojakPeptide> kojakPeptides = new ArrayList<>( 2 );
 
@@ -149,7 +154,7 @@ public class KojakPepXMLReader {
 				throw new Exception( "Got more than two linked peptides." );
 			}
 
-			kojakPeptides.add( getPeptideFromLinkedPeptide( linkedPeptide, dynamicMods, staticMods, monolinkMods, n15Prefix ) );
+			kojakPeptides.add( getPeptideFromLinkedPeptide( linkedPeptide, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix ) );
 		}
 
 		return new KojakReportedPeptide( ConverterConstants.LINK_TYPE_CROSSLINK, kojakPeptides.get( 0 ), kojakPeptides.get( 1 ) );
@@ -161,9 +166,13 @@ public class KojakPepXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	private KojakReportedPeptide getLooplinkReportedPeptide(SearchHit searchHit, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods, Collection<PepXMLModDefinition> monolinkMods, String n15Prefix  ) throws Exception {
+	private KojakReportedPeptide getLooplinkReportedPeptide(SearchHit searchHit,
+															Collection<PepXMLModDefinition> nTerminalDynamicMods,
+															Collection<PepXMLModDefinition> cTerminalDynamicMods,
+															Collection<PepXMLModDefinition> monolinkMods,
+															String n15Prefix  ) throws Exception {
 
-		KojakPeptide kojakPeptide = getPeptideFromSearchHit( searchHit, dynamicMods, staticMods, monolinkMods, n15Prefix );
+		KojakPeptide kojakPeptide = getPeptideFromSearchHit( searchHit, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix );
 		return new KojakReportedPeptide( ConverterConstants.LINK_TYPE_LOOPLINK, kojakPeptide, null );
 	}
 
@@ -173,9 +182,13 @@ public class KojakPepXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	private KojakReportedPeptide getUnlinkedReportedPeptide(SearchHit searchHit, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods, Collection<PepXMLModDefinition> monolinkMods, String n15Prefix ) throws Exception {
+	private KojakReportedPeptide getUnlinkedReportedPeptide(SearchHit searchHit,
+															Collection<PepXMLModDefinition> nTerminalDynamicMods,
+															Collection<PepXMLModDefinition> cTerminalDynamicMods,
+															Collection<PepXMLModDefinition> monolinkMods,
+															String n15Prefix ) throws Exception {
 
-		KojakPeptide kojakPeptide = getPeptideFromSearchHit( searchHit, dynamicMods, staticMods, monolinkMods, n15Prefix );
+		KojakPeptide kojakPeptide = getPeptideFromSearchHit( searchHit, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix );
 		return new KojakReportedPeptide( ConverterConstants.LINK_TYPE_UNLINKED, kojakPeptide, null );
 	}
 
@@ -188,7 +201,11 @@ public class KojakPepXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	private KojakPeptide getPeptideFromSearchHit(SearchHit searchHit, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods, Collection<PepXMLModDefinition> monolinkMods, String n15Prefix ) throws Exception {
+	private KojakPeptide getPeptideFromSearchHit(SearchHit searchHit,
+												 Collection<PepXMLModDefinition> nTerminalDynamicMods,
+												 Collection<PepXMLModDefinition> cTerminalDynamicMods,
+												 Collection<PepXMLModDefinition> monolinkMods,
+												 String n15Prefix ) throws Exception {
 
 		KojakPeptideBuilder peptideBuilder = new KojakPeptideBuilder();
 
@@ -196,9 +213,9 @@ public class KojakPepXMLReader {
 		peptideBuilder.setSequence( peptideSequence );
 
 		ModInfoDataType modInfo = searchHit.getModificationInfo();
-		peptideBuilder.setModifications( PepXMLModificationUtils.getDynamicModMapForModInfoDataType( modInfo, peptideSequence, dynamicMods, staticMods, monolinkMods ) );
-		peptideBuilder.setnTerminalMod( PepXMLModificationUtils.getNTerminalDynamicMod( modInfo, dynamicMods, monolinkMods ) );
-		peptideBuilder.setcTerminalMod( PepXMLModificationUtils.getCTerminalDynamicMod( modInfo, dynamicMods, monolinkMods ) );
+		peptideBuilder.setModifications( PepXMLModificationUtils.getDynamicModMapForModInfoDataType( modInfo, peptideSequence, monolinkMods ) );
+		peptideBuilder.setnTerminalMod( PepXMLModificationUtils.getNTerminalDynamicMod( modInfo, nTerminalDynamicMods, monolinkMods ) );
+		peptideBuilder.setcTerminalMod( PepXMLModificationUtils.getCTerminalDynamicMod( modInfo, cTerminalDynamicMods, monolinkMods ) );
 
 		if( PepXMLUtils.getHitType( searchHit ) == ConverterConstants.LINK_TYPE_LOOPLINK ) {
 			List<Integer> linkedPositions = getLinkedPositionsForLooplinkSearchHit( searchHit );
@@ -232,14 +249,20 @@ public class KojakPepXMLReader {
 	}
 
 	/**
-	 * Get the KojakPeptide for the LinkedPeptide (mods, etc)
+	 *
 	 * @param linkedPeptide
-	 * @param dynamicMods
-	 * @param staticMods
+	 * @param nTerminalDynamicMods
+	 * @param cTerminalDynamicMods
+	 * @param monolinkMods
+	 * @param n15Prefix
 	 * @return
 	 * @throws Exception
 	 */
-	private KojakPeptide getPeptideFromLinkedPeptide(LinkedPeptide linkedPeptide, Collection<PepXMLModDefinition> dynamicMods, Collection<PepXMLModDefinition> staticMods, Collection<PepXMLModDefinition> monolinkMods, String n15Prefix ) throws Exception {
+	private KojakPeptide getPeptideFromLinkedPeptide(LinkedPeptide linkedPeptide,
+													 Collection<PepXMLModDefinition> nTerminalDynamicMods,
+													 Collection<PepXMLModDefinition> cTerminalDynamicMods,
+													 Collection<PepXMLModDefinition> monolinkMods,
+													 String n15Prefix ) throws Exception {
 
 
 		KojakPeptideBuilder peptideBuilder = new KojakPeptideBuilder();
@@ -250,9 +273,9 @@ public class KojakPepXMLReader {
 		peptideBuilder.setPosition1( getLinkedPositionForLinkedPeptide( linkedPeptide ) );
 
 		ModInfoDataType modInfo = linkedPeptide.getModificationInfo();
-		peptideBuilder.setModifications( PepXMLModificationUtils.getDynamicModMapForModInfoDataType( modInfo, peptideSequence, dynamicMods, staticMods, monolinkMods ) );
-		peptideBuilder.setnTerminalMod( PepXMLModificationUtils.getNTerminalDynamicMod( modInfo, dynamicMods, monolinkMods ) );
-		peptideBuilder.setcTerminalMod( PepXMLModificationUtils.getCTerminalDynamicMod( modInfo, dynamicMods, monolinkMods ) );
+		peptideBuilder.setModifications( PepXMLModificationUtils.getDynamicModMapForModInfoDataType( modInfo, peptideSequence, monolinkMods ) );
+		peptideBuilder.setnTerminalMod( PepXMLModificationUtils.getNTerminalDynamicMod( modInfo, nTerminalDynamicMods, monolinkMods ) );
+		peptideBuilder.setcTerminalMod( PepXMLModificationUtils.getCTerminalDynamicMod( modInfo, cTerminalDynamicMods, monolinkMods ) );
 
 		if( n15Prefix != null && PepXMLStableIsotopeUtils.isLinkedPeptide15NLabeled( linkedPeptide, n15Prefix ) ) {
 			peptideBuilder.setN15Label( n15Prefix );
@@ -283,8 +306,8 @@ public class KojakPepXMLReader {
 	private KojakPSMResult getResult(SpectrumQuery spectrumQuery,
 									 SearchHit searchHit,
 									 String spectralFile,
-									 Collection<PepXMLModDefinition> dynamicMods,
-									 Collection<PepXMLModDefinition> staticMods,
+									 Collection<PepXMLModDefinition> nTerminalDynamicMods,
+									 Collection<PepXMLModDefinition> cTerminalDynamicMods,
 									 Collection<PepXMLModDefinition> monolinkMods,
 									 String n15Prefix ) throws Exception {
 
@@ -333,8 +356,8 @@ public class KojakPepXMLReader {
 		if( type == ConverterConstants.LINK_TYPE_CROSSLINK  ) {
 			Collection<KojakPerPeptidePSM> kojakPerPeptidePSMs = getKojakPerPeptidePSMs(
 					searchHit,
-					dynamicMods,
-					staticMods,
+					nTerminalDynamicMods,
+					cTerminalDynamicMods,
 					monolinkMods,
 					n15Prefix
 			);
@@ -360,10 +383,9 @@ public class KojakPepXMLReader {
 		return psmResult;
 	}
 
-
 	private Collection<KojakPerPeptidePSM> getKojakPerPeptidePSMs( SearchHit searchHit,
-																   Collection<PepXMLModDefinition> dynamicMods,
-																   Collection<PepXMLModDefinition> staticMods,
+																   Collection<PepXMLModDefinition> nTerminalDynamicMods,
+																   Collection<PepXMLModDefinition> cTerminalDynamicMods,
 																   Collection<PepXMLModDefinition> monolinkMods,
 																   String n15Prefix ) throws Exception {
 
@@ -376,7 +398,7 @@ public class KojakPepXMLReader {
 
 		for( LinkedPeptide linkedPeptide : xlink.getLinkedPeptide() ) {
 
-			KojakPeptide kojakPeptide = getPeptideFromLinkedPeptide( linkedPeptide, dynamicMods, staticMods, monolinkMods, n15Prefix  );
+			KojakPeptide kojakPeptide = getPeptideFromLinkedPeptide( linkedPeptide, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix  );
 
 			KojakPerPeptidePSMBuilder builder = new KojakPerPeptidePSMBuilder();
 			builder.setLinkedPeptide( kojakPeptide );

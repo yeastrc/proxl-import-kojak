@@ -245,44 +245,48 @@ public class XMLBuilder {
 				xmlPeptide.setSequence( kojakPeptide.getSequence() );
 				xmlPeptide.setUniqueId( String.valueOf( peptideIndex ) );
 
-				Modifications xmlModifications = new Modifications();
-				xmlPeptide.setModifications( xmlModifications );
+				if( ( kojakPeptide.getDynamicModifications() != null && kojakPeptide.getDynamicModifications().size() > 0 ) ||
+						kojakPeptide.getnTerminalMod() != null || kojakPeptide.getcTerminalMod() != null ) {
 
-				if( kojakPeptide.getDynamicModifications() != null ) {
+					Modifications xmlModifications = new Modifications();
+					xmlPeptide.setModifications(xmlModifications);
 
-					for( int position : kojakPeptide.getDynamicModifications().keySet() ) {
+					if (kojakPeptide.getDynamicModifications() != null) {
 
-						for( KojakDynamicMod kojakDynamicMod : kojakPeptide.getDynamicModifications().get( position ) ) {
+						for (int position : kojakPeptide.getDynamicModifications().keySet()) {
 
-							Modification xmlModification = new Modification();
-							xmlModifications.getModification().add( xmlModification );
+							for (KojakDynamicMod kojakDynamicMod : kojakPeptide.getDynamicModifications().get(position)) {
 
-							xmlModification.setMass( kojakDynamicMod.getMassDiff() );
-							xmlModification.setPosition( new BigInteger( String.valueOf( position ) ) );
-							xmlModification.setIsMonolink( kojakDynamicMod.isMonolink() );
+								Modification xmlModification = new Modification();
+								xmlModifications.getModification().add(xmlModification);
 
+								xmlModification.setMass(kojakDynamicMod.getMassDiff());
+								xmlModification.setPosition(new BigInteger(String.valueOf(position)));
+								xmlModification.setIsMonolink(kojakDynamicMod.isMonolink());
+
+							}
 						}
 					}
-				}
 
-				// add n-terminal mod
-				if( kojakPeptide.getnTerminalMod() != null ) {
-					Modification xmlModification = new Modification();
-					xmlModifications.getModification().add( xmlModification );
+					// add n-terminal mod
+					if (kojakPeptide.getnTerminalMod() != null) {
+						Modification xmlModification = new Modification();
+						xmlModifications.getModification().add(xmlModification);
 
-					xmlModification.setMass( kojakPeptide.getnTerminalMod().getMassDiff() );
-					xmlModification.setIsNTerminal( true );
-					xmlModification.setIsMonolink( kojakPeptide.getnTerminalMod().isMonolink() );
-				}
+						xmlModification.setMass(kojakPeptide.getnTerminalMod().getMassDiff());
+						xmlModification.setIsNTerminal(true);
+						xmlModification.setIsMonolink(kojakPeptide.getnTerminalMod().isMonolink());
+					}
 
-				// add c-terminal mod
-				if( kojakPeptide.getcTerminalMod() != null ) {
-					Modification xmlModification = new Modification();
-					xmlModifications.getModification().add( xmlModification );
+					// add c-terminal mod
+					if (kojakPeptide.getcTerminalMod() != null) {
+						Modification xmlModification = new Modification();
+						xmlModifications.getModification().add(xmlModification);
 
-					xmlModification.setMass( kojakPeptide.getcTerminalMod().getMassDiff() );
-					xmlModification.setIsCTerminal( true );
-					xmlModification.setIsMonolink( kojakPeptide.getcTerminalMod().isMonolink());
+						xmlModification.setMass(kojakPeptide.getcTerminalMod().getMassDiff());
+						xmlModification.setIsCTerminal(true);
+						xmlModification.setIsMonolink(kojakPeptide.getcTerminalMod().isMonolink());
+					}
 				}
 
 				// add in the linked position(s) in this peptide
