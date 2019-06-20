@@ -43,6 +43,26 @@ public class KojakConfReader {
 		return this.decoyFilter;
 	}
 
+	public String get15NFilter() throws Exception {
+
+		if( this.n15Filter == null ) {
+
+			for (String line : this.configFileLines) {
+
+				if (line.startsWith("15N_filter")) {
+					String[] fields = line.split("\\s+");
+					if (fields.length != 3) {
+						throw new Exception("Did not get three fields on 15N filter line. Got: " + line);
+					}
+
+					this.n15Filter = fields[ 2 ];
+				}
+			}
+		}
+
+		return this.n15Filter;
+	}
+
 	public Map<String, BigDecimal> getStaticMods() throws Exception {
 
 		if( this.staticMods == null ) {
@@ -172,4 +192,5 @@ public class KojakConfReader {
 	private Map<String, BigDecimal> mononlinkMods;
 	private Collection<KojakCrosslinker> crossLinkers;
 	private String decoyFilter;
+	private String n15Filter;
 }

@@ -20,11 +20,7 @@ package org.yeastrc.proxl.xml.kojak.builder;
 
 import java.io.File;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.yeastrc.proteomics.fasta.FASTAEntry;
 import org.yeastrc.proteomics.fasta.FASTAFileParser;
@@ -63,13 +59,13 @@ public class MatchedProteinsBuilder {
 	 * @param decoyIdentifier
 	 * @throws Exception
 	 */
-	public void buildMatchedProteins( ProxlInput proxlInputRoot, File fastaFile, String decoyIdentifier ) throws Exception {
+	public void buildMatchedProteins( ProxlInput proxlInputRoot, File fastaFile, String decoyIdentifier, String n15label ) throws Exception {
 
 		// get all distinct peptides found in this search
 		Collection<String> allPetpideSequences = getDistinctPeptides( proxlInputRoot );
 
 		// the proteins we've found
-		Map<String, Collection<FastaProteinAnnotation>> proteins = getProteins( allPetpideSequences, fastaFile, decoyIdentifier );
+		Map<ProxlXMLProtein, Collection<FastaProteinAnnotation>> proteins = getProteins( allPetpideSequences, fastaFile, decoyIdentifier, n15label );
 
 		// create the XML and add to root element
 		buildAndAddMatchedProteinsToXML( proxlInputRoot, proteins );
@@ -82,21 +78,22 @@ public class MatchedProteinsBuilder {
 	 * @param proteins
 	 * @throws Exception
 	 */
-	private void buildAndAddMatchedProteinsToXML( ProxlInput proxlInputRoot, Map<String, Collection<FastaProteinAnnotation>> proteins ) throws Exception {
+	private void buildAndAddMatchedProteinsToXML( ProxlInput proxlInputRoot, Map<ProxlXMLProtein, Collection<FastaProteinAnnotation>> proteins ) throws Exception {
 
 		MatchedProteins xmlMatchedProteins = new MatchedProteins();
 		proxlInputRoot.setMatchedProteins( xmlMatchedProteins );
 
-		for( String sequence : proteins.keySet() ) {
+		for( ProxlXMLProtein proxlXMLProtein : proteins.keySet() ) {
 
-			if( proteins.get( sequence ).isEmpty() ) continue;
+			String sequence = proxlXMLProtein.getSequence();
+			String isotopeLabel = proxlXMLProtein.getIsotopeLabel();
 
 			Protein xmlProtein = new Protein();
 			xmlMatchedProteins.getProtein().add( xmlProtein );
 
 			xmlProtein.setSequence( sequence );
 
-			for( FastaProteinAnnotation anno : proteins.get( sequence ) ) {
+			for( FastaProteinAnnotation anno : proteins.get( proxlXMLProtein ) ) {
 				ProteinAnnotation xmlProteinAnnotation = new ProteinAnnotation();
 				xmlProtein.getProteinAnnotation().add( xmlProteinAnnotation );
 
@@ -108,9 +105,19 @@ public class MatchedProteinsBuilder {
 				if( anno.getTaxonomyId() != null )
 					xmlProteinAnnotation.setNcbiTaxonomyId( new BigInteger( anno.getTaxonomyId().toString() ) );
 			}
+
+			if (isotopeLabel != null) {
+
+				Protein.ProteinIsotopeLabels xmlProteinIsotopeLabels = new Protein.ProteinIsotopeLabels();
+				xmlProtein.setProteinIsotopeLabels( xmlProteinIsotopeLabels );
+
+				Protein.ProteinIsotopeLabels.ProteinIsotopeLabel xmlProteinIsotopeLabel = new Protein.ProteinIsotopeLabels.ProteinIsotopeLabel();
+				xmlProteinIsotopeLabels.setProteinIsotopeLabel( xmlProteinIsotopeLabel );
+				xmlProteinIsotopeLabel.setLabel( isotopeLabel );
+			}
+
 		}
 	}
-
 
 	/**
 	 * Get a map of the distinct target protein sequences mapped to a collection of target annotations for that sequence
@@ -122,9 +129,9 @@ public class MatchedProteinsBuilder {
 	 * @return
 	 * @throws Exception
 	 */
-	private Map<String, Collection<FastaProteinAnnotation>> getProteins( Collection<String> allPetpideSequences, File fastaFile, String decoyIdentifier ) throws Exception {
+	private Map<ProxlXMLProtein, Collection<FastaProteinAnnotation>> getProteins( Collection<String> allPetpideSequences, File fastaFile, String decoyIdentifier, String n15label ) throws Exception {
 
-		Map<String, Collection<FastaProteinAnnotation>> proteinAnnotations = new HashMap<>();
+		Map<ProxlXMLProtein, Collection<FastaProteinAnnotation>> proteinAnnotations = new HashMap<>();
 
 
 		try ( FASTAFileParser parser = FASTAFileParserFactory.getInstance().getFASTAFileParser(  fastaFile ) ) {
@@ -135,12 +142,16 @@ public class MatchedProteinsBuilder {
 					continue;
 
 				String fastaSequence = entry.getSequence();
+				String label = ( isFASTAEntry15NLabeled( entry, n15label ) ? "15N" : null );
+
+				ProxlXMLProtein proxlXMLProtein = new ProxlXMLProtein( fastaSequence, label );
+
 				if( proteinContainsAPeptide( fastaSequence, allPetpideSequences ) ) {
 
 					for (FASTAHeader header : entry.getHeaders()) {
 
-						if (!proteinAnnotations.containsKey(entry.getSequence()))
-							proteinAnnotations.put(entry.getSequence(), new HashSet<FastaProteinAnnotation>());
+						if (!proteinAnnotations.containsKey(proxlXMLProtein))
+							proteinAnnotations.put(proxlXMLProtein, new HashSet<>());
 
 						FastaProteinAnnotation anno = new FastaProteinAnnotation();
 						anno.setName(header.getName());
@@ -151,7 +162,7 @@ public class MatchedProteinsBuilder {
 							anno.setTaxonomyId( taxonomyId );
 						}
 
-						proteinAnnotations.get(entry.getSequence()).add(anno);
+						proteinAnnotations.get(proxlXMLProtein).add(anno);
 					}
 				}
 			}
@@ -160,6 +171,23 @@ public class MatchedProteinsBuilder {
 
 
 		return proteinAnnotations;
+	}
+
+	private boolean isFASTAEntry15NLabeled( FASTAEntry entry, String n15label ) {
+
+		if( n15label == null ) {
+			return false;
+		}
+
+		for (FASTAHeader header : entry.getHeaders()) {
+
+			if( header.getName().startsWith( n15label ) ) {
+				return true;
+			}
+
+		}
+
+		return false;
 	}
 
 	/**
@@ -244,6 +272,39 @@ public class MatchedProteinsBuilder {
 
 
 		return allPeptideSequences;
+	}
+
+	private class ProxlXMLProtein {
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			ProxlXMLProtein that = (ProxlXMLProtein) o;
+			return sequence.equals(that.sequence) &&
+					Objects.equals(isotopeLabel, that.isotopeLabel);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(sequence, isotopeLabel);
+		}
+
+		public ProxlXMLProtein(String sequence, String isotopeLabel) {
+			this.sequence = sequence;
+			this.isotopeLabel = isotopeLabel;
+		}
+
+		public String getSequence() {
+			return sequence;
+		}
+
+		public String getIsotopeLabel() {
+			return isotopeLabel;
+		}
+
+		private String sequence;
+		private String isotopeLabel;
 	}
 
 	/**

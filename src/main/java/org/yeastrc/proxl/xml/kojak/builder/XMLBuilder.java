@@ -492,10 +492,11 @@ public class XMLBuilder {
 
 		// add in the matched proteins section
 		MatchedProteinsBuilder.getInstance().buildMatchedProteins(
-				                                                   proxlInputRoot,
-				                                                   analysis.getFastaFile(),
-																	analysis.getKojakConfReader().getDecoyFilter()
-				                                                  );
+				proxlInputRoot,
+				analysis.getFastaFile(),
+				analysis.getKojakConfReader().getDecoyFilter(),
+				analysis.getKojakConfReader().get15NFilter()
+		);
 		
 		
 		// add in the config file(s)
