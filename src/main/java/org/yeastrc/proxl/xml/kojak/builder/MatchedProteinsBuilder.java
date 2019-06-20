@@ -30,6 +30,7 @@ import org.yeastrc.proteomics.fasta.FASTAEntry;
 import org.yeastrc.proteomics.fasta.FASTAFileParser;
 import org.yeastrc.proteomics.fasta.FASTAFileParserFactory;
 import org.yeastrc.proteomics.fasta.FASTAHeader;
+import org.yeastrc.proxl.xml.kojak.utils.ProteinMatchUtils;
 import org.yeastrc.proxl_import.api.xml_dto.MatchedProteins;
 import org.yeastrc.proxl_import.api.xml_dto.Peptide;
 import org.yeastrc.proxl_import.api.xml_dto.Peptides;
@@ -72,7 +73,6 @@ public class MatchedProteinsBuilder {
 
 		// create the XML and add to root element
 		buildAndAddMatchedProteinsToXML( proxlInputRoot, proteins );
-
 	}
 
 	/**
@@ -105,8 +105,8 @@ public class MatchedProteinsBuilder {
 				if( anno.getDescription() != null )
 					xmlProteinAnnotation.setDescription( anno.getDescription() );
 
-				if( anno.getTaxonomId() != null )
-					xmlProteinAnnotation.setNcbiTaxonomyId( new BigInteger( anno.getTaxonomId().toString() ) );
+				if( anno.getTaxonomyId() != null )
+					xmlProteinAnnotation.setNcbiTaxonomyId( new BigInteger( anno.getTaxonomyId().toString() ) );
 			}
 		}
 	}
@@ -134,16 +134,25 @@ public class MatchedProteinsBuilder {
 				if( isDecoyFastaEntry( entry, decoyIdentifier ) )
 					continue;
 
-				for( FASTAHeader header : entry.getHeaders() ) {
+				String fastaSequence = entry.getSequence();
+				if( proteinContainsAPeptide( fastaSequence, allPetpideSequences ) ) {
 
-					if( !proteinAnnotations.containsKey( entry.getSequence() ) )
-						proteinAnnotations.put( entry.getSequence(), new HashSet<FastaProteinAnnotation>() );
+					for (FASTAHeader header : entry.getHeaders()) {
 
-					FastaProteinAnnotation anno = new FastaProteinAnnotation();
-					anno.setName( header.getName() );
-					anno.setDescription( header.getDescription() );
+						if (!proteinAnnotations.containsKey(entry.getSequence()))
+							proteinAnnotations.put(entry.getSequence(), new HashSet<FastaProteinAnnotation>());
 
-					proteinAnnotations.get( entry.getSequence() ).add( anno );
+						FastaProteinAnnotation anno = new FastaProteinAnnotation();
+						anno.setName(header.getName());
+						anno.setDescription(header.getDescription());
+
+						Integer taxonomyId = ProteinMatchUtils.getNCBITaxonomyIdFromFASTAHeader( header.getDescription() );
+						if( taxonomyId != null ) {
+							anno.setTaxonomyId( taxonomyId );
+						}
+
+						proteinAnnotations.get(entry.getSequence()).add(anno);
+					}
 				}
 			}
 		}
@@ -152,6 +161,26 @@ public class MatchedProteinsBuilder {
 
 		return proteinAnnotations;
 	}
+
+	/**
+	 * See if the protein sequence contains any of the peptides in the peptide collection
+	 *
+	 * @param proteinSequence
+	 * @param allPetpideSequences
+	 * @return True if the protein contains any peptide, false if not
+	 */
+	private boolean proteinContainsAPeptide( String proteinSequence,  Collection<String> allPetpideSequences) {
+
+		for( String peptideSequence : allPetpideSequences ) {
+
+			if( ProteinMatchUtils.proteinContainsReportedPeptide( proteinSequence, peptideSequence ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 
 	/**
 	 * Return true if the supplied FASTA entry is a decoy entry. False otherwise.
@@ -172,7 +201,6 @@ public class MatchedProteinsBuilder {
 			}
 
 		return false;
-
 	}
 
 
@@ -233,8 +261,8 @@ public class MatchedProteinsBuilder {
 			if( this.getDescription() != null )
 				hashString += this.getDescription();
 
-			if( this.getTaxonomId() != null )
-				hashString += this.getTaxonomId().intValue();
+			if( this.getTaxonomyId() != null )
+				hashString += this.getTaxonomyId().intValue();
 
 			return hashString.hashCode();
 		}
@@ -263,15 +291,15 @@ public class MatchedProteinsBuilder {
 					return false;
 
 
-				if( this.getTaxonomId() == null ) {
-					if( otherAnno.getTaxonomId() != null )
+				if( this.getTaxonomyId() == null ) {
+					if( otherAnno.getTaxonomyId() != null )
 						return false;
 				} else {
-					if( otherAnno.getTaxonomId() == null )
+					if( otherAnno.getTaxonomyId() == null )
 						return false;
 				}
 
-				if( !this.getTaxonomId().equals( otherAnno.getTaxonomId() ) )
+				if( !this.getTaxonomyId().equals( otherAnno.getTaxonomyId() ) )
 					return false;
 
 
@@ -295,18 +323,18 @@ public class MatchedProteinsBuilder {
 		public void setDescription(String description) {
 			this.description = description;
 		}
-		public Integer getTaxonomId() {
-			return taxonomId;
+		public Integer getTaxonomyId() {
+			return taxonomyId;
 		}
-		public void setTaxonomId(Integer taxonomId) {
-			this.taxonomId = taxonomId;
+		public void setTaxonomyId(Integer taxonomyId) {
+			this.taxonomyId = taxonomyId;
 		}
 
 
 
 		private String name;
 		private String description;
-		private Integer taxonomId;
+		private Integer taxonomyId;
 
 	}
 
