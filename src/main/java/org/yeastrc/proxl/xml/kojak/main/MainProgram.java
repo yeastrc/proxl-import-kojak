@@ -21,6 +21,7 @@ package org.yeastrc.proxl.xml.kojak.main;
 import org.yeastrc.proxl.xml.kojak.constants.ConverterConstants;
 import org.yeastrc.proxl.xml.kojak.objects.ConversionParameters;
 import org.yeastrc.proxl.xml.kojak.objects.KojakAnalysis;
+import org.yeastrc.proxl.xml.kojak.objects.PercolatorAnalysis;
 import picocli.CommandLine;
 
 import java.io.BufferedReader;
@@ -64,6 +65,11 @@ public class MainProgram implements Runnable {
             "in proxl and all MUST use the same config options (e.g., cross-linker or modifications.")
     private File[] pepXMLFiles;
 
+    @CommandLine.Option(names = { "-r", "--percxml" }, required = false, description = "[Optional] Full path to " +
+            "one or more Percolator output XML files. All percolator results must be able to be mapped to " +
+            "data in the imported pepXML file(s).")
+    private File[] percolatorXMLFiles;
+
     @CommandLine.Option(names = { "-f", "--fasta" }, required = true, description = "[Required] Full path to FASTA file " +
             "used in the experiment. If uploading multiple pepXML files, they must have ALL been processed with this " +
             "FASTA file.")
@@ -83,6 +89,10 @@ public class MainProgram implements Runnable {
             ensureFilesExist( pepXMLFiles, "PepXML file" );
             ensureFileExists( fastaFile, "FASTA file" );
 
+            if( percolatorXMLFiles != null ) {
+                ensureFilesExist( percolatorXMLFiles, "Percolator XML file" );
+            }
+
             warnFileExists( outFile, "ProxlXML output file" );
 
             KojakAnalysis kojakAnalysis = new KojakAnalysis(
@@ -91,8 +101,14 @@ public class MainProgram implements Runnable {
                     fastaFile
             );
 
+            PercolatorAnalysis percolatorAnalysis = null;
+            if( percolatorXMLFiles != null ) {
+                percolatorAnalysis = new PercolatorAnalysis( percolatorXMLFiles );
+            }
+
             ConversionParameters conversionParamters = new ConversionParameters(
                     kojakAnalysis,
+                    percolatorAnalysis,
                     outFile
             );
 

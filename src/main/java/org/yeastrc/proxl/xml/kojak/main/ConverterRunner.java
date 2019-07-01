@@ -36,6 +36,11 @@ public class ConverterRunner {
 
         int runType = ConverterConstants.RUN_TYPE_KOJAK_ONLY;
 
+        if( conversionParameters.getPercolatorAnalysis() != null ) {
+            runType = ConverterConstants.RUN_TYPE_KOJAK_PERCOLATOR;
+
+        }
+
         System.err.print( "Writing out XML..." );
         (new XMLBuilder()).buildAndSaveXML( conversionParameters, kojakResuls, runType );
         System.err.println( " Done." );
