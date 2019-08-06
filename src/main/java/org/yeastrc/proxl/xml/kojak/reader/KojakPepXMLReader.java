@@ -30,7 +30,7 @@ public class KojakPepXMLReader {
 
 	public KojakResults getResultsFromAnalysis(KojakAnalysis kojakAnalysis) throws Exception {
 
-		Map<KojakReportedPeptide, Collection<KojakPSMResult>> results = new HashMap<>();
+		Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> results = new HashMap<>();
 		String kojakVersion = null;
 
 		for (File pepXMLFile : kojakAnalysis.getPepXMLFiles()) {
@@ -40,15 +40,15 @@ public class KojakPepXMLReader {
 				kojakVersion = PepXMLUtils.getKojakVersionFromXML( analysis );
 			}
 
-			results.putAll(getResultsForPepXMLFile(analysis));
+			results.putAll(getResultsForPepXMLFile(analysis, pepXMLFile.getName() ) );
 		}
 
 		return new KojakResults( kojakVersion, results );
 	}
 
-	private Map<KojakReportedPeptide, Collection<KojakPSMResult>> getResultsForPepXMLFile(MsmsPipelineAnalysis analysis) throws Exception {
+	private Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> getResultsForPepXMLFile(MsmsPipelineAnalysis analysis, String pepXMLFileName) throws Exception {
 
-		Map<KojakReportedPeptide, Collection<KojakPSMResult>> results = new HashMap<>();
+		Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> results = new HashMap<>();
 
 		for( MsmsRunSummary runSummary : analysis.getMsmsRunSummary() ) {
 
@@ -79,9 +79,12 @@ public class KojakPepXMLReader {
 							KojakReportedPeptide reportedPeptide = getReportedPeptide(searchHit, nTerminalDynamicMods, cTerminalDynamicMods, monolinkMods, n15Prefix);
 
 							if (!results.containsKey(reportedPeptide))
-								results.put(reportedPeptide, new ArrayList<>());
+								results.put(reportedPeptide, new HashMap<>());
 
-							results.get(reportedPeptide).add(result);
+							if( !results.get(reportedPeptide).containsKey(pepXMLFileName))
+								results.get(reportedPeptide).put(pepXMLFileName, new ArrayList<>());
+
+							results.get(reportedPeptide).get(pepXMLFileName).add(result);
 						} catch( Throwable t ) {
 
 							System.err.println( "Got error processing search hit" );

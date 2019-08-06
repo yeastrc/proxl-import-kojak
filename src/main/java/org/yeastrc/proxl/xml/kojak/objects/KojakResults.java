@@ -5,7 +5,13 @@ import java.util.Map;
 
 public class KojakResults {
 
-    public KojakResults(String kojakVersion, Map<KojakReportedPeptide, Collection<KojakPSMResult>> kojakResults) {
+    /**
+     * The results of one or more Kojak run
+     * @param kojakVersion
+     * @param kojakResults A map keyed on he reportedpeptide string, pointing to a map keyed on pepXML file name
+     *                     (e.g. foo.pep.xml) that points to a collection of PSMs from that kojak run
+     */
+    public KojakResults(String kojakVersion, Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> kojakResults) {
         this.kojakVersion = kojakVersion;
         this.kojakResults = kojakResults;
     }
@@ -14,10 +20,10 @@ public class KojakResults {
         return kojakVersion;
     }
 
-    public Map<KojakReportedPeptide, Collection<KojakPSMResult>> getKojakResults() {
+    public  Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> getKojakResults() {
         return kojakResults;
     }
 
     private String kojakVersion;
-    private Map<KojakReportedPeptide, Collection<KojakPSMResult>> kojakResults;
+    private  Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> kojakResults;
 }
