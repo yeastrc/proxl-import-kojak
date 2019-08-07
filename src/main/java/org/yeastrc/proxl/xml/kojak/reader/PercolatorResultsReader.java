@@ -38,20 +38,27 @@ public class PercolatorResultsReader {
 	/**
 	 * Get the parsed percolator results for the given percolator xml data file
 	 * 
-	 * @param file
+	 * @param files
 	 * @return
 	 * @throws Throwable
 	 */
-	public static PercolatorResults getPercolatorResults(File file ) throws Throwable {
-				
-		IPercolatorOutput po = getIPercolatorOutput( file );
-		String version = getPercolatorVersion( po );
+	public static PercolatorResults getPercolatorResults(File[] files ) throws Throwable {
+
+		String version = null;
+		Map<String, PercolatorPeptideData> percolatorPeptideData = new HashMap<>();
+
+		for( File file : files ) {
+			IPercolatorOutput po = getIPercolatorOutput(file);
+
+			if( version == null ) {
+				version = getPercolatorVersion(po);
+			}
+
+			Map<String, PercolatorPSM> psmIdPSMMap = getPercolatorPSMs(po);
+			percolatorPeptideData.putAll( getPercolatorPeptideData(po, psmIdPSMMap) );
+		}
 		
-		Map<String, PercolatorPSM> psmIdPSMMap = getPercolatorPSMs( po );
-		Map<String, PercolatorPeptideData> percolatorPeptideData = getPercolatorPeptideData( po, psmIdPSMMap );
-		
-		PercolatorResults results = new PercolatorResults(version, percolatorPeptideData);
-		return results;
+		return new PercolatorResults(version, percolatorPeptideData);
 	}
 
 	

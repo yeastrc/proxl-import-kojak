@@ -30,7 +30,7 @@ public class KojakPepXMLReader {
 
 	public KojakResults getResultsFromAnalysis(KojakAnalysis kojakAnalysis) throws Exception {
 
-		Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> results = new HashMap<>();
+		Map<KojakReportedPeptide, Map<String, Map<Integer, KojakPSMResult>>> results = new HashMap<>();
 		String kojakVersion = null;
 
 		for (File pepXMLFile : kojakAnalysis.getPepXMLFiles()) {
@@ -46,9 +46,9 @@ public class KojakPepXMLReader {
 		return new KojakResults( kojakVersion, results );
 	}
 
-	private Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> getResultsForPepXMLFile(MsmsPipelineAnalysis analysis, String pepXMLFileName) throws Exception {
+	private Map<KojakReportedPeptide, Map<String, Map<Integer, KojakPSMResult>>> getResultsForPepXMLFile(MsmsPipelineAnalysis analysis, String pepXMLFileName) throws Exception {
 
-		Map<KojakReportedPeptide, Map<String, Collection<KojakPSMResult>>> results = new HashMap<>();
+		Map<KojakReportedPeptide, Map<String, Map<Integer, KojakPSMResult>>> results = new HashMap<>();
 
 		for( MsmsRunSummary runSummary : analysis.getMsmsRunSummary() ) {
 
@@ -82,9 +82,9 @@ public class KojakPepXMLReader {
 								results.put(reportedPeptide, new HashMap<>());
 
 							if( !results.get(reportedPeptide).containsKey(pepXMLFileName))
-								results.get(reportedPeptide).put(pepXMLFileName, new ArrayList<>());
+								results.get(reportedPeptide).put(pepXMLFileName, new HashMap<>());
 
-							results.get(reportedPeptide).get(pepXMLFileName).add(result);
+							results.get(reportedPeptide).get(pepXMLFileName).put(result.getScanNumber(), result);
 						} catch( Throwable t ) {
 
 							System.err.println( "Got error processing search hit" );

@@ -22,7 +22,13 @@ import org.yeastrc.proxl.xml.kojak.builder.XMLBuilder;
 import org.yeastrc.proxl.xml.kojak.constants.ConverterConstants;
 import org.yeastrc.proxl.xml.kojak.objects.ConversionParameters;
 import org.yeastrc.proxl.xml.kojak.objects.KojakResults;
+import org.yeastrc.proxl.xml.kojak.objects.PercolatorResults;
 import org.yeastrc.proxl.xml.kojak.reader.KojakPepXMLReader;
+import org.yeastrc.proxl.xml.kojak.reader.KojakPercolatorValidator;
+import org.yeastrc.proxl.xml.kojak.reader.PercolatorResultsReader;
+
+import java.io.File;
+import java.util.Collection;
 
 public class ConverterRunner {
 
@@ -34,12 +40,15 @@ public class ConverterRunner {
         KojakResults kojakResuls = KojakPepXMLReader.getInstance().getResultsFromAnalysis( conversionParameters.getKojakAnalysis() );
         System.err.println( " Done." );
 
-        int runType = ConverterConstants.RUN_TYPE_KOJAK_ONLY;
+        System.err.print( "Reading Percolator XML data into memory..." );
+        PercolatorResults percResults = PercolatorResultsReader.getPercolatorResults( conversionParameters.getPercolatorAnalysis().getOutXMLFiles() );
+        System.err.println( " Done." );
 
-        if( conversionParameters.getPercolatorAnalysis() != null ) {
-            runType = ConverterConstants.RUN_TYPE_KOJAK_PERCOLATOR;
+        System.err.print( "Verifying all percolator results have comet results..." );
+        KojakPercolatorValidator.validateData( kojakResuls, percResults );
+        System.err.println( " Done." );
 
-        }
+        int runType = conversionParameters.getPercolatorAnalysis() == null ? ConverterConstants.RUN_TYPE_KOJAK_ONLY : ConverterConstants.RUN_TYPE_KOJAK_PERCOLATOR;
 
         System.err.print( "Writing out XML..." );
         (new XMLBuilder()).buildAndSaveXML( conversionParameters, kojakResuls, runType );
