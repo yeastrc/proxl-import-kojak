@@ -213,40 +213,40 @@ public class XMLBuilder {
 		ReportedPeptides reportedPeptides = new ReportedPeptides();
 		proxlInputRoot.setReportedPeptides( reportedPeptides );
 
-		Map<KojakReportedPeptide, Collection<KojakPSMResult>> kojakResultsMap = kojakResults.getKojakResults();
+		Map<KojakReportedPeptide, Map<String, Map<Integer, KojakPSMResult>>> kojakResultsMap = kojakResults.getKojakResults();
 
 		// iterate over each distinct reported peptide
 		for( KojakReportedPeptide rp : kojakResultsMap.keySet() ) {
-			
+
 			ReportedPeptide xmlReportedPeptide = new ReportedPeptide();
-			reportedPeptides.getReportedPeptide().add( xmlReportedPeptide );
-			
-			xmlReportedPeptide.setReportedPeptideString( rp.toString() );
-			
-			if( rp.getType() == ConverterConstants.LINK_TYPE_CROSSLINK )
-				xmlReportedPeptide.setType( LinkType.CROSSLINK );
-			else if( rp.getType() == ConverterConstants.LINK_TYPE_LOOPLINK )
-				xmlReportedPeptide.setType( LinkType.LOOPLINK );
+			reportedPeptides.getReportedPeptide().add(xmlReportedPeptide);
+
+			xmlReportedPeptide.setReportedPeptideString(rp.toString());
+
+			if (rp.getType() == ConverterConstants.LINK_TYPE_CROSSLINK)
+				xmlReportedPeptide.setType(LinkType.CROSSLINK);
+			else if (rp.getType() == ConverterConstants.LINK_TYPE_LOOPLINK)
+				xmlReportedPeptide.setType(LinkType.LOOPLINK);
 			else
-				xmlReportedPeptide.setType( LinkType.UNLINKED );
-			
+				xmlReportedPeptide.setType(LinkType.UNLINKED);
+
 			Peptides xmlPeptides = new Peptides();
-			xmlReportedPeptide.setPeptides( xmlPeptides );
+			xmlReportedPeptide.setPeptides(xmlPeptides);
 
 			// process all peptides in this reported peptide
 			int peptideIndex = 0;
-			for( KojakPeptide kojakPeptide : rp.getKojakPeptides() ) {
+			for (KojakPeptide kojakPeptide : rp.getKojakPeptides()) {
 
 				peptideIndex++;
 
 				Peptide xmlPeptide = new Peptide();
-				xmlPeptides.getPeptide().add( xmlPeptide );
+				xmlPeptides.getPeptide().add(xmlPeptide);
 
-				xmlPeptide.setSequence( kojakPeptide.getSequence() );
-				xmlPeptide.setUniqueId( String.valueOf( peptideIndex ) );
+				xmlPeptide.setSequence(kojakPeptide.getSequence());
+				xmlPeptide.setUniqueId(String.valueOf(peptideIndex));
 
-				if( ( kojakPeptide.getDynamicModifications() != null && kojakPeptide.getDynamicModifications().size() > 0 ) ||
-						kojakPeptide.getnTerminalMod() != null || kojakPeptide.getcTerminalMod() != null ) {
+				if ((kojakPeptide.getDynamicModifications() != null && kojakPeptide.getDynamicModifications().size() > 0) ||
+						kojakPeptide.getnTerminalMod() != null || kojakPeptide.getcTerminalMod() != null) {
 
 					Modifications xmlModifications = new Modifications();
 					xmlPeptide.setModifications(xmlModifications);
@@ -290,201 +290,204 @@ public class XMLBuilder {
 				}
 
 				// add in the linked position(s) in this peptide
-				if( kojakPeptide.getLinkedPositions() != null ) {
+				if (kojakPeptide.getLinkedPositions() != null) {
 
 					LinkedPositions xmlLinkedPositions = new LinkedPositions();
-					xmlPeptide.setLinkedPositions( xmlLinkedPositions );
+					xmlPeptide.setLinkedPositions(xmlLinkedPositions);
 
-					for( int linkedPosition : kojakPeptide.getLinkedPositions() ) {
+					for (int linkedPosition : kojakPeptide.getLinkedPositions()) {
 
 						LinkedPosition xmlLinkedPosition = new LinkedPosition();
-						xmlLinkedPositions.getLinkedPosition().add( xmlLinkedPosition );
-						xmlLinkedPosition.setPosition( new BigInteger( String.valueOf( linkedPosition ) ) );
+						xmlLinkedPositions.getLinkedPosition().add(xmlLinkedPosition);
+						xmlLinkedPosition.setPosition(new BigInteger(String.valueOf(linkedPosition)));
 					}
 				}
 
 				// add in stable isotope labels
-				if( kojakPeptide.getN15Label() != null ) {
+				if (kojakPeptide.getN15Label() != null) {
 
 					Peptide.PeptideIsotopeLabels xmlPeptideIsotopeLabels = new Peptide.PeptideIsotopeLabels();
-					xmlPeptide.setPeptideIsotopeLabels( xmlPeptideIsotopeLabels );
+					xmlPeptide.setPeptideIsotopeLabels(xmlPeptideIsotopeLabels);
 
 					Peptide.PeptideIsotopeLabels.PeptideIsotopeLabel xmlPeptideIsotopeLabel = new Peptide.PeptideIsotopeLabels.PeptideIsotopeLabel();
-					xmlPeptideIsotopeLabels.setPeptideIsotopeLabel( xmlPeptideIsotopeLabel );
-					xmlPeptideIsotopeLabel.setLabel( "15N" );
+					xmlPeptideIsotopeLabels.setPeptideIsotopeLabel(xmlPeptideIsotopeLabel);
+					xmlPeptideIsotopeLabel.setLabel("15N");
 				}
 
 			}
-			
+
 			// add in the PSMs and annotations
 			Psms xmlPsms = new Psms();
-			xmlReportedPeptide.setPsms( xmlPsms );
-			
+			xmlReportedPeptide.setPsms(xmlPsms);
+
 			// iterate over all PSMs for this reported peptide
-			for( KojakPSMResult result : kojakResultsMap.get( rp ) ) {
-				Psm xmlPsm = new Psm();
-				xmlPsms.getPsm().add( xmlPsm );
-				
-				xmlPsm.setScanNumber( new BigInteger( String.valueOf( result.getScanNumber() ) ) );
-				xmlPsm.setPrecursorCharge( new BigInteger( String.valueOf( result.getCharge() ) ) );
-				xmlPsm.setScanFileName( result.getScanFile() );
-				
-				if( rp.getType() == ConverterConstants.LINK_TYPE_CROSSLINK || rp.getType() == ConverterConstants.LINK_TYPE_LOOPLINK )
-					xmlPsm.setLinkerMass( result.getLinkerMass() );
-				
-				// add in the filterable PSM annotations (e.g., score)
-				FilterablePsmAnnotations xmlFilterablePsmAnnotations = new FilterablePsmAnnotations();
-				xmlPsm.setFilterablePsmAnnotations( xmlFilterablePsmAnnotations );
-				
-				// handle kojak score
-				{
-					FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
-					xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add( xmlFilterablePsmAnnotation );
-					
-					xmlFilterablePsmAnnotation.setAnnotationName( PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_SCORE );
-					xmlFilterablePsmAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-					xmlFilterablePsmAnnotation.setValue( result.getKojakScore() );
-				}
+			for (String pepXMLFileName : kojakResultsMap.get(rp).keySet()) {
+				for( Integer scanNumber : kojakResultsMap.get(rp).get(pepXMLFileName).keySet() ) {
 
-				// handle delta score
-				{
-					FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
-					xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add( xmlFilterablePsmAnnotation );
+					KojakPSMResult result = kojakResultsMap.get(rp).get(pepXMLFileName).get(scanNumber);
 
-					xmlFilterablePsmAnnotation.setAnnotationName( PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_DELTA_SCORE );
-					xmlFilterablePsmAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-					xmlFilterablePsmAnnotation.setValue( result.getDeltaScore() );
-				}
+					Psm xmlPsm = new Psm();
+					xmlPsms.getPsm().add(xmlPsm);
 
-				// handle ppm error
-				{
-					FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
-					xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add( xmlFilterablePsmAnnotation );
+					xmlPsm.setScanNumber(new BigInteger(String.valueOf(result.getScanNumber())));
+					xmlPsm.setPrecursorCharge(new BigInteger(String.valueOf(result.getCharge())));
+					xmlPsm.setScanFileName(result.getScanFile());
 
-					xmlFilterablePsmAnnotation.setAnnotationName( PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_PPM_ERROR );
-					xmlFilterablePsmAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-					xmlFilterablePsmAnnotation.setValue( result.getPpmError() );
-				}
+					if (rp.getType() == ConverterConstants.LINK_TYPE_CROSSLINK || rp.getType() == ConverterConstants.LINK_TYPE_LOOPLINK)
+						xmlPsm.setLinkerMass(result.getLinkerMass());
 
-				// handle e-value
-				{
-					FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
-					xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add( xmlFilterablePsmAnnotation );
+					// add in the filterable PSM annotations (e.g., score)
+					FilterablePsmAnnotations xmlFilterablePsmAnnotations = new FilterablePsmAnnotations();
+					xmlPsm.setFilterablePsmAnnotations(xmlFilterablePsmAnnotations);
 
-					xmlFilterablePsmAnnotation.setAnnotationName( PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_EVALUE );
-					xmlFilterablePsmAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-					xmlFilterablePsmAnnotation.setValue( result.getEvalue() );
-				}
+					// handle kojak score
+					{
+						FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
+						xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add(xmlFilterablePsmAnnotation);
 
-				// handle ion match
-				{
-					FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
-					xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add( xmlFilterablePsmAnnotation );
+						xmlFilterablePsmAnnotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_SCORE);
+						xmlFilterablePsmAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+						xmlFilterablePsmAnnotation.setValue(result.getKojakScore());
+					}
 
-					xmlFilterablePsmAnnotation.setAnnotationName( PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_ION_MATCH );
-					xmlFilterablePsmAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-					xmlFilterablePsmAnnotation.setValue( new BigDecimal( result.getIonMatch() ).stripTrailingZeros() );
-				}
+					// handle delta score
+					{
+						FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
+						xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add(xmlFilterablePsmAnnotation);
 
-				// handle consecutive ion match
-				{
-					FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
-					xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add( xmlFilterablePsmAnnotation );
+						xmlFilterablePsmAnnotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_DELTA_SCORE);
+						xmlFilterablePsmAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+						xmlFilterablePsmAnnotation.setValue(result.getDeltaScore());
+					}
 
-					xmlFilterablePsmAnnotation.setAnnotationName( PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH );
-					xmlFilterablePsmAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-					xmlFilterablePsmAnnotation.setValue( new BigDecimal( result.getConsecutiveIonMatch() ).stripTrailingZeros() );
-				}
+					// handle ppm error
+					{
+						FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
+						xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add(xmlFilterablePsmAnnotation);
 
-				// add in each matched peptide's scores if applicable
-				if( result.getPerPeptidePSMResults() != null && result.getPerPeptidePSMResults().size() == 2 ) {
+						xmlFilterablePsmAnnotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_PPM_ERROR);
+						xmlFilterablePsmAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+						xmlFilterablePsmAnnotation.setValue(result.getPpmError());
+					}
 
-					Psm.PerPeptideAnnotations xmlPerPeptideAnnotations = new Psm.PerPeptideAnnotations();
-					xmlPsm.setPerPeptideAnnotations( xmlPerPeptideAnnotations );
+					// handle e-value
+					{
+						FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
+						xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add(xmlFilterablePsmAnnotation);
 
-					int counter = 0;
-					for( KojakPerPeptidePSM perPeptidePSM : result.getPerPeptidePSMResults() ) {
+						xmlFilterablePsmAnnotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_EVALUE);
+						xmlFilterablePsmAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+						xmlFilterablePsmAnnotation.setValue(result.getEvalue());
+					}
 
-						Psm.PerPeptideAnnotations.PsmPeptide xmlPsmPeptide = new Psm.PerPeptideAnnotations.PsmPeptide();
-						xmlPerPeptideAnnotations.getPsmPeptide().add( xmlPsmPeptide );
+					// handle ion match
+					{
+						FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
+						xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add(xmlFilterablePsmAnnotation);
 
-						// add in the unique id for each per peptide psm scores
-						if( perPeptidePSM.getLinkedPeptide().equals( rp.getKojakPeptides().get( 0 ) ) ) {
+						xmlFilterablePsmAnnotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_ION_MATCH);
+						xmlFilterablePsmAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+						xmlFilterablePsmAnnotation.setValue(new BigDecimal(result.getIonMatch()).stripTrailingZeros());
+					}
 
-							if( rp.getKojakPeptides().get( 0 ).equals( rp.getKojakPeptides().get( 1 ) ) && counter == 1 ) {
+					// handle consecutive ion match
+					{
+						FilterablePsmAnnotation xmlFilterablePsmAnnotation = new FilterablePsmAnnotation();
+						xmlFilterablePsmAnnotations.getFilterablePsmAnnotation().add(xmlFilterablePsmAnnotation);
+
+						xmlFilterablePsmAnnotation.setAnnotationName(PSMAnnotationTypes.KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH);
+						xmlFilterablePsmAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+						xmlFilterablePsmAnnotation.setValue(new BigDecimal(result.getConsecutiveIonMatch()).stripTrailingZeros());
+					}
+
+					// add in each matched peptide's scores if applicable
+					if (result.getPerPeptidePSMResults() != null && result.getPerPeptidePSMResults().size() == 2) {
+
+						Psm.PerPeptideAnnotations xmlPerPeptideAnnotations = new Psm.PerPeptideAnnotations();
+						xmlPsm.setPerPeptideAnnotations(xmlPerPeptideAnnotations);
+
+						int counter = 0;
+						for (KojakPerPeptidePSM perPeptidePSM : result.getPerPeptidePSMResults()) {
+
+							Psm.PerPeptideAnnotations.PsmPeptide xmlPsmPeptide = new Psm.PerPeptideAnnotations.PsmPeptide();
+							xmlPerPeptideAnnotations.getPsmPeptide().add(xmlPsmPeptide);
+
+							// add in the unique id for each per peptide psm scores
+							if (perPeptidePSM.getLinkedPeptide().equals(rp.getKojakPeptides().get(0))) {
+
+								if (rp.getKojakPeptides().get(0).equals(rp.getKojakPeptides().get(1)) && counter == 1) {
+									xmlPsmPeptide.setUniqueId(String.valueOf(1));
+								} else {
+									xmlPsmPeptide.setUniqueId(String.valueOf(0));
+								}
+
+							} else if (perPeptidePSM.getLinkedPeptide().equals(rp.getKojakPeptides().get(1))) {
 								xmlPsmPeptide.setUniqueId(String.valueOf(1));
 							} else {
-								xmlPsmPeptide.setUniqueId(String.valueOf(0));
+								throw new Exception("Did not get match to either reported peptide peptide for the per peptide PSM annotations");
 							}
 
-						} else if( perPeptidePSM.getLinkedPeptide().equals( rp.getKojakPeptides().get( 1 ) ) ) {
-							xmlPsmPeptide.setUniqueId( String.valueOf( 1 ) );
+
+							FilterablePsmPerPeptideAnnotations xmlFilterablePsmPerPeptideAnnotations = new FilterablePsmPerPeptideAnnotations();
+							xmlPsmPeptide.setFilterablePsmPerPeptideAnnotations(xmlFilterablePsmPerPeptideAnnotations);
+
+							// handle e-value
+							{
+								FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
+								xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add(xmlFilterablePsmPerPeptideAnnotation);
+
+								xmlFilterablePsmPerPeptideAnnotation.setAnnotationName(PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_EVALUE);
+								xmlFilterablePsmPerPeptideAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+								xmlFilterablePsmPerPeptideAnnotation.setValue(perPeptidePSM.getEvalue());
+							}
+
+							// handle rank
+							{
+								FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
+								xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add(xmlFilterablePsmPerPeptideAnnotation);
+
+								xmlFilterablePsmPerPeptideAnnotation.setAnnotationName(PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_RANK);
+								xmlFilterablePsmPerPeptideAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+								xmlFilterablePsmPerPeptideAnnotation.setValue(new BigDecimal(perPeptidePSM.getRank()).stripTrailingZeros());
+							}
+
+							// handle score
+							{
+								FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
+								xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add(xmlFilterablePsmPerPeptideAnnotation);
+
+								xmlFilterablePsmPerPeptideAnnotation.setAnnotationName(PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_SCORE);
+								xmlFilterablePsmPerPeptideAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+								xmlFilterablePsmPerPeptideAnnotation.setValue(perPeptidePSM.getKojakScore());
+							}
+
+							// handle ions matched
+							{
+								FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
+								xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add(xmlFilterablePsmPerPeptideAnnotation);
+
+								xmlFilterablePsmPerPeptideAnnotation.setAnnotationName(PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_ION_MATCH);
+								xmlFilterablePsmPerPeptideAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+								xmlFilterablePsmPerPeptideAnnotation.setValue(new BigDecimal(perPeptidePSM.getIonMatch()).stripTrailingZeros());
+							}
+
+							// handle consecutive ions matched
+							{
+								FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
+								xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add(xmlFilterablePsmPerPeptideAnnotation);
+
+								xmlFilterablePsmPerPeptideAnnotation.setAnnotationName(PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH);
+								xmlFilterablePsmPerPeptideAnnotation.setSearchProgram(ConverterConstants.PROGRAM_NAME_KOJAK);
+								xmlFilterablePsmPerPeptideAnnotation.setValue(new BigDecimal(perPeptidePSM.getConsecutiveIonMatch()).stripTrailingZeros());
+							}
+
+							counter++;
 						}
-						else {
-							throw new Exception( "Did not get match to either reported peptide peptide for the per peptide PSM annotations" );
-						}
-
-
-						FilterablePsmPerPeptideAnnotations xmlFilterablePsmPerPeptideAnnotations = new FilterablePsmPerPeptideAnnotations();
-						xmlPsmPeptide.setFilterablePsmPerPeptideAnnotations( xmlFilterablePsmPerPeptideAnnotations );
-
-						// handle e-value
-						{
-							FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
-							xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add( xmlFilterablePsmPerPeptideAnnotation );
-
-							xmlFilterablePsmPerPeptideAnnotation.setAnnotationName( PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_EVALUE );
-							xmlFilterablePsmPerPeptideAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-							xmlFilterablePsmPerPeptideAnnotation.setValue( perPeptidePSM.getEvalue() );
-						}
-
-						// handle rank
-						{
-							FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
-							xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add( xmlFilterablePsmPerPeptideAnnotation );
-
-							xmlFilterablePsmPerPeptideAnnotation.setAnnotationName( PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_RANK );
-							xmlFilterablePsmPerPeptideAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-							xmlFilterablePsmPerPeptideAnnotation.setValue(  new BigDecimal( perPeptidePSM.getRank() ).stripTrailingZeros() );
-						}
-
-						// handle score
-						{
-							FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
-							xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add( xmlFilterablePsmPerPeptideAnnotation );
-
-							xmlFilterablePsmPerPeptideAnnotation.setAnnotationName( PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_SCORE );
-							xmlFilterablePsmPerPeptideAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-							xmlFilterablePsmPerPeptideAnnotation.setValue( perPeptidePSM.getKojakScore() );
-						}
-
-						// handle ions matched
-						{
-							FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
-							xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add( xmlFilterablePsmPerPeptideAnnotation );
-
-							xmlFilterablePsmPerPeptideAnnotation.setAnnotationName( PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_ION_MATCH );
-							xmlFilterablePsmPerPeptideAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-							xmlFilterablePsmPerPeptideAnnotation.setValue(  new BigDecimal( perPeptidePSM.getIonMatch() ).stripTrailingZeros() );
-						}
-
-						// handle consecutive ions matched
-						{
-							FilterablePsmPerPeptideAnnotation xmlFilterablePsmPerPeptideAnnotation = new FilterablePsmPerPeptideAnnotation();
-							xmlFilterablePsmPerPeptideAnnotations.getFilterablePsmPerPeptideAnnotation().add( xmlFilterablePsmPerPeptideAnnotation );
-
-							xmlFilterablePsmPerPeptideAnnotation.setAnnotationName( PSMPerPeptideAnnotationTypes.KOJAK_ANNOTATION_TYPE_CONSECUTIVE_ION_MATCH );
-							xmlFilterablePsmPerPeptideAnnotation.setSearchProgram( ConverterConstants.PROGRAM_NAME_KOJAK );
-							xmlFilterablePsmPerPeptideAnnotation.setValue(  new BigDecimal( perPeptidePSM.getConsecutiveIonMatch() ).stripTrailingZeros() );
-						}
-
-						counter++;
 					}
-				}
 
 
-
-			}//end iterating over all PSMs for a reported peptide
+				}//end iterating over all PSMs for a reported peptide
+			}
 			
 			
 		}// end iterating over distinct reported peptides
