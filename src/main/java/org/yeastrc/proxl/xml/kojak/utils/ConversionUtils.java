@@ -14,13 +14,10 @@ public class ConversionUtils {
      */
     public static String getPepXMLPrefixFromPsmId( String psmId ) throws Exception {
 
-        // expecting a psmId like: QEP2_2018_1128_AZ_104_az753_AZ_511_3_1
-        // last number is index of result for scan
-        // second to last number is charge
-        // third to list number is scan number
-        // rest is what we want
+        // expecting a psmId like: D-QEHFX_2019_0510_AZ_034_eh220_comet-1008-3.19
+        // where QEHFX_2019_0510_AZ_034_eh220_comet is the name of the pep XML file
 
-        Pattern p = Pattern.compile( "^(.+)_\\d+_\\d+_\\d+$" );
+        Pattern p = Pattern.compile( "^[DT]\\-(\\S+)\\-\\d+\\-[0-9\\.]+$" );
         Matcher m = p.matcher( psmId );
         if( m.matches() ) {
             return m.group( 1 );
