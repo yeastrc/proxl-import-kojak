@@ -38,11 +38,9 @@ public class XMLBuilder {
 
 	public void buildAndSaveXML( ConversionParameters conversionParameters,
 								 KojakResults kojakResults,
+								 PercolatorResults percolatorResults,
 								 int runType
 			                    ) throws Exception {
-
-
-		Object percolatorResults = null;
 
 		KojakAnalysis analysis = conversionParameters.getKojakAnalysis();
 
@@ -67,34 +65,58 @@ public class XMLBuilder {
 		
 		SearchPrograms searchPrograms = new SearchPrograms();
 		searchProgramInfo.setSearchPrograms( searchPrograms );
-		
-		SearchProgram searchProgram = new SearchProgram();
-		searchPrograms.getSearchProgram().add( searchProgram );
-		
-		searchProgram.setName( ConverterConstants.PROGRAM_NAME_KOJAK );
-		searchProgram.setDisplayName( ConverterConstants.PROGRAM_NAME_KOJAK );
-		searchProgram.setVersion( kojakResults.getKojakVersion() );
 
-		// add psm annotation types
+		// add in kojak
 		{
-			PsmAnnotationTypes psmAnnotationTypes = new PsmAnnotationTypes();
-			searchProgram.setPsmAnnotationTypes( psmAnnotationTypes );
-			
-			FilterablePsmAnnotationTypes filterablePsmAnnotationTypes = new FilterablePsmAnnotationTypes();
-			psmAnnotationTypes.setFilterablePsmAnnotationTypes( filterablePsmAnnotationTypes );
-			filterablePsmAnnotationTypes.getFilterablePsmAnnotationType().addAll( PSMAnnotationTypes.getFilterablePsmAnnotationTypes( ConverterConstants.PROGRAM_NAME_KOJAK, runType ) );
-			
+			SearchProgram searchProgram = new SearchProgram();
+			searchPrograms.getSearchProgram().add(searchProgram);
+
+			searchProgram.setName(ConverterConstants.PROGRAM_NAME_KOJAK);
+			searchProgram.setDisplayName(ConverterConstants.PROGRAM_NAME_KOJAK);
+			searchProgram.setVersion(kojakResults.getKojakVersion());
+
+			// add psm annotation types
+			{
+				PsmAnnotationTypes psmAnnotationTypes = new PsmAnnotationTypes();
+				searchProgram.setPsmAnnotationTypes(psmAnnotationTypes);
+
+				FilterablePsmAnnotationTypes filterablePsmAnnotationTypes = new FilterablePsmAnnotationTypes();
+				psmAnnotationTypes.setFilterablePsmAnnotationTypes(filterablePsmAnnotationTypes);
+				filterablePsmAnnotationTypes.getFilterablePsmAnnotationType().addAll(PSMAnnotationTypes.getFilterablePsmAnnotationTypes(ConverterConstants.PROGRAM_NAME_KOJAK, runType));
+
+			}
+
+			// add psm per-peptide annotation types
+			{
+				PsmPerPeptideAnnotationTypes psmPerPeptideAnnotationTypes = new PsmPerPeptideAnnotationTypes();
+				searchProgram.setPsmPerPeptideAnnotationTypes(psmPerPeptideAnnotationTypes);
+
+				FilterablePsmPerPeptideAnnotationTypes filterablePsmPerPeptideAnnotationTypes = new FilterablePsmPerPeptideAnnotationTypes();
+				psmPerPeptideAnnotationTypes.setFilterablePsmPerPeptideAnnotationTypes(filterablePsmPerPeptideAnnotationTypes);
+				filterablePsmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationType().addAll(PSMPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationTypes(ConverterConstants.PROGRAM_NAME_KOJAK, runType));
+
+			}
 		}
 
-		// add psm per-peptide annotation types
-		{
-			PsmPerPeptideAnnotationTypes psmPerPeptideAnnotationTypes = new PsmPerPeptideAnnotationTypes();
-			searchProgram.setPsmPerPeptideAnnotationTypes( psmPerPeptideAnnotationTypes );
+		// add in percolator if necessary
+		if(percolatorResults != null) {
+			SearchProgram searchProgram = new SearchProgram();
+			searchPrograms.getSearchProgram().add(searchProgram);
 
-			FilterablePsmPerPeptideAnnotationTypes filterablePsmPerPeptideAnnotationTypes = new FilterablePsmPerPeptideAnnotationTypes();
-			psmPerPeptideAnnotationTypes.setFilterablePsmPerPeptideAnnotationTypes( filterablePsmPerPeptideAnnotationTypes );
-			filterablePsmPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationType().addAll( PSMPerPeptideAnnotationTypes.getFilterablePsmPerPeptideAnnotationTypes( ConverterConstants.PROGRAM_NAME_KOJAK, runType ) );
+			searchProgram.setName(ConverterConstants.PROGRAM_NAME_PERCOLATOR);
+			searchProgram.setDisplayName(ConverterConstants.PROGRAM_NAME_PERCOLATOR);
+			searchProgram.setVersion(percolatorResults.getPercolatorVersion());
 
+			// add psm annotation types
+			{
+				PsmAnnotationTypes psmAnnotationTypes = new PsmAnnotationTypes();
+				searchProgram.setPsmAnnotationTypes(psmAnnotationTypes);
+
+				FilterablePsmAnnotationTypes filterablePsmAnnotationTypes = new FilterablePsmAnnotationTypes();
+				psmAnnotationTypes.setFilterablePsmAnnotationTypes(filterablePsmAnnotationTypes);
+				filterablePsmAnnotationTypes.getFilterablePsmAnnotationType().addAll(PSMAnnotationTypes.getFilterablePsmAnnotationTypes(ConverterConstants.PROGRAM_NAME_KOJAK, runType));
+
+			}
 		}
 
 
