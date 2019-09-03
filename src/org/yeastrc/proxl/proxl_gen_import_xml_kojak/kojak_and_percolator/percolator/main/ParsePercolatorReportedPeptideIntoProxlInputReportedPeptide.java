@@ -254,12 +254,16 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 					modification.setMass( modificationMass );
 					modification.setIsMonolink( isModificationAMonolink );
 					modification.setIsNTerminal( true );
+					modification.setPosition( BigInteger.ONE ); // 1 based position
 				}
 			}
 
 			//  Process Modifications at 'c' terminus
 			
 			if ( kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods != null && ( ! kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods.isEmpty() ) ){
+				
+				BigInteger peptideLengthBI = BigInteger.valueOf( peptideSequenceForProxlXML_PeptideObject.length() );
+				
 				for ( BigDecimal modificationMass : kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods ) {
 
 					boolean isModificationAMonolink = 
@@ -277,6 +281,7 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 					modification.setMass( modificationMass );
 					modification.setIsMonolink( isModificationAMonolink );
 					modification.setIsCTerminal( true );
+					modification.setPosition( peptideLengthBI ); // 1 based position
 				}
 			}
 			
@@ -290,10 +295,10 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 				
 				linkedPosition.setPosition( BigInteger.valueOf( linkPosition ) );
 			}
-			
+
+
 			Peptide proxlInputPeptide = new Peptide();
-			proxlInputPeptideList.add( proxlInputPeptide );
-			
+		
 			proxlInputPeptide.setSequence( peptideSequenceForProxlXML_PeptideObject );
 			proxlInputPeptide.setModifications( modifications );
 			proxlInputPeptide.setLinkedPositions( linkedPositions );
@@ -309,6 +314,8 @@ public class ParsePercolatorReportedPeptideIntoProxlInputReportedPeptide {
 			}
 			
 			proxlInputPeptide.setUniqueId(peptideUniqueId  );
+			
+			proxlInputPeptideList.add( proxlInputPeptide );
 		}
 		
 		return proxlInputPeptides;

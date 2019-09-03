@@ -319,12 +319,15 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 				modification.setMass( modificationMass );
 				modification.setIsMonolink( isModificationAMonolink );
 				modification.setIsNTerminal( true );
+				modification.setPosition( BigInteger.ONE ); // 1 based position
 			}
 		}
 
 		//  Process Modifications at 'c' terminus
 		
 		if ( kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods != null && ( ! kojak_GetDynamicModsForOneSequence_Result.c_Terminal_Mods.isEmpty() ) ){
+			
+			BigInteger peptideLengthBI = BigInteger.valueOf( proxlInputPeptide.getSequence().length() );
 
 			Modifications modifications = proxlInputPeptide.getModifications();
 			if ( modifications == null ) {
@@ -345,6 +348,7 @@ public class PopulateProxlInputReportedPeptideFromKojakOnly {
 				modification.setMass( modificationMass );
 				modification.setIsMonolink( isModificationAMonolink );
 				modification.setIsCTerminal( true );
+				modification.setPosition( peptideLengthBI ); // 1 based position
 			}
 		}
 		
