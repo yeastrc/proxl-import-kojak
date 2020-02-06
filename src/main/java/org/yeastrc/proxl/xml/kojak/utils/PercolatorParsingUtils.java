@@ -27,26 +27,45 @@ public class PercolatorParsingUtils {
 	 * Examples:
 	 * T-46425-94.65
 	 * T-44282-90.35-2
+	 * T-UWPRLumos_2020_0124_AZ_094_AZ815_xlink05-858-4.03
 	 * @param scanId
 	 * @return
 	 */
 	public static int getScanNumberFromScanId( String scanId ) {
-		
-		Pattern p1 = Pattern.compile( "^[TD]-(\\d+)-.+$" );
-		Pattern p2 = Pattern.compile( "^.+_(\\d+)_\\d+_\\d$" );
 
-		Matcher m = p1.matcher( scanId );
 
-		if( m.matches() ) {
-			return Integer.parseInt( m.group( 1 ) );
+		Pattern p = null;
+		Matcher m = null;
+
+		// try T-46425-94.65
+		{
+			p = Pattern.compile("^[TD]-(\\d+)-\\d+\\.\\d+$");
+			m = p.matcher(scanId);
+
+			if (m.matches()) {
+				return Integer.parseInt(m.group(1));
+			}
 		}
-		
-		m = p2.matcher( scanId );
 
-		if( m.matches() ) {
-			return Integer.parseInt( m.group( 1 ) );
+		// try T-44282-90.35-2
+		{
+			p = Pattern.compile("^[TD]-(\\d+)-\\d+\\.\\d+-\\d+$");
+			m = p.matcher(scanId);
+
+			if (m.matches()) {
+				return Integer.parseInt(m.group(1));
+			}
 		}
 
+		// T-UWPRLumos_2020_0124_AZ_094_AZ815_xlink05-858-4.03
+		{
+			p = Pattern.compile("^[TD]-\\S+-(\\d+)-\\d+\\.\\d+-\\d+$");
+			m = p.matcher(scanId);
+
+			if (m.matches()) {
+				return Integer.parseInt(m.group(1));
+			}
+		}
 		
 		throw new IllegalArgumentException( "Scan id is not of the expected syntax. Got: " + scanId + ", expected something like: T-46425-94.6" );
 	}

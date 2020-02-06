@@ -57,7 +57,7 @@ jar {
 }
 
 shadowJar {
-    baseName = 'kojak2ProxlXML'
+    baseName = 'kojak2ProxlXMLv2'
     classifier = null
     version = null
 }
