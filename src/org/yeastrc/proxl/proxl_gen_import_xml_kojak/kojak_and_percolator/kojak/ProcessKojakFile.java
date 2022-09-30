@@ -1,8 +1,10 @@
 package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.kojak;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.constants.SearchProgramNameKojakImporterConstants;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.isotope_labeling.Isotope_Labels_SpecifiedIn_KojakConfFile;
@@ -13,6 +15,7 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileReader
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.PopulateOnlyKojakAnnotationTypesInSearchProgram;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents.KojakFileGetContentsResult;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.validation.Validate_SearchProgram_ObjectBetweenKojakFiles;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.psm_processing.PsmMatchingAndCollection;
 import org.yeastrc.proxl_import.api.xml_dto.ProxlInput;
 import org.yeastrc.proxl_import.api.xml_dto.SearchProgram;
@@ -43,7 +46,7 @@ public class ProcessKojakFile {
 	 */
 	public void processKojakFile( 
 			
-			File kojakOutputFile,
+			List<File> kojakOutputFile_List,
 			ProxlInput proxlInputRoot,
 			PsmMatchingAndCollection psmMatchingAndCollection,
 			KojakConfFileReaderResult kojakConfFileReaderResult ) throws Exception {
@@ -55,58 +58,79 @@ public class ProcessKojakFile {
 		SearchPrograms searchPrograms = searchProgramInfo.getSearchPrograms();
 		List<SearchProgram> searchProgramList = searchPrograms.getSearchProgram();
 		
-		SearchProgram searchProgram = new SearchProgram();
-		searchProgramList.add( searchProgram );
-		
-		searchProgram.setName( SearchProgramNameKojakImporterConstants.KOJAK );
-		searchProgram.setDisplayName( SearchProgramNameKojakImporterConstants.KOJAK );
-		searchProgram.setDescription( null );
-		
 		try {
+			
+			SearchProgram first_SearchProgram = null;
 
-			KojakFileGetContentsResult kojakFileGetContentsResult =
-					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile, isotopes_SpecifiedIn_KojakConfFile );
-			
-			KojakFileReader kojakFileReader = kojakFileGetContentsResult.getKojakFileReader();
-			List<KojakPsmDataObject> kojakPsmDataObjectList = kojakFileGetContentsResult.getKojakPsmDataObjectList();
-									
-			PopulateOnlyKojakAnnotationTypesInSearchProgram.getInstance()
-			.populateKojakAnnotationTypesInSearchProgram( 
-					searchProgram, kojakFileReader, PopulateOnlyKojakAnnotationTypesInSearchProgram.SetKojakDefaultCutoffs.NO );
-			
-			searchProgram.setVersion( kojakFileReader.getProgramVersion() );
-			
-			
-						
-			//  Process the data lines:
+			for ( File kojakOutputFile : kojakOutputFile_List ) {
 
-			for ( KojakPsmDataObject kojakPsmDataObject : kojakPsmDataObjectList ) {
+				KojakFileGetContentsResult kojakFileGetContentsResult =
+						KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile, isotopes_SpecifiedIn_KojakConfFile );
+
+				KojakFileReader kojakFileReader = kojakFileGetContentsResult.getKojakFileReader();
+				List<KojakPsmDataObject> kojakPsmDataObjectList = kojakFileGetContentsResult.getKojakPsmDataObjectList();
+
+				SearchProgram searchProgram = new SearchProgram();
 				
-				if ( log.isInfoEnabled() ) {
+				searchProgram.setName( SearchProgramNameKojakImporterConstants.KOJAK );
+				searchProgram.setDisplayName( SearchProgramNameKojakImporterConstants.KOJAK );
+				searchProgram.setDescription( null );
+				
+				PopulateOnlyKojakAnnotationTypesInSearchProgram.getInstance()
+				.populateKojakAnnotationTypesInSearchProgram( 
+						searchProgram, kojakFileReader, PopulateOnlyKojakAnnotationTypesInSearchProgram.SetKojakDefaultCutoffs.NO );
 
-					System.out.println( "Processing Kojak record for scan number: " + kojakPsmDataObject.getScanNumber() );
+				searchProgram.setVersion( kojakFileReader.getProgramVersion() );
+
+				if ( first_SearchProgram == null ) {
+
+					first_SearchProgram = searchProgram;
+
+					searchProgramList.add( searchProgram );
+					
+				} else {
+
+					//  throws ProxlGenXMLDataException when not match
+					Validate_SearchProgram_ObjectBetweenKojakFiles.validateMatch_SearchProgram_ObjectBetweenKojakFiles(first_SearchProgram, searchProgram);
 				}
 
-				if ( IsAllProtein_1or2_Decoy.getInstance().isAllProtein_1or2_Decoy( kojakPsmDataObject, kojakConfFileReaderResult) ) {
-					
+				//  Process the data lines:
+
+				for ( KojakPsmDataObject kojakPsmDataObject : kojakPsmDataObjectList ) {
+
 					if ( log.isInfoEnabled() ) {
 
-						System.out.println( "All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record."
-								+ "  scan number: " + kojakPsmDataObject.getScanNumber() );
+						System.out.println( "Processing Kojak record for scan number: " + kojakPsmDataObject.getScanNumber() );
 					}
-					
-					//   All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record.
-					
-					continue;  //   EARLY CONTINUE to next record
+
+					if ( IsAllProtein_1or2_Decoy.getInstance().isAllProtein_1or2_Decoy( kojakPsmDataObject, kojakConfFileReaderResult) ) {
+
+						if ( log.isInfoEnabled() ) {
+
+							System.out.println( "All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record."
+									+ "  scan number: " + kojakPsmDataObject.getScanNumber() );
+						}
+
+						//   All proteins for Protein #1 or Protein #2 are decoys so skipping this Kojak record.
+
+						continue;  //   EARLY CONTINUE to next record
+					}
+
+
+					psmMatchingAndCollection.addKojakPsmData( kojakPsmDataObject );
 				}
-				
-				
-				psmMatchingAndCollection.addKojakPsmData( kojakPsmDataObject );
 			}
+
 			
 		} catch ( Exception e ) {
 			
-			String msg = "Error processing Kojak file: " + kojakOutputFile.getAbsolutePath();
+			List<String> kojakOutputFile_getAbsolutePath_List = new ArrayList<>( kojakOutputFile_List.size() );
+			
+			for ( File kojakOutputFile : kojakOutputFile_List ) {
+				kojakOutputFile_getAbsolutePath_List.add( kojakOutputFile.getAbsolutePath() );
+			}
+			
+			String msg = "Error processing Kojak files: " + StringUtils.join( kojakOutputFile_getAbsolutePath_List, ", " );
 			log.error( msg );
 			throw e;
 		}

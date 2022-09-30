@@ -21,6 +21,7 @@ import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakProteinNon
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakPsmDataObject;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.PopulateOnlyKojakAnnotationTypesInSearchProgram;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.Proxl_Psm__PsmPerPeptide_CreateWithKojakAnnotations;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.validation.Validate_SearchProgram_ObjectBetweenKojakFiles;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.common.kojak.KojakFileGetContents.KojakFileGetContentsResult;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.enums.KojakGenImportInternalLinkTypeEnum;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.objects.LinkTypeAndReportedPeptideString;
@@ -70,19 +71,18 @@ public class ProcessKojakFileOnly {
 		SearchPrograms searchPrograms = searchProgramInfo.getSearchPrograms();
 		List<SearchProgram> searchProgramList = searchPrograms.getSearchProgram();
 		
-		SearchProgram searchProgram = new SearchProgram();
-		searchProgramList.add( searchProgram );
-		
-		searchProgram.setName( SearchProgramNameKojakImporterConstants.KOJAK );
-		searchProgram.setDisplayName( SearchProgramNameKojakImporterConstants.KOJAK );
-		searchProgram.setDescription( null );
-		
 		try {
 			KojakFileGetContentsResult kojakFileGetContentsResult =
 					KojakFileGetContents.getInstance().kojakFileGetContents( kojakOutputFile, isotope_Labels_SpecifiedIn_KojakConfFile );
 			
 			KojakFileReader kojakFileReader = kojakFileGetContentsResult.getKojakFileReader();
 			List<KojakPsmDataObject> kojakPsmDataObjectList = kojakFileGetContentsResult.getKojakPsmDataObjectList();
+
+			SearchProgram searchProgram = new SearchProgram();
+		
+			searchProgram.setName( SearchProgramNameKojakImporterConstants.KOJAK );
+			searchProgram.setDisplayName( SearchProgramNameKojakImporterConstants.KOJAK );
+			searchProgram.setDescription( null );
 			
 			PopulateOnlyKojakAnnotationTypesInSearchProgram.getInstance()
 			.populateKojakAnnotationTypesInSearchProgram( 
@@ -90,12 +90,44 @@ public class ProcessKojakFileOnly {
 			
 			searchProgram.setVersion( kojakFileReader.getProgramVersion() );
 			
-			AddKojakOnlyAnnotationSortOrder.getInstance().addAnnotationSortOrder( searchProgramInfo );
-			
-			AddKojakOnlyDefaultVisibleAnnotations.getInstance().addDefaultVisibleAnnotations( searchProgramInfo );
+			if ( searchProgramList.isEmpty() ) {
+				
+				//  First Kojak file processed
+				
+				searchProgramList.add( searchProgram );
+
+				AddKojakOnlyAnnotationSortOrder.getInstance().addAnnotationSortOrder( searchProgramInfo );
+				
+				AddKojakOnlyDefaultVisibleAnnotations.getInstance().addDefaultVisibleAnnotations( searchProgramInfo );
+				
+			} else {
+				
+				SearchProgram searchProgram_First = searchProgramList.get(0);
+				
+				//  throws ProxlGenXMLDataException when not match
+				Validate_SearchProgram_ObjectBetweenKojakFiles.validateMatch_SearchProgram_ObjectBetweenKojakFiles(searchProgram_First, searchProgram);
+			}
 			
 			
 			Map<String, ReportedPeptide> reportedPeptidesKeyedOnReportedPeptideString = new HashMap<>();
+			
+			//  Populate Map with existing ReportedPeptide entries
+
+			{
+				ReportedPeptides reportedPeptides = proxlInputRoot.getReportedPeptides();
+
+				if ( reportedPeptides != null ) {
+
+					List<ReportedPeptide> reportedPeptideList = reportedPeptides.getReportedPeptide();
+
+					for ( ReportedPeptide reportedPeptide : reportedPeptideList ) {
+
+						reportedPeptidesKeyedOnReportedPeptideString.put( reportedPeptide.getReportedPeptideString(), reportedPeptide );
+					}
+				}
+			}
+			
+			//////////
 			
 			//  Process the data lines:
 

@@ -125,6 +125,20 @@ public class ProcessPercolatorFileList {
 
 		IPeptides percolatorPeptides = percolatorOutput.getPeptides();
 
+		if ( percolatorPeptides == null ) {
+
+			String msg = "No <peptide> elements in Percolator file";
+			log.error( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+		
+		if ( percolatorPeptides.getPeptide() == null ) {
+
+			String msg = "No <peptide> elements in Percolator file";
+			log.error( msg );
+			throw new ProxlGenXMLDataException(msg);
+		}
+
 		List<? extends IPeptide> percolatorPeptideList = percolatorPeptides.getPeptide();
 
 		for ( IPeptide percolatorPeptide : percolatorPeptideList ) {

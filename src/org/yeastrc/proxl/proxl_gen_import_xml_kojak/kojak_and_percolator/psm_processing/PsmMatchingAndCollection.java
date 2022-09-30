@@ -27,19 +27,21 @@ public class PsmMatchingAndCollection {
 	private static final Logger log = Logger.getLogger(PsmMatchingAndCollection.class);
 
 	//  private constructor
-	private PsmMatchingAndCollection() {}
+	private PsmMatchingAndCollection( List<String> scanFilename_MainPart_For_Crux_Format_List ) {
+		
+		this.scanFilename_MainPart_For_Crux_Format_List = scanFilename_MainPart_For_Crux_Format_List;
+	}
 	
 	
-	/**
-	 *   Singleton instance
-	 */
-	private static PsmMatchingAndCollection instance = new PsmMatchingAndCollection();
-	
-	public static PsmMatchingAndCollection getInstance() {
+	public static PsmMatchingAndCollection getNewInstance(List<String> scanFilename_MainPart_For_Crux_Format_List ) {
+		
+		PsmMatchingAndCollection instance = new PsmMatchingAndCollection( scanFilename_MainPart_For_Crux_Format_List );
 		
 		return instance;
 	}
-	
+
+	private List<String> scanFilename_MainPart_For_Crux_Format_List;
+		
 	/**
 	 * Map key is Percolator psm_id
 	 */
@@ -110,7 +112,7 @@ public class PsmMatchingAndCollection {
 		
 		String psmReportedPeptideSequence = psm.getPeptideSeq().getSeq();
 		
-		PsmIdSplitObject psmIdSplitObject = SplitKojakPsmId.splitKojakPsmId( psmIdString );
+		PsmIdSplitObject psmIdSplitObject = SplitKojakPsmId.splitKojakPsmId( psmIdString, scanFilename_MainPart_For_Crux_Format_List );
 		
 		PsmMatchingPSMDataHolder internalPSMDataHolder = new PsmMatchingPSMDataHolder();
 		

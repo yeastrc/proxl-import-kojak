@@ -37,7 +37,12 @@ public class InitialProcessPsmsForCompareToKojak {
 	 * @return
 	 * @throws Exception
 	 */
-	public PsmMatchingAndCollection initialProcessPsmsForCompareToKojak( List<PercolatorFileAndUnmarshalledObject> percolatorFileAndUnmarshalledObjectList ) throws Exception {
+	public PsmMatchingAndCollection initialProcessPsmsForCompareToKojak( 
+			
+			List<PercolatorFileAndUnmarshalledObject> percolatorFileAndUnmarshalledObjectList,
+			List<String> scanFilename_MainPart_For_Crux_Format_List
+			
+			) throws Exception {
 		
 	    
 		if ( log.isInfoEnabled() ) {
@@ -45,7 +50,7 @@ public class InitialProcessPsmsForCompareToKojak {
 			System.out.println("InitialProcessPsmsForCompareToKojakAndScans: Starting processing PSMs in <psms>");
 		}
 
-	    PsmMatchingAndCollection psmProcessing = PsmMatchingAndCollection.getInstance();
+	    PsmMatchingAndCollection psmProcessing = PsmMatchingAndCollection.getNewInstance( scanFilename_MainPart_For_Crux_Format_List );
 		
 		for ( PercolatorFileAndUnmarshalledObject percolatorFileAndUnmarshalledObject : percolatorFileAndUnmarshalledObjectList ) {
 		

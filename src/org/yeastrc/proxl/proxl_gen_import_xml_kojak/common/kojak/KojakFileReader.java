@@ -36,6 +36,10 @@ public class KojakFileReader {
 	
 	private File inputFile;
 	
+	public File getInputFile() {
+		return inputFile;
+	}
+
 	private BufferedReader reader;
 	
 	private int kojakFileLineNumber = 0;

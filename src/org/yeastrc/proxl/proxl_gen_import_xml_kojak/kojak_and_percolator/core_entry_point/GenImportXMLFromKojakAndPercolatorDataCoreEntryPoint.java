@@ -91,7 +91,10 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 			boolean forceDropKojakDuplicateRecordsOptOnCommandLine,
 
 			List<File> percolatorFileList, 
-			File kojakOutputFile,
+			
+			List<File> kojakOutputFile_List,
+			List<String> scanFilename_MainPart_For_Crux_Format_List,  //  Computed from kojakOutputFile_List
+			
 			File kojakConfFile,
 			
 			File outputFile
@@ -149,9 +152,9 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 			}
 			
 			
-			if ( kojakOutputFile == null ) {
+			if ( kojakOutputFile_List == null || kojakOutputFile_List.isEmpty() ) {
 				
-				String msg = "kojakOutputFile cannot be null";
+				String msg = "kojakOutputFile_List cannot be null or empty";
 				log.error( msg );
 				
 				throw new IllegalArgumentException(msg);
@@ -193,10 +196,9 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 			//  Throws Exception on error
 			VerifyNoDuplicatePercolatorPSMs.verifyNoDuplicatePercolatorPSMs( percolatorFileAndUnmarshalledObjectList );
 
-			
-			
 			PsmMatchingAndCollection psmMatchingAndCollection = 
-					InitialProcessPsmsForCompareToKojak.getInstance().initialProcessPsmsForCompareToKojak( percolatorFileAndUnmarshalledObjectList );
+					InitialProcessPsmsForCompareToKojak.getInstance().initialProcessPsmsForCompareToKojak(
+							percolatorFileAndUnmarshalledObjectList, scanFilename_MainPart_For_Crux_Format_List );
 
 			
 			KojakConfFileReaderResult kojakConfFileReaderResult =
@@ -255,7 +257,7 @@ public class GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint {
 			}
 			
 			ProcessKojakFile.getInstance().processKojakFile( 
-							kojakOutputFile,
+							kojakOutputFile_List,
 							proxlInputRoot, 
 							psmMatchingAndCollection,
 							kojakConfFileReaderResult );

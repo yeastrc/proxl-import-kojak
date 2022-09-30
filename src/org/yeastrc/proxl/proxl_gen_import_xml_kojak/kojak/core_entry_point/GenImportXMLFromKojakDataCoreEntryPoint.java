@@ -82,7 +82,7 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 			
 			boolean forceDropKojakDuplicateRecordsOptOnCommandLine,
 
-			File kojakOutputFile,
+			List<File> kojakOutputFile_List,
 			File kojakConfFile,
 			
 			File outputFile
@@ -136,9 +136,9 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 			}
 			
 			
-			if ( kojakOutputFile == null ) {
+			if ( kojakOutputFile_List == null || kojakOutputFile_List.isEmpty() ) {
 				
-				String msg = "kojakOutputFile cannot be null";
+				String msg = "kojakOutputFile cannot be null or empty";
 				log.error( msg );
 				
 				throw new IllegalArgumentException(msg);
@@ -221,9 +221,12 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 				proteinNameStrings = new HashSet<>();
 			}
 			
-			
-			ProcessKojakFileOnly.getInstance().processKojakFile( kojakOutputFile, proxlInputRoot, proteinNameStrings, kojakConfFileReaderResult );
+			{
+				for ( File kojakOutputFile : kojakOutputFile_List ) {
 
+					ProcessKojakFileOnly.getInstance().processKojakFile( kojakOutputFile, proxlInputRoot, proteinNameStrings, kojakConfFileReaderResult );
+				}
+			}
 			
 			List<MatchedProteins_IsotopeLabel_Param> isotopeLabels_MatchedProteinsParam = new ArrayList<>();
 			 

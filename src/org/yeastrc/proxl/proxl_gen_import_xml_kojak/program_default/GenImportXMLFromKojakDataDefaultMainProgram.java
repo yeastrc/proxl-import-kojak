@@ -17,7 +17,7 @@ import jargs.gnu.CmdLineParser.UnknownOptionException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
-import org.yeastrc.proxl.proxl_gen_import_xml_kojak.default_cutoff_on_import_values.DefaultCutoffOnImportValuesConstants;
+import org.yeastrc.proxl.proxl_gen_import_xml_kojak.constants_and_enums.KojakFilenameConstants;
 //import org.apache.log4j.Logger;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.core_entry_point.GenImportXMLFromKojakDataCoreEntryPoint;
 import org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak_and_percolator.core_entry_point.GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint;
@@ -59,7 +59,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
         String fastaFileWithPathFileFromCmdLineString = null;
         File fastaFileWithPathFileFromCmdLine = null;
 
-        String kojakFileWithPath = null;
+        List<String> kojakFileWithPath_List = null;
         String kojakConfFileWithPathCommandLine = null;
         
         
@@ -84,7 +84,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		
         
         
-        Boolean noPercolatorCmdLine = (Boolean) null;
+        Boolean noPercolatorCmdLine = null;
         
         Boolean skipPopulatingMatchedProteins = false;
         
@@ -106,10 +106,13 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 		
 		
         File kojakConfFile = null;
-        
 
-		File kojakOutputFile = null;
-		
+		List<File> kojakOutputFile_List = null;
+
+    	List<String> scanFilename_MainPart_For_Crux_Format_List = null;
+    	
+		Boolean cruxParam = false;
+	        
 		try {
 			
 			if ( args.length == 0 ) {
@@ -125,7 +128,14 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			CmdLineParser cmdLineParser = new CmdLineParser();
 	        
 			CmdLineParser.Option outputFilenameOpt = cmdLineParser.addStringOption( 'o', "output-file" );
+
 			CmdLineParser.Option kojakFileWithPathCommandLineOpt = cmdLineParser.addStringOption( 'k', "kojak-data-file" );
+
+			//  'Z' is not mentioned to the user
+			CmdLineParser.Option cruxCommandLineOpt = 
+					cmdLineParser.addBooleanOption( 'Z', "crux" );
+			
+
 			CmdLineParser.Option kojakConfFileWithPathCommandLineOpt = cmdLineParser.addStringOption( 'c', "kojak-conf-file" );
 			CmdLineParser.Option linkerOpt = cmdLineParser.addStringOption( 'l', "linker" );
 			
@@ -229,7 +239,11 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			@SuppressWarnings("rawtypes")
 			Vector linkerNameStringsVector = cmdLineParser.getOptionValues( linkerOpt );
 
-	        kojakFileWithPath = (String)cmdLineParser.getOptionValue( kojakFileWithPathCommandLineOpt );
+			@SuppressWarnings("rawtypes")
+	        Vector kojakFileWithPath_Vector = cmdLineParser.getOptionValues( kojakFileWithPathCommandLineOpt );
+			
+			cruxParam = (Boolean) cmdLineParser.getOptionValue( cruxCommandLineOpt, Boolean.FALSE);
+			
 	        kojakConfFileWithPathCommandLine = (String)cmdLineParser.getOptionValue( kojakConfFileWithPathCommandLineOpt );
 	        
 	        
@@ -277,8 +291,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 			
 			
 			/////////////   Validate the parameters
-			
-				      
+			   
 	        if( outputFilename == null || outputFilename.equals( "" ) ) {
 	        	System.err.println( "Must specify an output file using -o or --output_file=" );
 	        	System.err.println( "" );
@@ -405,12 +418,51 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        	monolinkMassessStringsList.add( monolinkMassesString );
 	        }
 	        
+
+	        if( kojakFileWithPath_Vector == null || kojakFileWithPath_Vector.size() == 0 ) {
+	        	System.err.println( "Must specify at least one kojak output file name with path using -k" );
+        		System.err.println( "" );
+        		System.err.println( "" );
+	        	System.err.println( FOR_HELP_STRING );
+				
+				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+	        }
 	        
 	        
+	        kojakFileWithPath_List = new ArrayList<>( kojakFileWithPath_Vector.size() );
+
+
+	        for ( Object kojakFileWithPathObject : kojakFileWithPath_Vector ) {
+	        	
+	        	if ( ! (  kojakFileWithPathObject instanceof String ) ) {
+
+		        	System.err.println( "Internal ERROR:  kojakFileWithPathObject is not a String object." );
+		        	System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+	        	}
+	        	
+	        	String kojakFileWithPathString = (String) kojakFileWithPathObject;
+
+	        	if( kojakFileWithPathString == null || kojakFileWithPathString.equals( "" ) ) {
+
+	        		System.err.println( "Internal ERROR:  kojakFileWithPathObject is empty or null." );
+	        		System.err.println( "" );
+					System.err.println( FOR_HELP_STRING );
+					
+					System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+	        	}
+	        	
+	        	kojakFileWithPath_List.add( kojakFileWithPathString );
+	        }
 
 	        
-	        if( StringUtils.isEmpty( kojakFileWithPath ) ) {
-	        	System.err.println( "Must specify a kojak output file name with path using -k\n" );
+	        if ( kojakFileWithPath_List.size() > 1 && ( ! percolatorFileStringsList.isEmpty() ) 
+	        		&& ( cruxParam == null || ( ! cruxParam.booleanValue() ) ) ) {
+	        	
+	        	System.err.println( "Must specify --crux when specify more than one Kojak output file and Percolator files" );
+        		System.err.println( "" );
         		System.err.println( "" );
 	        	System.err.println( FOR_HELP_STRING );
 				
@@ -420,7 +472,8 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 
 	        if( StringUtils.isEmpty( kojakConfFileWithPathCommandLine ) ) {
-	        	System.err.println( "Must specify a Kojak Conf file name with path using -s\n" );
+	        	System.err.println( "Must specify a Kojak Conf file name with path using -s" );
+        		System.err.println( "" );
         		System.err.println( "" );
 	        	System.err.println( FOR_HELP_STRING );
 				
@@ -587,9 +640,11 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        System.out.println( "" );
 	        
 	        
+	        for ( String kojakFileWithPath : kojakFileWithPath_List ) {
+
+	        	System.out.println( "Kojak output filename with path\t" + kojakFileWithPath );
+	        }
 	        
-	        
-	        System.out.println( "Kojak output filename with path\t" + kojakFileWithPath );
 	        System.out.println( "Kojak Conf filename with path\t" + kojakConfFileWithPathCommandLine );
 
 	        
@@ -731,19 +786,51 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
 	        }
 	        
-
-	        kojakOutputFile = new File( kojakFileWithPath );
+	        kojakOutputFile_List = new ArrayList<>( kojakFileWithPath_List.size() );
 	        
-	        if ( ! kojakOutputFile.exists() ) {
 
-				String msg = "ERROR: Kojak output file does not exist (file: " + kojakOutputFile.getAbsolutePath() + ") .";
-				System.err.println( msg );
-        		System.err.println( "" );
-	        	System.err.println( FOR_HELP_STRING );
-				
-				System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+        	if ( cruxParam != null && cruxParam.booleanValue() ) {
+        		
+        		scanFilename_MainPart_For_Crux_Format_List = new ArrayList<>( kojakFileWithPath_List.size() );
+        	}
+
+	        
+	        for ( String kojakFileWithPath: kojakFileWithPath_List ) {
+
+	        	File kojakOutputFile = new File( kojakFileWithPath );
+
+	        	if ( ! kojakOutputFile.exists() ) {
+
+	        		String msg = "ERROR: Kojak output file does not exist (file: " + kojakOutputFile.getAbsolutePath() + ") .";
+	        		System.err.println( msg );
+	        		System.err.println( "" );
+	        		System.err.println( FOR_HELP_STRING );
+
+	        		System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+	        	}
+	        	
+	        	kojakOutputFile_List.add(kojakOutputFile);
+	        	
+	        	if ( cruxParam != null && cruxParam.booleanValue() ) {
+	        		
+	        		String filename = kojakOutputFile.getName();
+	        		
+	        		if ( ! filename.endsWith( KojakFilenameConstants.KOJAK_STANDARD_OUTPUT_SUFFIX ) ) {
+	        			
+	        			String msg = "ERROR: Kojak output file does not end with '" + KojakFilenameConstants.KOJAK_STANDARD_OUTPUT_SUFFIX
+	        					+ "' (file: " + kojakOutputFile.getAbsolutePath() + ") .";
+		        		System.err.println( msg );
+		        		System.err.println( "" );
+		        		System.err.println( FOR_HELP_STRING );
+
+		        		System.exit( PROGRAM_EXIT_CODE_INVALID_INPUT );
+	        		}
+	        		
+	        		String filename_MainScanFilename_Part = filename.substring(0, filename.length() - KojakFilenameConstants.KOJAK_STANDARD_OUTPUT_SUFFIX.length() );
+	        		
+	        		scanFilename_MainPart_For_Crux_Format_List.add( filename_MainScanFilename_Part );
+	        	}
 	        }
-
 
 	        if ( ! monolinkMassessStringsList.isEmpty() ) {
         
@@ -786,7 +873,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        
 
 	        if( ! percolatorFileStringsList.isEmpty() ) {
-
+	        	
 	        	GenImportXMLFromKojakAndPercolatorDataCoreEntryPoint.getInstance().doGenFile( 
 
 	        			fastaFileWithPathFileFromCmdLine, 
@@ -805,7 +892,8 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 
 
 	        			percolatorFileList, 
-	        			kojakOutputFile, 
+	        			kojakOutputFile_List, 
+	        			scanFilename_MainPart_For_Crux_Format_List,
 	        			kojakConfFile,
 	        			outputFile
 	        			);
@@ -827,7 +915,7 @@ public class GenImportXMLFromKojakDataDefaultMainProgram {
 	        			
 	        			false /* forceDropKojakDuplicateRecordsOptOnCommandLine */,
 	        			
-	        			kojakOutputFile, 
+	        			kojakOutputFile_List, 
 	        			kojakConfFile, 
 	        			outputFile ) ;
 	        	

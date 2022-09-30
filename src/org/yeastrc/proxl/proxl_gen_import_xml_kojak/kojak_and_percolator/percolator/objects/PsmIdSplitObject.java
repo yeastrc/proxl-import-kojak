@@ -11,6 +11,8 @@ public class PsmIdSplitObject {
 	 */
 	private String psmIdString;
 	
+	private String scanFilename_MainPart_String;
+	
 	private String scanNumberString;
 
 	private int scanNumber = 0;
@@ -42,6 +44,14 @@ public class PsmIdSplitObject {
 
 	public void setScanNumber(int scanNumber) {
 		this.scanNumber = scanNumber;
+	}
+
+	public String getScanFilename_MainPart_String() {
+		return scanFilename_MainPart_String;
+	}
+
+	public void setScanFilename_MainPart_String(String scanFilename_MainPart_String) {
+		this.scanFilename_MainPart_String = scanFilename_MainPart_String;
 	}
 
 }
