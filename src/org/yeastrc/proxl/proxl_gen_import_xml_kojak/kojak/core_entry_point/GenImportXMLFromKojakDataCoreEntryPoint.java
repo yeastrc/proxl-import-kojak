@@ -3,7 +3,6 @@ package org.yeastrc.proxl.proxl_gen_import_xml_kojak.kojak.core_entry_point;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -159,15 +158,16 @@ public class GenImportXMLFromKojakDataCoreEntryPoint {
 			
 			Isotope_Labels_SpecifiedIn_KojakConfFile isotopes_SpecifiedIn_KojakConfFile = kojakConfFileReaderResult.getIsotopes_SpecifiedIn_KojakConfFile();
 
-			Collection<String> decoyIdentificationStringList = kojakConfFileReaderResult.getDecoyIdentificationStringFromConfFileList();
-			
 			if ( StringUtils.isNotEmpty( proteinNameDecoyPrefix ) ) {
 				
 				//  Decoys provided on command line so Override decoys from conf file 
+				//  Set on kojakConfFileReaderResult since that is where all the decoy checks get the decoys from
 
-				decoyIdentificationStringList = new ArrayList<>( 1 );
+				List<String> decoyIdentificationStringList = new ArrayList<>( 1 );
 				
 				decoyIdentificationStringList.add( proteinNameDecoyPrefix );
+				
+				kojakConfFileReaderResult.setDecoyIdentificationStringFromConfFileList( decoyIdentificationStringList );
 			}
 			
 			

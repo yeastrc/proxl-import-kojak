@@ -225,7 +225,9 @@ public class KojakConfFileReader {
 
 				} else if ( DECOY_FILTER_CONFIG_KEY.equals( lineParsed.key ) ) {
 					
-					decoyIdentificationStringFromConfFileList.add( lineParsed.value );
+					String decoyIdentificationString = parseDecoyFilter( lineParsed, line );
+					
+					decoyIdentificationStringFromConfFileList.add( decoyIdentificationString );
 				
 				} else if ( ISOTOPE_FILTER_15N_FILTER.equals( lineParsed.key ) ) {
 					
@@ -458,6 +460,42 @@ public class KojakConfFileReader {
 	}
 	
 	
+
+	/**
+	 * Get the decoy identification string from the 'decoy_filter' value
+	 *
+	 * @param lineParsed
+	 * @param line
+	 * @return
+	 * @throws ProxlGenXMLDataException
+	 */
+	private String parseDecoyFilter( ParsedLine lineParsed, String line ) throws ProxlGenXMLDataException {
+
+		//  Kojak 1.x:  decoy_filter = DECOY
+
+		//  Kojak 2.x:  decoy_filter = DECOY 1
+		//      Second value: 0 = decoys are already in the FASTA, 1 = Kojak generates the decoys.
+		//      Kojak generated decoy protein names are prefixed with the label followed by '0_' or '1_'
+		//      (ie: DECOY0_sp|...), so the label is still a substring of all decoy protein names.
+
+		String lineParsedValue = lineParsed.value;
+
+		String[] lineParsedValueSplit = lineParsedValue.split( "\\s+" ); // split on white space.
+
+		if ( lineParsedValue.isEmpty() || lineParsedValueSplit.length > 2 ) {
+
+			String msg = "Config key '" + DECOY_FILTER_CONFIG_KEY + "'"
+					+ " must have: Kojak 2.x: 2 values, the decoy label and 0 or 1"
+					+ " OR for Kojak 1.x: 1 value, the decoy label. line: " + line;
+
+			log.error( msg );
+
+			throw new ProxlGenXMLDataException(msg);
+		}
+
+		return lineParsedValueSplit[ 0 ];
+	}
+
 
 	/**
 	 * @param lineParsed

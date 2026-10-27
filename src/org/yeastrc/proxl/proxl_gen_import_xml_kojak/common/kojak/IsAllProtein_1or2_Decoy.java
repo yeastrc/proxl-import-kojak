@@ -88,16 +88,25 @@ public class IsAllProtein_1or2_Decoy {
 					continue;
 				}
 				
+				//  Protein is a decoy if it contains any of the decoy identification strings
+
+				boolean isDecoy = false;
+
 				for ( String decoyIdentificationString : decoyIdentificationStringFromConfFileList ) {
 				
-					if ( ! proteinSingle.contains( decoyIdentificationString ) ) {
+					if ( proteinSingle.contains( decoyIdentificationString ) ) {
 
-						//  Not decoy found
-
-						allDecoysForProtein = false;
+						isDecoy = true;
 						break;
-
 					}
+				}
+
+				if ( ! isDecoy ) {
+
+					//  Not decoy found
+
+					allDecoysForProtein = false;
+					break;
 				}
 			}
 		
